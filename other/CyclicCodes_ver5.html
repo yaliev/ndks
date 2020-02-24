@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="konva.js"></script>
+    <meta charset="utf-8" />
+    <title>Cyclic Codes by LFSR</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f0f0f0;
+      }
+    </style>
+	 <!-- <script src="https://unpkg.com/konva@4.0.1/konva.min.js"></script> -->
+	<script type="text/javascript" src="konva.js"></script>
+  </head>
+  <body>
+	<div class="cp">
+		<span class="menuItem"> 
+			<label for="InfoBits">m =</label>
+			<select id="infoBitNum" name="InfoBits">
+			  <option value=4 >4</option>
+			  <option value=5 >5</option>
+			  <option value=6 >6</option>
+			  <option value=7 >7</option>
+			  <option value=8 >8</option>
+			  <option value=9 >9</option>
+			  <option value=10 >10</option>
+			  <option value=11 selected="selected">11</option>
+			  <option value=12>12</option>
+			</select>
+		</span> 
+		<span class="menuItem">
+			<label for="errorDetectNum">t =</label>
+			<select id="errorDetectNum" name="errorDetectNum" onchange="setGenPolyList()">
+			  <option ></option>
+			  <option value=2 >2</option>
+			  <option value=3 selected="selected">3</option>
+			</select>
+		</span>  
+		<span class="menuItem">
+			2<sup>k</sup> - k &ge; m+1  => 
+		</span>  
+		<span class="menuItem">
+			<label for="parityBitNum">k =</label>
+			<select id="parityBitNum" name="parityBitNum">
+			  <option value='' ></option>
+			  <option value=3 >3</option>
+			  <option value=4>4</option>
+			  <option value=5 selected="selected">5</option>
+			  <option value=6>6</option>
+			</select> 
+		</span> 
+
+		<span  class="menuItem">
+			<label for="codewordBitNum">n =</label>
+			<select id="codewordBitNum" name="codewordBitNum">
+			  <option value=''  ></option>
+			  <option value=7 >7</option>
+			  <option value=8 >8</option>
+			  <option value=9 >9</option>
+			  <option value=10 >10</option>
+			  <option value=11 >11</option>
+			  <option value=12 >12</option>
+			  <option value=13 >13</option>
+			  <option value=14 >14</option>
+			  <option value=15>15</option>
+			  <option value=16 selected="selected">16</option>
+			  <option value=17>17</option>
+			  <option value=18>18</option>
+			</select>
+		</span> 
+		<span  class="menuItem">
+			<label for="genPoly" >P(X) = </label>
+			<select id="genPoly" name="genPoly">
+			</select>
+		</span> 
+		<span  class="menuItem">
+			<button type="button" id="applyBtn" onclick="initModel()">Create Simulator</button> 
+		</span> 
+		<span  class="menuItem">
+			<button type="button" id="nextBtn" onclick="runStep()">Run step</button> 
+		</span> 
+		
+	</div>
+    <div id="container" class="frame scrollmenu"></div>
+	<script type="text/javascript" src="CyclicCodes_creator_1.js"></script>
+	
+	
+	
+	<script>
+	var m,k,t,n; //code parameters	
+	var infoReg = [];
+	var cwReg = [];
+	var lsfrReg = [];
+	var lsfrHist = [];
+	var fbVal = 0;
+	var xorRes = [];
+	var currStep=0;
+	var subStep=1;
+	var debug=false;
+	
+	setGenPolyList(); // setting the default genPoly select menu options
+			
+	function runStep(){
+		if (debug) console.log('Running step '+currStep+' sub step '+subStep);
+		switch (currStep)
+		{
+			case 0: // positioning the switches
+			{		
+				setSW('sw1',1);
+				setSW('sw2',1);
+				reverseIR(); // reverse info register
+				currStep++;
+				break;	
+			}			
+			case 1: // run the iteration of the simulation
+			{
+				calcFB();
+				//calcXOR();
+				shiftCW();
+				shiftIR();
+				setLSFR();
+				subStep++;
+				if (subStep == (m+1)) {
+					currStep++;
+					subStep=1;
+				}				
+				break;	
+			}
+			case 2: // run the first iteration of the simulation
+			{
+				setSW('sw1',0);
+				setSW('sw2',2);				
+				currStep++;
+				break;	
+			}
+			case 3: // run the first iteration of the simulation
+			{
+				shiftCW();
+				setLSFR();
+				subStep++;
+				if (subStep == (k+1)) {
+					reverseCW(); // reverse codeword register
+					currStep++;
+					subStep=1;
+				}
+				break;	
+			}
+			default: alert('The simulation is completd!');			
+		}
+	}
+	
+	function initModel(){
+		var selectedM = Number(document.getElementById('infoBitNum').value);
+		var selectedK = Number(document.getElementById('parityBitNum').value);
+		var selectedN = Number(document.getElementById('codewordBitNum').value);
+		var selectedT = Number(document.getElementById('errorDetectNum').value);
+		var selectedPoly = document.getElementById('genPoly').value;
+		if (debug) console.log('Checking parameters...');		
+		// parity bit number check
+		if ((Math.pow(2, selectedK) - selectedK) >= (selectedM + 1 + selectedT - 2)){
+			k=selectedK;
+			m=selectedM;
+			t=selectedT;
+			infoBitsNum = selectedM;	
+			lsfrBitNum = selectedK;
+			infoReg.length=m;
+			infoReg.fill(0);
+			infoReg=[1,0,0,1,1,0,1,0,0,1,1];
+			lsfrReg.length=k;
+			lsfrReg.fill(0);
+		}
+		else{
+			alert('Wrong k value!');
+			return;
+		}
+		// codeword bit number check
+		if(selectedN == (m+k)){
+			n=selectedN;
+			cwBitsNum = selectedN;
+		}
+		else{
+			alert('Vrong n value!');
+			return;
+		}		
+		// genPoly check
+		if (t == 2)
+			switch (selectedK){
+				case 3:
+					if(selectedPoly == '3.1')       xorIds=['xor0','xor2'];			
+					else if(selectedPoly == '3.2')	xorIds=['xor1','xor2'];
+					else {
+						alert('Wrong generator polynomial for t='+selectedT+' k='+selectedK+'!');
+						return;
+					}	
+				break;
+				case 4:
+					if(selectedPoly == '4.1')       xorIds=['xor0','xor3'];			
+					else if(selectedPoly == '4.2')	xorIds=['xor2','xor3'];
+					else {
+						alert('Wrong generator polynomial for t='+selectedT+' k='+selectedK+'!');
+						return;
+					}	
+				break;
+				case 5:
+					if     (selectedPoly == '5.1')  xorIds=['xor1','xor4'];
+					else if(selectedPoly == '5.2')	xorIds=['xor2','xor4'];
+					else {
+						alert('Wrong generator polynomial for t='+selectedT+' k='+selectedK+'!');
+						return;
+					}
+				break;
+			}					
+		else if (t == 3)
+			switch (selectedK){
+				case 4:
+					if(selectedPoly == '3.3')       xorIds=['xor1','xor2','xor3'];			
+					else if(selectedPoly == '3.4')	xorIds=['xor1','xor3'];
+					else {
+						alert('Wrong generator polynomial for t='+selectedT+' k='+selectedK+'!');
+						return;
+					}	
+				break;
+				case 5:
+					if(selectedPoly == '4.3')       xorIds=['xor1','xor3','xor4'];			
+					else if(selectedPoly == '4.4')	xorIds=['xor0','xor2','xor4'];
+					else {
+						alert('Wrong generator polynomial for t='+selectedT+' k='+selectedK+'!');
+						return;
+					}	
+				break;
+				case 6:
+					if     (selectedPoly == '5.3')  xorIds=['xor0','xor1','xor2','xor4','xor5'];
+					else if(selectedPoly == '5.4')	xorIds=['xor0','xor2','xor3','xor4','xor5'];
+					else {
+						alert('Wrong generator polynomial for t='+selectedT+' k='+selectedK+'!');
+						return;
+					}
+				break;
+			}
+		//creating the simulator's komponents
+		generatePanels();    // en, ir and cw panels
+		generatePanSokets(); // creating line connecting ponts
+		generateArrows();	 // drawing arrows
+		generateDots();	     // putting line connecting points
+		generateXlabels();	 // writing X-labels
+		initInfoReg();		
+		document.getElementById('applyBtn').disabled=true;
+	}
+	
+	function setGenPolyList(){
+		var selectedT = Number(document.getElementById('errorDetectNum').value);
+		//var x = document.getElementById("mySelect").options[0].text;
+		var optionsT2 = [];
+		optionsT2.push({value:'',text:''});
+		optionsT2.push({value:'3.1',text:'X^3 + X + 1'});
+		optionsT2.push({value:'3.2',text:'X^3 + X^2 + 1'});
+		optionsT2.push({value:'4.1',text:'X^4 + X + 1'});
+		optionsT2.push({value:'4.2',text:'X^4 + X^3 + 1'});
+		optionsT2.push({value:'5.1',text:'X^5 + X^2 + 1'});
+		optionsT2.push({value:'5.2',text:'X^5 + X^3 + 1'});
+		var optionsT3 = [];
+		optionsT3.push({value:'',text:''});
+		optionsT3.push({value:'3.3',text:'X^4+X^3+X^2+1'});
+		optionsT3.push({value:'3.4',text:'X^4+X^2+1'});
+		optionsT3.push({value:'4.3',text:'X^5+X^4+X^2+1'});
+		optionsT3.push({value:'4.4',text:'X^5+X^3+X+1'});
+		optionsT3.push({value:'5.3',text:'X^6+X^5+X^3+X^2+X+1'});
+		optionsT3.push({value:'5.4',text:'X^6+X^5+X^4+X^3+X+1'});
+		var selectMenu = document.getElementById('genPoly');
+		selectMenu.options.length=0;		
+		if (selectedT == 2){
+			for (let i=0; i<optionsT2.length; i++){
+				var options = document.createElement('option');
+				options.value = optionsT2[i].value;
+				options.text  = optionsT2[i].text;
+				selectMenu.add(options,options[i]);
+			}
+		}
+		else if(selectedT == 3){
+			for (let i=0; i<optionsT3.length; i++){
+				var options = document.createElement('option');
+				options.value = optionsT3[i].value;
+				options.text  = optionsT3[i].text;
+				//console.log(options);
+				if (i == 3) options.defaultSelected= true;
+				selectMenu.add(options,options[i]);
+			}
+		}
+	}
+	
+	// Initializing the information register
+	function initInfoReg(){
+		for (let i=0; i<m; i++){
+			let txt = layer.findOne('#ir'+i+'-txt');
+			txt.text(infoReg[i].toString());
+		}
+	}
+		
+	</script>
+	</body>
+	<style>
+	div.frame {
+	  width: auto;
+	  border: 1px solid black;
+	  margin: 0.2%;
+	}
+	div.cp {
+	  width: auto;
+	  border: none;
+	  margin: 0.5%;
+	}
+	.menuItem {
+	  margin-left: 1%;
+	  font-size:larger;
+	  font-family: Arial, Helvetica, sans-serif;
+	}
+	div.scrollmenu {
+	  width: 100%;
+		height: 100%;
+		overflow: auto;
+	}
+	</style>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="konva.js"></script>
+    <meta charset="utf-8" />
+    <title>Konva Rect Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f0f0f0;
+      }
+    </style>
+	<script src="https://unpkg.com/konva@3.3.3/konva.min.js"></script>
+  </head>
+  <body>
+	<div class="cp">
+		<span> 
+			<button type="button" id="btnNext" onclick="colorChange('l')" ><< Left</button>
+			<button type="button" id="btnNext" onclick="colorChange('r')" >Right >></button>
+			
+			<input type="radio" id="autonone"  name="autoRun" onclick="autoRunStop()" checked>Disable Auto
+			<input type="radio" id="autoleft"  name="autoRun" onclick="autoRun()">AutoLeft
+			<input type="radio" id="autoright" name="autoRun" onclick="autoRun()">AutoRight
+			<input type="checkbox" id="enDrag" name="enDrag" value="" onclick="enDraggble()"> Enable Dragable
+			<input type="checkbox" id="resPos" name="resPos" value="" onclick="resPos()"> Reset Position 
+		
+		</span>  
+	</div>
+    <div id="container" class="frame"></div>
+<script>
+	document.getElementById('enDrag').checked=false;
+	document.getElementById('resPos').checked=false;
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+
+	var stage = new Konva.Stage({
+		container: 'container',
+		width: width,
+		height: height
+	});
+
+	var layer = new Konva.Layer();
+	stage.add(layer);
+	var initX = width*0.07, initY = height*0.2, distX = width*0.08, distY = height*0.15, corrX=width*0.005;
+		
+	var targetNum = 5;
+	var targets=generateTargets(targetNum);
+	var connNum = 5;
+	//var arrows = generateArrows(arrowNum);
+	var connectors = generateConnectors(connNum);
+
+	// Creating rectangles	
+	function generateTargets(num){
+		var result=[];
+		for (var i=0; i<num; i++){
+			//result.push(new Konva.Rect(propRect));
+			if (i == 0){
+				result.push({
+					id: 'target-' + result.length,
+					x: initX,
+					y: initY
+				});
+			}
+			else {
+				result.push({
+					id: 'target-' + result.length,
+					x: result[i-1].x+distX,
+					y: result[i-1].y
+				});
+			}
+		}
+		return result;
+	}
+	
+	
+	function generateConnectors(num){
+		var result = [];
+		for (var i=0; i<num; i++){
+			//result.push(new Konva.Arrow(propArrow));
+			//result[i].id("A"+i);
+			if (i<(num-1)){
+				var from = 'target-'+i;
+				var to = 'target-'+(i+1);
+				result.push({
+					id: 'connector-' + result.length,
+					from: from,
+					to: to
+				});
+			}else{
+				var from = 'target-'+i;
+				var to = 'target-0';
+				result.push({
+					id: 'connector-' + result.length,
+					from: from,
+					to: to
+				})
+			}
+		}
+		return result;
+	}	
+	
+	
+	// Creating arrows' points	
+	function getConnectorPoints(from, to, toId, dir){
+		if(dir == 'r') to.x=to.x-corrX;
+		else from.x=from.x+corrX;
+		var points=[];
+		if (toId != 'target-0'){
+			var p =[];
+			p.push({x:from.x + nodeWidth, y:from.y + nodeHeight/2});
+			p.push({x:to.x, y:to.y + nodeHeight/2});
+			points=[p[0].x,p[0].y, p[1].x,p[1].y];
+			if (dir == 'l'){
+				points=[p[1].x,p[1].y, p[0].x,p[0].y];
+			}
+					
+		}else{
+			var p =[];
+			p.push({x: from.x + nodeWidth,      y: from.y + nodeHeight/2});
+			p.push({x: p[p.length-1].x+distX/2, y: p[p.length-1].y});
+			p.push({x: p[p.length-1].x,         y: p[p.length-1].y - distY});
+			p.push({x: to.x - distX/2,          y: p[p.length-1].y});
+			p.push({x: p[p.length-1].x,         y: to.y +nodeHeight/2});
+			p.push({x:to.x,         		y: p[p.length-1].y});
+			if (dir == 'r') points=[p[0].x,p[0].y,p[1].x,p[1].y,p[2].x,p[2].y,p[3].x,p[3].y,p[4].x,p[4].y,p[5].x,p[5].y];
+			else points=[p[5].x,p[5].y,p[4].x,p[4].y,p[3].x,p[3].y,p[2].x,p[2].y,p[1].x,p[1].y,p[0].x,p[0].y];
+		}
+		return points;
+	}
+	
+	// update all objects on the canvas from the state of the app
+	function updateObjects(dir) {
+		targets.forEach(target => {
+			var node = layer.findOne('#' + target.id);
+			node.x(target.x);
+			node.y(target.y);
+		});
+		connectors.forEach(connect => {
+			var line = layer.findOne('#' + connect.id);
+			var fromNode = layer.findOne('#' + connect.from);
+			var toNode = layer.findOne('#' + connect.to);
+
+			const points = getConnectorPoints(
+				fromNode.position(),
+				toNode.position(),
+				connect.to,
+				dir
+			);
+			line.points(points);
+		});
+		layer.batchDraw();
+	}
+	
+	// generate nodes for the app
+	connectors.forEach(connect => {
+		var line = new Konva.Arrow({
+			id: connect.id,
+			pointerLength:15, 
+			pointerWidth: 10, 
+			fill: 'black', 
+			stroke: 'black', 
+			strokeWidth: 4.
+		});
+		layer.add(line);
+	});
+	
+	var nodeWidth = 80, nodeHeight = 50;
+	targets.forEach(target => {
+		var node = new Konva.Rect({
+			id: target.id,
+			width : nodeWidth, 
+			height: nodeHeight, 
+			fill: 'white', 
+			stroke: 'blue', 
+			strokeWidth: 3, 
+			shadowOffsetX: 3, 
+			shadowOffsetY: 3, 
+			draggable: false		  
+		});
+		layer.add(node);
+		
+		node.on('mouseover', function(){
+			this.strokeWidth(6);
+			layer.draw();
+		});
+		node.on('mouseout', function(){
+			this.strokeWidth(3);
+			layer.draw();
+		});
+		node.on('mouseenter', function(){
+			stage.container().style.cursor = 'pointer';
+		});
+
+		node.on('dragmove', () => {
+		  // mutate the state
+		  target.x = node.x();
+		  target.y = node.y();
+		  document.getElementById('resPos').checked=false;
+
+		  // update nodes from the new state
+		  updateObjects('r');
+		});
+		//console.log(target.id);
+	});
+	
+	
+	updateObjects('r');
+	layer.draw();			
+	
+	var colorA = 'red';
+	var colorP = 'black';
+	var aseqR = [[4,0], [0,1], [1,2], [2,3], [3,4]];
+	var aseqL = [[0,4], [1,0], [2,1], [3,2], [4,3]];
+	var idx=0;
+	
+	var refreshIntervalId;
+	function autoRunStop(){
+		clearInterval(refreshIntervalId);
+		connectors.forEach(connect =>{
+			var line = layer.findOne('#' + connect.id);
+			if(line.fill() == colorA){				
+				lastChengedLine = line.id();				
+				line.stroke(colorP);
+				line.fill(colorP);
+				layer.batchDraw();					
+			}				
+		});
+	}
+	
+	var rectPos=[];
+	function enDraggble(){
+		var chekbox = document.getElementById("enDrag");
+		if (chekbox.checked == true){
+			console.log("Draggble enabled!");
+			targets.forEach(target => {
+				var node = layer.findOne('#' + target.id);
+				node.draggable(true);
+				rectPos.push(node.position());
+			});
+		}else{
+			console.log("Draggble disabled!");
+			targets.forEach(target => {
+				var node = layer.findOne('#' + target.id);
+				node.draggable(false);
+			});
+		}
+		//console.log(rectPos);
+	}
+	
+	function resPos(){		
+		var idxPos = 0;
+		if (document.getElementById('resPos').checked){
+			targets.forEach(target => {
+				target.x = rectPos[idxPos].x;
+				target.y = rectPos[idxPos].y;				
+				idxPos++;
+			});
+			console.log("Rects' position are reseted!");
+			updateObjects();
+			layer.draw();
+		}			
+	}
+	
+	function autoRun(){			
+		var none = document.getElementById("autonone");
+		var left = document.getElementById("autoleft");
+		var right= document.getElementById("autoright");
+		var dir;
+		
+		if (left.checked == true){
+			dir = 'l';
+			colorChange(dir);
+			clearInterval(refreshIntervalId);
+			refreshIntervalId = setInterval(function(){colorChange(dir);}, 1000);
+		}
+		else if (right.checked == true){
+				dir = 'r';
+				colorChange(dir);
+				clearInterval(refreshIntervalId);
+				refreshIntervalId = setInterval(function(){colorChange(dir);}, 1000);
+		}
+		//setTimeout(function(){ colorChange(dir); }, 1000);			
+	}
+	var lineIdx = -1;
+	function colorChange(dir)
+	{		
+		if (dir == 'r') {
+			lineIdx++;
+			if(lineIdx > (connectors.length-1)) lineIdx = 0;
+			updateObjects(dir);
+		}
+		else if (dir == 'l') {
+			lineIdx--;
+			if(lineIdx < 0) lineIdx = connectors.length-1;
+			updateObjects(dir);
+		}
+		connectors.forEach(connect =>{
+			var line = layer.findOne('#' + connect.id);
+			if(line.fill() == colorA){				
+				lastChengedLine = line.id();				
+				line.stroke(colorP);
+				line.fill(colorP);
+				layer.batchDraw();					
+			}				
+		});	
+		
+		connectors.forEach(connect =>{
+			if(connect.id == 'connector-' + lineIdx){
+				//console.log('connect.id='+connect.id);
+				var line = layer.findOne('#' + connect.id);				
+				line.stroke(colorA);
+				line.fill(colorA);
+				layer.batchDraw();
+			}				
+		});
+		//console.log('lineIdx = '+lineIdx);
+	}	
+	
+</script>
+  </body>
+  <style>
+	div.frame {
+	  width: auto;
+	  border: 1px solid black;
+	  margin: 0.2%;
+	}
+	div.cp {
+	  width: auto;
+	  border: none;
+	  margin: 0.5%;
+	}
+  </style>
+</html>

@@ -1,0 +1,50 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+ <!-- <script src="https://unpkg.com/konva@4.0.1/konva.min.js"></script> -->
+	<script type="text/javascript" src="konva.js"></script>   
+	<script type="text/javascript" src="register2.js"></script>
+    <meta charset="utf-8" />
+    <title>Konva Rect Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f0f0f0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>    
+  </body>
+	<script>
+      	var winWidth = window.innerWidth;
+		var winHeight = window.innerHeight;
+
+		var stage = new Konva.Stage({
+			container: 'container',
+			width: winWidth,
+			height: winHeight,
+			cursor: 'default'
+		});		
+		var layer = new Konva.Layer();		
+		var bitsNum = 10;		
+		var ratio = 0.48, width = 20, height = width / ratio;
+		var regProps = {
+				id:'ir', 
+				name:'Information Register', 
+				position:{x:50, y:350}, 
+				fill:'Cornsilk',
+				bitsNum: bitsNum,
+				labelDistance: 25,
+				pading: 10,
+				bitProp:{width: width, height: height, fill: 'RosyBrown', stroke: 'RosyBrown'}
+		}		
+		var ir = new Register(regProps, layer); 
+		layer.add(ir);
+		layer.draw();
+		stage.add(layer);  				
+	</script>
+</html>

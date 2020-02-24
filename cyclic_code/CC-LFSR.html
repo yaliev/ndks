@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+        <meta charset="UTF-8" />
+        <title>Cyclic Coder by LFSR</title>
+        <script type="text/javascript" src="../library/konva.js"></script>
+        <script type="text/javascript" src="../library/components.js"></script>
+        <script type="text/javascript" src="../library/SmoothMovement1.js"></script>
+        <script type="text/javascript" src="lang.js"></script>
+		<script type="text/javascript" src="ccModel.js"></script>
+		<script type="text/javascript" src="algorithm.js"></script>
+		<script type="text/javascript" src="statistics.js"></script>
+
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				overflow: hidden;
+				background-color: #f0f0f0;
+				height: 100%;
+				overflow: auto;
+			}
+			#large-container {
+				width: 1450px;
+				height: 1500px;
+				overflow: hidden;
+			}
+			#scroll-container {
+				width: calc(100% - 22px);
+				height: calc(100% - 22px);
+				overflow: auto;
+				margin: 10px;
+				border: 1px solid grey;
+			}
+		</style>
+	</head>
+	<body >
+    <div class="cp">
+        <span class="menuItem">
+            <label for="infoBitNum">m =</label>
+            <select id="infoBitNum" name="InfoBits">
+              <option value=4 >4</option>
+              <option value=5 >5</option>
+              <option value=6 >6</option>
+              <option value=7 >7</option>
+              <option value=8 >8</option>
+              <option value=9 >9</option>
+              <option value=10 >10</option>
+              <option value=11 selected="selected">11</option>
+              <option value=12>12</option>
+            </select>
+        </span>
+        <span class="menuItem">
+            <label for="errDetectNum">t =</label>
+            <select id="errDetectNum" name="errDetectNum" onchange="setGenPolyList()">
+                <option value=2 >2</option>
+                <option value=3 selected="selected">3</option>
+            </select>
+        </span>
+        <span class="menuItem">
+            2<sup>k</sup> - k &ge; m+1  =>
+        </span>
+        <span class="menuItem">
+            <label for="parityBitNum">k =</label>
+            <select id="parityBitNum" name="parityBitNum">
+              <option value=3 >3</option>
+              <option value=4 >4</option>
+              <option value=5 selected="selected">5</option>
+              <option value=6>6</option>
+            </select>
+        </span>
+
+        <span  class="menuItem">
+            <label for="cwBitNum">n =</label>
+            <select id="cwBitNum" name="codewordBitNum">
+              <option value=7 >7</option>
+              <option value=8 >8</option>
+              <option value=9 >9</option>
+              <option value=10 >10</option>
+              <option value=11 >11</option>
+              <option value=12 >12</option>
+              <option value=13 >13</option>
+              <option value=14 >14</option>
+              <option value=15 >15</option>
+              <option value=16 selected="selected">16</option>
+              <option value=17 >17</option>
+              <option value=18 >18</option>
+            </select>
+        </span>
+        <span  class="menuItem">
+            <label for="genPoly" >P(X) = </label>
+            <select id="genPoly" name="genPoly">
+            </select>
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="checkBtn" onclick="ckeckParam()">Open the Model</button>
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="nextBtn" onclick="model.runCurrStep()" disabled>Run Step</button>
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="autoRunBtn" onclick="model.autoRun()" disabled>Autorun</button>
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="resetBtn" onclick="model.reset()" disabled>Reset the Model</button>
+        </span>
+        <span  class="menuItem">
+            <input type="radio" name="lang" value="bg" checked> BG
+            <input type="radio" name="lang" value="en"> EN
+        </span>
+
+
+
+    </div>
+    <div id="scroll-container">
+        <div id="large-container">
+            <div class="smallMargin" id="info">
+            </div>
+            <div id="container"></div>
+        </div>
+    </div>
+	</body>
+	<!--------------------------SCRIPT-------------------------------------->
+	<script type="text/javascript">
+		setGenPolyList(); // load genpoly list	
+		
+		let windowLimits={width:1355, height:0};
+		let winWidth = window.innerWidth;
+		let winHeight = window.innerHeight;
+		let PADDING = 300;
+		// creating the Stage
+		let stage = new Konva.Stage({
+			container: 'container',
+			width: window.innerWidth + PADDING * 4,
+			height: window.innerHeight + PADDING * 2,
+			cursor: 'default',
+			draggable: false
+		});		
+
+		// creating the model object
+		let model = new ccModel();
+		
+		//check for correct code parameters
+		function ckeckParam(){
+			let sel = document.getElementById('genPoly'); // selected generator polynomial
+			let codeParam ={
+				m: Number(document.getElementById('infoBitNum').value),
+				k: Number(document.getElementById('parityBitNum').value),
+				n: Number(document.getElementById('cwBitNum').value),
+				t: Number(document.getElementById('errDetectNum').value),
+				poly: {val: sel.options[sel.selectedIndex].value, txt: sel.options[sel.selectedIndex].text}
+			};
+			
+			if (model.checkParam(codeParam)){ // if parameters is right run below
+				//stage.add(model.init());				
+				let layers=model.init();
+				layers.forEach(layer => {
+					stage.add(layer);
+				});
+				document.getElementById('checkBtn').disabled=true;
+				document.getElementById('infoBitNum').disabled=true;
+				document.getElementById('parityBitNum').disabled=true;
+				document.getElementById('cwBitNum').disabled=true;
+				document.getElementById('errDetectNum').disabled=true;
+				document.getElementById('genPoly').disabled=true;
+				document.getElementById('nextBtn').disabled=false;
+				document.getElementById('resetBtn').disabled=false;
+				document.getElementById('autoRunBtn').disabled=false;
+
+                //console.log('model size => w: '+ model.width+';  h: '+ model.height);
+                // // changing the large-container size
+                // document.getElementById("large-container").style.width = (model.width + 100)+"px";
+                // document.getElementById("large-container").style.height = (model.height + 50)+"px";
+            }
+		}
+			
+
+		// generating the generator polynomials
+		function setGenPolyList(){
+			let selectedT = Number(document.getElementById('errDetectNum').value);
+			//let x = document.getElementById("mySelect").options[0].text;
+			let optionsT2 = [];
+			optionsT2.push({value:'3.1',text:'X^3 + X + 1'});
+			optionsT2.push({value:'3.2',text:'X^3 + X^2 + 1'});
+			optionsT2.push({value:'4.1',text:'X^4 + X + 1'});
+			optionsT2.push({value:'4.2',text:'X^4 + X^3 + 1'});
+			optionsT2.push({value:'5.1',text:'X^5 + X^2 + 1'});
+			optionsT2.push({value:'5.2',text:'X^5 + X^3 + 1'});
+			let optionsT3 = [];
+			optionsT3.push({value:'3.3',text:'X^4 + X^3 + X^2 + 1'});
+			optionsT3.push({value:'3.4',text:'X^4 + X^2 + 1'});
+			optionsT3.push({value:'4.3',text:'X^5 + X^4 + X^2 + 1'});
+			optionsT3.push({value:'4.4',text:'X^5 + X^3 + X + 1'});
+			optionsT3.push({value:'5.3',text:'X^6 + X^5 + X^3 + X^2 + X + 1'});
+			optionsT3.push({value:'5.4',text:'X^6 + X^5 + X^4 + X^3 + X + 1'});
+			let selectMenu = document.getElementById('genPoly');
+			selectMenu.options.length=0;		
+			if (selectedT == 2){
+				for (let i=0; i<optionsT2.length; i++){
+					let options = document.createElement('option');
+					options.value = optionsT2[i].value;
+					options.text  = optionsT2[i].text;
+					if (i == 2) options.defaultSelected= true;
+					selectMenu.add(options,options[i]);
+				}
+			}
+			else if(selectedT == 3){
+				for (let i=0; i<optionsT3.length; i++){
+					let options = document.createElement('option');
+					options.value = optionsT3[i].value;
+					options.text  = optionsT3[i].text;
+					//console.log(options);
+					if (i == 2) options.defaultSelected= true;
+					selectMenu.add(options,options[i]);
+				}
+			}
+		}
+		
+	</script>
+	
+	<style>
+
+        .smallMargin{
+            margin-left: 0.5%;
+            margin-top: 0.5%;
+            margin-bottom: 0%;
+            margin-right: 1%;
+        }
+		div.frame {
+		  width: auto;
+		  border: 1px solid black;
+		  margin: 0.2%;
+		}
+		div.cp {
+		  width: auto;
+		  border: none;
+		  margin: 0.5%;
+		}
+		.menuItem {
+		  margin-left: 1%;
+		  font-size:larger;
+		  font-family: Arial, Helvetica, sans-serif;
+		}
+		div.scrollmenu {
+		    width: 100%;
+			height: 100%;
+			overflow: auto;
+		}
+	</style>
+</html>

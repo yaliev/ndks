@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<body>
+
+		<h2>DEMO</h2>
+
+		<p>Craeting buttons and connecting it with lines</p>
+
+		<div>
+			<button class="bitbtt" type="button" id="butt1" value=0 onclick=togleVal("butt1")>0</button>
+			<button class="bitbtt" type="button" id="butt2" value=0 onclick=togleVal("butt2")>0</button>
+			<button class="bitbtt" type="button" id="butt3" value=0 onclick=togleVal("butt3")>0</button>
+		</div>
+
+
+		<script>
+		function togleVal(id){
+			var val= document.getElementById(id).value;
+			if (val == 0)
+				val=1;
+			else
+				val=0;
+			document.getElementById(id).value=val;
+			document.getElementById(id).innerHTML=val;
+		}
+			
+
+		</script>
+
+	</body>
+	
+	<style>
+	.bitbtt {
+		background-color: #4CAF50;
+		border: none;
+		color: white;
+		padding: 15px 10px;
+		text-align: center;
+		text-decoration: none;
+		display: inline-block;
+		font-size: 16px;
+		margin: 20px 40px;
+		cursor: pointer;
+	}
+	</style>
+</html>

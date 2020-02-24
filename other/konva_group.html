@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="konva.js"></script>
+    <meta charset="utf-8" />
+    <title>Konva Demo</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #f0f0f0;
+      }
+    </style>
+	<script src="https://unpkg.com/konva@3.3.3/konva.min.js"></script>
+  </head>
+  <body>
+	<div class="cp">
+		<span> 
+			<button type="button" id="btnNext" onclick="colorChange('l')" ><< Left</button>
+			<button type="button" id="btnNext" onclick="colorChange('r')" >Right >></button>
+			
+			<input type="radio" id="autonone"  name="autoRun" onclick="autoRunStop()" checked>Disable Auto
+			<input type="radio" id="autoleft"  name="autoRun" onclick="autoRun()">AutoLeft
+			<input type="radio" id="autoright" name="autoRun" onclick="autoRun()">AutoRight
+			<input type="checkbox" id="enDrag" name="enDrag" value="" onclick="enDraggble()"> Enable Dragable
+			<input type="checkbox" id="resPos" name="resPos" value="" onclick="resPos()"> Reset Position 
+		
+		</span>  
+	</div>
+    <div id="container" class="frame"></div>
+<script>
+	document.getElementById('enDrag').checked=false;
+	document.getElementById('resPos').checked=false;
+	document.getElementById('autonone').checked=true;
+
+	var width = window.innerWidth;
+	var height = window.innerHeight;
+
+	var stage = new Konva.Stage({
+		container: 'container',
+		width: width,
+		height: height,
+		cursor: 'default'
+	});
+	var layer = new Konva.Layer();
+	stage.add(layer);
+	var initX = width*0.07, initY = height*0.2, distX = width*0.1, distY = height*0.15, corrX=width*0.005;
+	var colorA = 'red', colorP='black', colorO='green'; colorAfill = 'black'; colorAstroke = 'black';
+	var colorRfill = 'white'; colorRstroke = 'blue'; colorShadow = 'black'
+	var rectWidth = 80, rectHeight = 50;
+		
+	var targetNum = 5;
+	var targets=generateTargets(targetNum);
+	var connNum = 5;
+	var connectors = generateConnectors(connNum);
+
+	// Creating rectangles	
+	function generateTargets(num){
+		var result=[];
+		for (var i=0; i<num; i++){
+			//result.push(new Konva.Rect(propRect));
+			if (i == 0){
+				result.push({
+					id: 'target-'+result.length,
+					x: initX,
+					y: initY
+				});
+			}
+			else {
+				result.push({
+					id: 'target-'+result.length,
+					x: result[i-1].x+distX,
+					y: result[i-1].y
+				});
+			}
+		}
+		return result;
+	}	
+	
+	function generateConnectors(num){
+		var result = [];
+		for (var i=0; i<num; i++){
+			if (i<(num-1)){
+				var from = 'target-'+i;
+				var to = 'target-'+(i+1);
+				result.push({
+					id: 'connector-' + result.length,
+					from: from,
+					to: to
+				});
+			}else{
+				var from = 'target-'+i;
+				var to = 'target-0';
+				result.push({
+					id: 'connector-' + result.length,
+					from: from,
+					to: to
+				})
+			}
+		}
+		return result;
+	}	
+		
+	// Creating arrows' points	
+	function getConnectorPoints(from, to, toId, dir){
+		if(dir == 'r') to.x = to.x-corrX;
+		else           from.x = from.x+corrX;
+		var points=[];
+		if (toId != 'target-0'){
+			var p =[];
+			p.push({x:from.x + rectWidth, y:from.y + rectHeight/2});
+			p.push({x:to.x, y:to.y + rectHeight/2});
+			points=[p[0].x,p[0].y, p[1].x,p[1].y];
+			if (dir == 'l'){
+				points=[p[1].x,p[1].y, p[0].x,p[0].y];
+			}					
+		}else{ // FeedBack
+			var p =[];
+			var posY=[];
+			targets.forEach(target => {
+				let gr = layer.findOne('#gr-'+target.id.slice(7));
+				posY.push(gr.y());
+			})
+			//console.log(posY);
+			var topPos=Math.min.apply(null, posY)-distY;
+			p.push({x: from.x + rectWidth,      y: from.y + rectHeight/2});
+			p.push({x: p[p.length-1].x+distX/2, y: p[p.length-1].y});
+			//p.push({x: p[p.length-1].x,         y: p[p.length-1].y - distY});
+			p.push({x: p[p.length-1].x,         y: topPos});
+			p.push({x: to.x - distX/2,          y: p[p.length-1].y});
+			p.push({x: p[p.length-1].x,         y: to.y +rectHeight/2});
+			p.push({x:to.x,         		    y: p[p.length-1].y});
+			if (dir == 'r') points=[p[0].x,p[0].y,p[1].x,p[1].y,p[2].x,p[2].y,p[3].x,p[3].y,p[4].x,p[4].y,p[5].x,p[5].y];
+			else points=[p[5].x,p[5].y,p[4].x,p[4].y,p[3].x,p[3].y,p[2].x,p[2].y,p[1].x,p[1].y,p[0].x,p[0].y];
+		}
+		return points;
+	}
+	
+	// update all objects on the canvas from the state of the app
+	function updateObjects(dir) {
+		targets.forEach(target => {
+			var rect = layer.findOne('#gr-'+target.id.slice(7));
+			rect.x(target.x);
+			rect.y(target.y);
+		});
+		connectors.forEach(connector => {
+			var line = layer.findOne('#' + connector.id);
+			var fromTarget = layer.findOne('#gr-' + connector.from.slice(7));
+			var toTarget = layer.findOne('#gr-' + connector.to.slice(7));
+			const points = getConnectorPoints(
+				fromTarget.position(),
+				toTarget.position(),
+				connector.to,
+				dir
+			);
+			line.points(points);
+		});
+		layer.batchDraw();
+	}
+		
+	// generate lines for the app
+	connectors.forEach(connector => {
+		var line = new Konva.Arrow({
+			id: connector.id,
+			pointerLength:15, 
+			pointerWidth: 10, 
+			fill: colorAfill, 
+			stroke: colorAstroke, 
+			strokeWidth: 4.
+		});
+		layer.add(line);
+	});
+	
+	// Creating rectangles
+	targets.forEach(target => {
+		var group = new Konva.Group({
+			id: 'gr-'+target.id.slice(7),
+			width : rectWidth, 
+			height: rectHeight,
+			draggable: false
+		});
+			
+		var rect = new Konva.Rect({
+			id: 'rect-'+target.id.slice(7),
+			width : rectWidth, 
+			height: rectHeight, 
+			fill: colorRfill, 
+			stroke: colorRstroke, 
+			strokeWidth: 3, 
+			shadowColor: colorShadow,
+			shadowBlur: 10,
+			shadowOpacity: 0.5,
+			cornerRadius: 8,
+			draggable: false		  
+		});	
+		//console.log(rect.id());			
+		var txt = new Konva.Text({
+			id: 'txt-'+target.id.slice(7),
+			width : rectWidth, 
+			height: rectHeight, 
+			text: '0',
+			fontSize: 30,
+			fontFamily: 'Calibri',
+			padding: 0,
+			align: 'center',
+			verticalAlign: 'middle',
+			fill: colorRstroke
+		});
+		
+		group.on('mouseover', function(){
+			rect.strokeWidth(5);
+			rect.stroke(colorO);
+			rect.shadowOffsetX(5); 
+			rect.shadowOffsetY(5);
+			rect.shadowBlur(10);
+			rect.shadowOpacity(0.5);
+			stage.container().style.cursor = 'pointer';
+			layer.draw();
+		});
+		group.on('mouseout', function(){
+			rect.strokeWidth(3);
+			rect.stroke(colorRstroke);
+			rect.shadowOffsetX(1); 
+			rect.shadowOffsetY(1);
+			stage.container().style.cursor = 'default';
+			layer.draw();
+		});
+		group.on('click', function(){
+			var currTxt=txt.text();
+			if (currTxt == '0') txt.text('1');
+			else txt.text('0');
+			layer.draw();
+		});
+		group.on('dragmove', () =>{
+			// mutate the state
+			target.x = group.x();
+			target.y = group.y();
+			
+			txtInfo.text(group.id()+'=> X='+group.x()+', Y='+group.y());
+			layer.draw();
+			document.getElementById('resPos').checked=false;
+				
+			// update rects from the new state
+			updateObjects('r');
+		});
+		group.add(rect);
+		group.add(txt);
+		layer.add(group);
+	}); // end of target
+	
+	var txtInfo = new Konva.Text({
+		id: 'txt-Info',
+		x: width-300,
+		y: 20,
+		text: '0',
+		fontSize: 20,
+		fontFamily: 'Calibri',
+		padding: 0,
+		align: 'center',
+		verticalAlign: 'middle',
+		fill: 'black'
+	});
+	//layer.add(txtInfo);
+	
+	updateObjects('r');
+	layer.draw();			
+		
+	var refreshIntervalId;
+	function autoRunStop(){
+		clearInterval(refreshIntervalId);
+		connectors.forEach(connector =>{
+			var line = layer.findOne('#' + connector.id);
+			if(line.fill() == colorA){				
+				lastChengedLine = line.id();				
+				line.stroke(colorP);
+				line.fill(colorP);
+				layer.batchDraw();					
+			}				
+		});
+	}
+	
+	var rectPos=[];
+	function enDraggble(){
+		var chekbox = document.getElementById("enDrag");
+		if (chekbox.checked == true){
+			console.log("Draggble enabled!");
+			targets.forEach(target => {
+				var gr = layer.findOne('#gr-'+target.id.slice(7));
+				gr.draggable(true);
+				rectPos.push(gr.position());
+			});
+		}else{
+			console.log("Draggble disabled!");
+			targets.forEach(target => {
+				var gr = layer.findOne('#gr-'+target.id.slice(7));
+				gr.draggable(false);
+			});
+		}
+		//console.log(rectPos);
+	}
+	
+	function resPos(){		
+		var idxPos = 0;
+		if (document.getElementById('resPos').checked){
+			targets.forEach(target => {
+				target.x = rectPos[idxPos].x;
+				target.y = rectPos[idxPos].y;				
+				idxPos++;
+			});
+			console.log("Rects' position are reseted!");
+			updateObjects();
+			layer.draw();
+		}			
+	}
+	
+	function autoRun(){			
+		var none = document.getElementById("autonone");
+		var left = document.getElementById("autoleft");
+		var right= document.getElementById("autoright");
+		var dir;
+		
+		if (left.checked == true){
+			dir = 'l';
+			colorChange(dir);
+			clearInterval(refreshIntervalId);
+			refreshIntervalId = setInterval(function(){colorChange(dir);}, 1000);
+		}
+		else if (right.checked == true){
+				dir = 'r';
+				colorChange(dir);
+				clearInterval(refreshIntervalId);
+				refreshIntervalId = setInterval(function(){colorChange(dir);}, 1000);
+		}
+		//setTimeout(function(){ colorChange(dir); }, 1000);			
+	}
+	var lineIdx = -1;
+	function colorChange(dir)
+	{		
+		if (dir == 'r') {
+			lineIdx++;
+			if(lineIdx > (connectors.length-1)) lineIdx = 0;
+			updateObjects(dir);
+		}
+		else if (dir == 'l') {
+			lineIdx--;
+			if(lineIdx < 0) lineIdx = connectors.length-1;
+			updateObjects(dir);
+		}
+		connectors.forEach(connector =>{
+			var line = layer.findOne('#' + connector.id);
+			if(line.fill() == colorA){				
+				line.stroke(colorP);
+				line.fill(colorP);
+				layer.batchDraw();					
+			}				
+		});			
+		connectors.forEach(connector =>{
+			if(connector.id == 'connector-' + lineIdx){
+				//console.log('connector.id='+connector.id);
+				var line = layer.findOne('#' + connector.id);				
+				line.stroke(colorA);
+				line.fill(colorA);
+				layer.batchDraw();
+			}				
+		});
+		//console.log('lineIdx = '+lineIdx);
+	}	
+	
+</script>
+  </body>
+  <style>
+	div.frame {
+	  width: auto;
+	  border: 1px solid black;
+	  margin: 0.2%;
+	}
+	div.cp {
+	  width: auto;
+	  border: none;
+	  margin: 0.5%;
+	}
+  </style>
+</html>
