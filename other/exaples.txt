@@ -1,0 +1,3 @@
+infoBits=[1 0 1 0 1 0 1 1 0 1]; control bits =[1101];
+
+infoBits=[1,1,1,1,0,1,0,1]; control bits =[1001];
