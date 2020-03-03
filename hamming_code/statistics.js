@@ -26,13 +26,8 @@ createStatistics = function(lang){
     stat.lang = lang;
 	stat.layer = new Konva.Layer();
 	stat.totalTime = {min:0, sec: 0};
-
-	// creating timer object
-    stat.timer = new Konva.Group ();
-    stat.timer.ID = -1;
-    stat.timer.mun = 0;
-    stat.timer.sec = 0;
-    stat.timer.ms = 0;
+	stat.modelName='model';
+	stat.userName='user';
 
 	stat.rect =  new Konva.Rect({
 		id: stat.id()+'-rect',
@@ -73,6 +68,12 @@ createStatistics = function(lang){
 	stat.labelTxt.width(stat.labelRect.width());
 
 	stat.timer = new Konva.Group ({id:'timer'});
+	// creating timer object
+	stat.timer.ID = -1;
+	stat.timer.min = 0;
+	stat.timer.sec = 0;
+	stat.timer.maxSec = 1200; // default max time=20 min
+
 	stat.timer.label = new Konva.Text({
         id: stat.timer.id()+'-label',
         x: stat.labelRect.x()+stat.labelRect.width() + props.margin,
@@ -104,9 +105,63 @@ createStatistics = function(lang){
     stat.timer.add(stat.timer.val);
     stat.add(stat.timer);
 
-    stat.timer.val.hoverTxt = lang.startTimer;
+    stat.timer.val.hoverTxt = lang.maxTime +' '+ (Math.floor(stat.timer.maxSec / 60)+lang.min+ ' '+Math.floor(stat.timer.maxSec % 60)+lang.sec);
     stat.timer.val = hover1(stat.timer.val,  stat.timer);
     stat.timer.val = over(stat.timer.val);
+
+	stat.timer.update = function(){
+		if (stat.timer.sec < 59) stat.timer.sec++;
+		else {
+			stat.timer.sec = 0;
+			stat.timer.min++;
+
+			// check for maxSec
+			if((stat.timer.min*60) + stat.timer.sec >= stat.timer.maxSec ){
+				stat.timer.stop();
+				stat.timer.min = 0;
+				stat.timer.sec = 0;
+			}
+		}
+
+		// set time format hh:mm
+		let sec, min;
+		sec = stat.timer.sec < 10 ? "0" + stat.timer.sec : stat.timer.sec;
+		min = stat.timer.min < 10 ? "0" + stat.timer.min : stat.timer.min;
+		stat.timer.val.text(min+' '+lang.min+' '+sec+' '+lang.sec);
+		stat.layer.batchDraw();
+	};
+
+	// set max time
+	stat.timer.setMaxTime = function(time){
+		if(typeof time.min === 'undefined') return console.log('The time.min is not defined!');
+		if(typeof time.sec === 'undefined') time.sec = 0;
+		stat.timer.maxSec = time.min*60 + time.sec;
+		stat.timer.val.hoverTxt = lang.maxTime +' '+ (Math.floor(stat.timer.maxSec / 60)+lang.min+ ' '+Math.floor(stat.timer.maxSec % 60)+lang.sec);
+	};
+
+	// // timer init
+	// stat.timer.init = function(val){
+	// 	stat.timer.min = val;
+	// 	min = val < 10 ? "0" + val : val;
+	// 	stat.timer.val.text(min+' '+lang.min+' 00 '+lang.sec);
+	// 	stat.layer.batchDraw();
+	// };
+
+	stat.timer.start = function(){
+		stat.timer.ID = setInterval(function(){
+			stat.timer.update();
+		}, 1000);
+		//stat.timer.ms = Date.now();
+		console.log('Timer is started!');
+	};
+
+	// Stopping the timer
+	stat.timer.stop = function(){
+		clearInterval(stat.timer.ID);
+		console.log('Timer is stopped!');
+	};
+
+
 
     // creating error object
     stat.error = new Konva.Group ();
@@ -235,49 +290,6 @@ createStatistics = function(lang){
 		stat.layer.batchDraw();
 	};
 
-	stat.timer.update = function(){
-		if (stat.timer.sec > 0) stat.timer.sec--;
-		else {
-			stat.timer.sec = 59;
-			stat.timer.min--;
-
-			if(stat.timer.min < 0){
-				stat.timer.stop();
-				stat.timer.min = 0;
-				stat.timer.sec = 0;
-			}
-		}
-
-		let sec, min;
-		sec = stat.timer.sec < 10 ? "0" + stat.timer.sec : stat.timer.sec;
-		min = stat.timer.min < 10 ? "0" + stat.timer.min : stat.timer.min;
-		stat.timer.val.text(min+' '+lang.min+' '+sec+' '+lang.sec);
-		stat.layer.batchDraw();
-	};
-
-	// timer init
-	stat.timer.init = function(val){
-		stat.timer.min = val;
-		min = val < 10 ? "0" + val : val;
-		stat.timer.val.text(min+' '+lang.min+' 00 '+lang.sec);
-		stat.layer.batchDraw();
-	};
-
-	stat.timer.start = function(){
-		stat.timer.ID = setInterval(function(){
-			stat.timer.update();
-		}, 1000);
-		//stat.timer.ms = Date.now();
-		console.log('Timer is started!');
-	};
-
-	// Stopping the timer
-	stat.timer.stop = function(){
-		clearInterval(stat.timer.ID);
-		console.log('Timer is stopped!');
-	};
-
-
 	stat.reset = function(){
 		this.totalTime.min += this.timer.min;
 		this.totalTime.sec += this.timer.sec;
@@ -295,6 +307,15 @@ createStatistics = function(lang){
     // set size;
 	stat.width(stat.rect.width());
 	stat.height(stat.rect.height());
+
+	stat.logData = function(){
+		let data = {fileName: stat.userName,
+					modelName: stat.modelName,
+					time: (stat.timer.min*60 + stat.timer.sec),
+					errCount: stat.error.count,
+					errDetails:stat.error.history};
+		sentData(data);
+	};
 
 	return stat;
 };

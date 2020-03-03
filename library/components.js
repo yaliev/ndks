@@ -241,12 +241,8 @@ function HAMMING_GA(props, layer, alg, stat) {
         label.moveToTop();
         if (typeof targetBit !== 'undefined')
             if (haveIntersection(label, targetBit)) {
-                //label.onPlace = true;
-                console.log(label.id()+' => on place');
                 return true;
             } else {
-                //label.onPlace = false;
-                console.log(label.id()+' => not on place');
                 return false;
             }
     };
@@ -499,6 +495,7 @@ function HAMMING_GA(props, layer, alg, stat) {
                     if(oldStr !== str)
                         if(en.error.check(thisObj) === true){
                             alg.increment();
+                            stat.timer.stop();
 
                         }
                 });
@@ -859,13 +856,14 @@ function HAMMING_GA(props, layer, alg, stat) {
                 }
                 else if(en.currCbit === Cbit.id) { // reset the current control bit
                     en.Cbits.find(b => b.id === Cbit.id).man.equ = [];
+                    en.Cbits.find(b => b.id === Cbit.id).man.res = '';
                     en.currCbit = '';
                     en.equBtn.txt.text('');
                     en.bits.forEach(b => {
                         if (b.arrow.visible() === true) b.arrow.visible(false);
                         if (b.id().substr(0, 1) === 'C') b.hoverTxt = en.lang.selectCbit;
                     });
-                    alg.resetCycle(); // set all shapes in the algorithm for cyrrent cycle in default fill color
+                    alg.resetCycle(); // set all shapes in the algorithm for current cycle in default fill color
                 } else { // add to the equation of current control bit
                     en.addToEqu(this);
                 }
@@ -3851,3 +3849,4 @@ function XOR(props,layer){
 
     return xor;
 }//end of XOR
+

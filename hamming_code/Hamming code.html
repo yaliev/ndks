@@ -4,6 +4,7 @@
 	<head>
         <meta charset="UTF-8" />
         <title>Hamming code</title>
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
         <script type="text/javascript" src="../library/konva.js"></script>
         <script type="text/javascript" src="../library/components.js"></script>
         <script type="text/javascript" src="../library/SmoothMovement1.js"></script>
@@ -81,7 +82,16 @@
 	</head>
 	<body >
     <h3 id="modelTitle">Interactive Simulation Model of Hamming Code - General Algorithm</h3>
-    <div class="cp" id="cp">
+    <div class="cp" id="loginDiv">
+        <span  class="menuItem">
+            <input type="text" id="userName" name="userName" size="6">
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="loginBtn" onclick="login()">Login</button>
+        </span>
+    </div>
+    <div class="cp" id="cp"  style="display: none">
+        <span class="menuItem" id="currUser" name="currUser"></span>
         <span class="menuItem">
             <label for="infoBitNum">m =</label>
             <select id="infoBitNum" name="InfoBits">
@@ -111,7 +121,7 @@
             </select>
         </span>
         <span class="menuItem">
-            <label for="errDetectNum">t =</label>
+            <label for="errDetectNum">l<sub>0</sub> =</label>
             <select id="errDetectNum" name="errDetectNum">
                 <option value=1 >1</option>
                 <option value=2 selected="selected">2</option>
@@ -194,7 +204,7 @@
 	</body>
 	<!--------------------------SCRIPT-------------------------------------->
 	<script type="text/javascript">
-
+        let userName;
         let componentsPos={ir:'', cr:'', en:'', dec:'', alg:''};
         let size = calcSize();
         let divSize ={  width: document.getElementById("large-container").clientWidth,
@@ -239,6 +249,8 @@
 				layers.forEach(layer => {
 					stage.add(layer);
 				});
+				model.stat.userName = userName;
+
 				document.getElementById('checkBtn').disabled=true;
 				document.getElementById('infoBitNum').disabled=true;
 				document.getElementById('parityBitNum').disabled=true;
@@ -298,10 +310,47 @@
             document.getElementById('resetBtn').disabled=true;
             document.getElementById('autoRunBtn').disabled=true;
         }, false);
+
+        function sentData (params){
+            const form = document.createElement('form');
+            //let params = {fileName: 's063199', modelName: 'Hamming Encoder', time: '100 sec', errCount: '5', errDetails:['err1', 'err3']};
+            for (const key in params) {
+                if (params.hasOwnProperty(key)) {
+                    const hiddenField = document.createElement('input');
+                    hiddenField.type = 'hidden';
+                    hiddenField.name = key;
+                    hiddenField.value = params[key];
+
+                    //console.log('fieldName ='+hiddenField.name+', value = '+ hiddenField.value);
+
+                    form.appendChild(hiddenField);
+                }
+            }
+
+            $.ajax({
+                url:'http://localhost/aoksit-bg.eu/ndks/log.php',
+                type:'post',
+                data:$(form).serialize(),
+                success:function(){
+                    console.log("Data are sent");
+                }
+            });
+        }
+
+
+        function login(){
+            let user = document.getElementById('userName').value;
+            if(user.length !== 6){
+                alert('Невалиден факултетен номер');
+                return;
+            }
+            //console.log(user);
+            userName = 's'+user;
+            document.getElementById('currUser').innerHTML = 'Student: '+user+'  |';
+            document.getElementById("loginDiv").style.display = "none";
+            document.getElementById("cp").style.display = "block";
+        }
+
 	</script>
-	
-	<style>
 
-
-	</style>
 </html>

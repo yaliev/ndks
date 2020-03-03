@@ -32,7 +32,7 @@ createStatistics = function(lang){
 		id:-1,
 		min:0,
 		sec:0,
-		ms:0
+		maxSec: 1200, // default max time=20 min
 	};
 
 	stat.rect =  new Konva.Rect({
@@ -102,24 +102,24 @@ createStatistics = function(lang){
 	});
 	stat.timeVal.hover = lang.timerHover;
     // mоuse hover event
-    stat.timeVal.on('mouseover touchstart', function(){
-        stat.timeVal.shadowColor('red'),
-        stat.timeVal.shadowBlur(10),
-        stat.timeVal.shadowOpacity(1.0),
-        stage.container().style.cursor = 'pointer';
-        stat.info.show('i', stat.timeVal.hover);
-        stat.layer.batchDraw();
-    });
-
-    // mоuse hover out event
-    stat.timeVal.on('mouseout touchend', function(){
-        stat.timeVal.shadowColor(''),
-        stat.timeVal.shadowBlur(0),
-        stat.timeVal.shadowOpacity(0),
-        stage.container().style.cursor = 'default';
-        stat.info.hide();
-        stat.layer.batchDraw();
-    });
+    // stat.timeVal.on('mouseover touchstart', function(){
+    //     stat.timeVal.shadowColor('red'),
+    //     stat.timeVal.shadowBlur(10),
+    //     stat.timeVal.shadowOpacity(1.0),
+    //     stage.container().style.cursor = 'pointer';
+    //     stat.info.show('i', stat.timeVal.hover);
+    //     stat.layer.batchDraw();
+    // });
+	//
+    // // mоuse hover out event
+    // stat.timeVal.on('mouseout touchend', function(){
+    //     stat.timeVal.shadowColor(''),
+    //     stat.timeVal.shadowBlur(0),
+    //     stat.timeVal.shadowOpacity(0),
+    //     stage.container().style.cursor = 'default';
+    //     stat.info.hide();
+    //     stat.layer.batchDraw();
+    // });
 
 
 	stat.errorLabel = new Konva.Text({
@@ -150,19 +150,41 @@ createStatistics = function(lang){
         fill: 'DarkRed',
 	});
 
-	stat.timer.update = function(){
-		if (stat.timer.sec > 0) stat.timer.sec--;
-		else {
-			stat.timer.sec = 59;
-			stat.timer.min--;
+	// stat.timer.update = function(){
+	// 	if (stat.timer.sec > 0) stat.timer.sec--;
+	// 	else {
+	// 		stat.timer.sec = 59;
+	// 		stat.timer.min--;
+	//
+	// 		if(stat.timer.min < 0){
+	// 			stat.timer.stop();
+	// 			stat.timer.min = 0;
+	// 			stat.timer.sec = 0;
+	// 		}
+	// 	}
+	//
+	// 	let sec, min;
+	// 	sec = stat.timer.sec < 10 ? "0" + stat.timer.sec : stat.timer.sec;
+	// 	min = stat.timer.min < 10 ? "0" + stat.timer.min : stat.timer.min;
+	// 	stat.timeVal.text(min+' '+lang.min+' '+sec+' '+lang.sec);
+	// 	stat.layer.batchDraw();
+	// };
 
-			if(stat.timer.min < 0){
+	stat.timer.update = function(){
+		if (stat.timer.sec < 59) stat.timer.sec++;
+		else {
+			stat.timer.sec = 0;
+			stat.timer.min++;
+
+			// check for maxSec
+			if(stat.timer.min*60 + stat.timer.sec >= stat.timer.maxSec ){
 				stat.timer.stop();
 				stat.timer.min = 0;
 				stat.timer.sec = 0;
 			}
 		}
 
+		// set time format hh:mm
 		let sec, min;
 		sec = stat.timer.sec < 10 ? "0" + stat.timer.sec : stat.timer.sec;
 		min = stat.timer.min < 10 ? "0" + stat.timer.min : stat.timer.min;
@@ -178,11 +200,17 @@ createStatistics = function(lang){
 		stat.layer.batchDraw();
 	};
 
+	// set max time
+	stat.timer.maxTime = function(time){
+		if(typeof time.min === 'undefined') return console.log('The time.min is not defined!');
+		if(typeof time.sec === 'undefined') time.sec = 0;
+		stat.timer.maxSec = time.min*60 + time.sec;
+	};
+
 	stat.timer.start = function(){
 		stat.timer.id = setInterval(function(){
 			stat.timer.update();
 		}, 1000);
-		//stat.timer.ms = Date.now();
 		console.log('Timer was started!');
 	};
 

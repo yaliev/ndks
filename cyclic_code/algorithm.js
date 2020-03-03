@@ -259,7 +259,7 @@ createSchema = function(steps, lang){
     sch.labelRect.height(sch.labelTxt.height()+(prop.label.padding*2));
     sch.labelTxt.height(sch.labelRect.height());
 
-    // add components to mein group
+    // add components to main group
     sch.add(sch.rect, sch.labelRect,  sch.labelTxt);
 
     sch.setPos = function(pos){
@@ -294,6 +294,7 @@ createSchema = function(steps, lang){
 
                 sch.add(item);
                 sch.items.push(item);
+
                 lastItem = sch.items[sch.items.length-1];
 
                 if (step.name === 'shiftIR'){
@@ -432,30 +433,7 @@ createSchema = function(steps, lang){
     // Setting the schema's size
     sch.width(sch.rect.width());
     sch.height(sch.rect.height());
-    
-    // //mark item
-    // sch.markItem = function(id, check){
-    //     let item = sch.items.find(item => item.id() === id);
-    //     if (typeof item === 'undefined') return console.log('Not find item id = \''+id+'\'!');
-    //     //item.shape.fill(prop.markFill);
-    //     if (item.type === 'oper') item.shape.fill(prop.markFill);
-    //     else if(item.type === 'check') {
-    //         if (check === 'no') item.shape.fill(prop.markFillno);
-    //         else item.shape.fill(prop.markFillyes);
-    //         algorithm.layer.batchDraw();
-    //     }
-    //     else console.log('Unknown shape type for item: '+item.type);
-    // };
-    //
-    // //clear item
-    // sch.resetItem = function(id){
-    //     sch.items.forEach(item => {
-    //        if(item.id().substr(0,10) === id || item.id().substr(0,11) === id)
-    //            if (item.type === 'oper') item.shape.fill(prop.fill);
-    //            else if(item.type === 'check') item.shape.fill(prop.fill);
-    //            else console.log('Unknown shape type for item: '+item.type);
-    //     });
-    // };
+
     return sch;
 }; // END OF CREATEALGORITH
 

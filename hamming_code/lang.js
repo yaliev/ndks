@@ -79,8 +79,8 @@ function LnagPack(thisLang){
     l.bg.gn.resultAnalysis='Анализ на резултата';
 
     // statistics
-    l.en.stat.title='Info panel';
-    l.bg.stat.title='Информационен панел';
+    l.en.stat.title='Statistics';
+    l.bg.stat.title='Статистика';
     l.en.stat.startTimer='Start the Timer';
     l.bg.stat.startTimer='Стартирай таймера';
     l.en.stat.stopTimer='Stop the Timer';
@@ -91,6 +91,8 @@ function LnagPack(thisLang){
     l.bg.stat.min='мин';
     l.en.stat.sec='sec';
     l.bg.stat.sec='сек';
+    l.en.stat.maxTime='The maximum time is: ';
+    l.bg.stat.maxTime='Максималното време е: ';
     l.en.stat.err='Errors: ';
     l.bg.stat.err='Грешки: ';
     l.en.stat.showErrors='Show Errors';
@@ -139,6 +141,33 @@ function LnagPack(thisLang){
     l.bg.alg.setParam='Задаване на параметрите на кода';
     l.en.alg.resAnalysis='Analysis of the Result';
     l.bg.alg.resAnalysis='Анализ на резултата';
+
+    l.en.alg.setParamHelp='Set the value of: m, t, k and n';
+    l.bg.alg.setParamHelp='Задайте стойностите на: m, t, k и n';
+    l.en.alg.setIrBitsHelp='Click on Info register\'s bits or Random Bits';
+    l.bg.alg.setIrBitsHelp='Кликнете върху битовете на Информационния регисър или на Случанни битове';
+    l.en.alg.markBitsENHelp='Drag all labels on the correct bits the click the "'+l.en.gn.checkLabels+'" button';
+    l.bg.alg.markBitsENHelp='Провлачете всички етикети върху правилните битове после кликнете върху бутона "'+l.bg.gn.checkLabels+'"';
+    l.en.alg.loadBitsHelp='Click on "'+l.en.gn.loadBits+'" button';
+    l.bg.alg.loadBitsHelp='Кликнете върху бутона "'+l.bg.gn.loadBits+'"';
+    l.en.alg.selectCbitHelp='Click on the control bit that we will calculate/check';
+    l.bg.alg.selectCbitHelp='Кликнете върху контролния бит, който ще изчислявате/проверявате';
+    l.en.alg.createEquHelp='Click on the bits involved in the equation';
+    l.bg.alg.createEquHelp='Кликнете върху битове, участващи в уравнението';
+    l.en.alg.calcCbitHelp='Click on the equation field';
+    l.bg.alg.calcCbitHelp='Кликнете върху полето на уравнението';
+    l.en.alg.writeCbitHelp='Click the arrow on the calculated control bit';
+    l.bg.alg.writeCbitHelp='Кликнете върху  стрелката на изчисления контролен бит';
+    l.en.alg.finishMsg='The simulation finished! Click on "Reset the Model" button for new simulation.';
+    l.bg.alg.finishMsg='Симулацията приключи! Кликнете върху бутона "Reset the model" за нова симулация.';
+
+    l.en.alg.setCwBitsHelp='Click on CW register\'s bits or Random CW';
+    l.bg.alg.setCwBitsHelp='Кликнете върху битовете на Резистъра на КД или на Случанна КД';
+    l.en.alg.writeCbitCheckHelp='Click on the checked control bit, below the equation';
+    l.bg.alg.writeCbitCheckHelp='Кликнете върху проверявания контролен бит, под уравнението';
+    l.en.alg.errAnalysisHelp='Set the binary error code. Then the error position if there is a possibility of correction';
+    l.bg.alg.errAnalysisHelp='Задайте двоичния код на грешката. След това позицията на грешката, ако има възможност за корекция';
+
 
     return (thisLang === 'bg') ? l.bg : l.en
 }

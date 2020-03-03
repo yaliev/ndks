@@ -63,12 +63,13 @@ class hcModel {
         this.stat = new STATISTICS(this.lang.stat);
         this.stat.position({ x: 20, y: 5});
         this.stat.rect.width(stage.width() - this.stat.x()*3);
+        this.stat.userName ='s063199';
 
 
         // if there is error to now add to the stat obj
         if(errors.count !== 0){
             model.stat.error.insert(errors);
-        };
+        }
         // encoder
         if(this.process === 'enc'){
             // creating the ALGORITHM PANEL
@@ -97,33 +98,38 @@ class hcModel {
             else console.log('componentsPos.alg is undefined');
         });
 
+        // set timer max time
+        model.stat.timer.setMaxTime({min:20, sec:30});
+        // starting the timer
+        model.stat.timer.start();
+
 
         // initialization timer in minutes
-        this.stat.timer.init(5);
+        //this.stat.timer.init(5);
         // starting timer
-        this.stat.timer.on('click touchstart', function(){
-            if (model.algorithm.getCurrStep().name === 'finish') {
-                // sim finish message
-                return;
-            }
-            else if (model.stat.timer.min === 0 && model.stat.timer.sec === 0) {
-                // timer expired message
-                return;
-            }
-            if(model.stat.timer.ID !== -1) { // stop the timer if it was started
-                model.stat.timer.hoverTxt = model.stat.lang.startTimer;
-                model.stat.timer.stop();
-                model.stat.timer.ID = -1;
-                //model.cover.visible(true);
-                model.layer.batchDraw();
-                return;
-            }
-            // start the timer
-            model.stat.timer.hoverTxt = model.stat.lang.stopTimer;
-            model.stat.timer.start();
-            //model.cover.visible(false);
-            model.layer.batchDraw();
-        });
+        // this.stat.timer.on('click touchstart', function(){
+        //     if (model.algorithm.getCurrStep().name === 'finish') {
+        //         // sim finish message
+        //         return;
+        //     }
+        //     else if (model.stat.timer.min >= 20) {
+        //         alert('The max time is 20 min!');
+        //         return;
+        //     }
+        //     if(model.stat.timer.ID !== -1) { // stop the timer if it was started
+        //         model.stat.timer.hoverTxt = model.stat.lang.startTimer;
+        //         model.stat.timer.stop();
+        //         model.stat.timer.ID = -1;
+        //         //model.cover.visible(true);
+        //         model.layer.batchDraw();
+        //         return;
+        //     }
+        //     // start the timer
+        //     model.stat.timer.hoverTxt = model.stat.lang.stopTimer;
+        //     model.stat.timer.start();
+        //     //model.cover.visible(false);
+        //     model.layer.batchDraw();
+        // });
 
         // mark the step setParam as pass
         this.algorithm.increment();
@@ -137,7 +143,6 @@ class hcModel {
             if(componentsPos.cr !== '') this.cr.position(componentsPos.cr);
             if(componentsPos.dec !== '') this.dec.position(componentsPos.dec);
         }
-
 
         layers.push(this.layer);
         layers.push(this.stat.layer);
@@ -220,7 +225,7 @@ class hcModel {
             }, layer, model.algorithm, model.stat
         );
         layer.add(this.dec);
-
+        this.stat.modelName = 'Hamming Decoder - GA';
 
         // load button click event
         this.dec.loadBtn.on('click touchstart', function(){
@@ -377,6 +382,7 @@ class hcModel {
                 draggable: false
             }, layer, model.algorithm, model.stat
         );
+        this.stat.modelName = 'Hamming Encoder - GA';
 
         // load button click event
         this.en.loadBtn.on('click touchstart', function(){
@@ -467,7 +473,10 @@ class hcModel {
                         else if(msg === true){
                             model.algorithm.increment(); // enable next step
                             //model.algorithm.increment(); // enable next step
-                            if(model.en.isLastCbit())  model.algorithm.increment(); // enable next step
+                            if(model.en.isLastCbit()) {
+                                model.algorithm.increment();
+                                model.stat.timer.stop();
+                            } // enable next step}
                         }
                     }
                 });
@@ -488,7 +497,6 @@ class hcModel {
         this.algorithm.schema.setPos({ x: this.en.x() + this.en.width() + 40, y: this.ir.y()});
         // if(this.algorithm.schema.height() < this.en.y()+this.en.height())
         //     this.algorithm.schema.sizeTo({y:this.en.y()+this.en.height()});
-
 
         // setting the model size
         this.width = this.algorithm.schema.x() + this.algorithm.schema.width();
@@ -661,6 +669,9 @@ class hcModel {
             }
         }
 
+        // check for finish step
+        if(this.algorithm.getCurrStep().name === 'finish') this.stat.timer.stop();
+
     } // end runCurrStep()
 
     // autorun
@@ -714,7 +725,7 @@ class hcModel {
 
         //this.en.vals.fill(0);
         this.algorithm.reset();
-        //this.stat.reset();
+        this.stat.reset();
         this.layer.destroy();
         stage.clear();
     } // end the reset
@@ -726,25 +737,25 @@ decoderSteps = function(lang, cycleCount){
     let step;
     step = {name:'setParam',
         description: lang.setParam,
-        help:'',
+        help:lang.setParamHelp,
         sub:[]
     };
     steps.push(step);
     step = {name:'setBits',
         description: lang.setBitsCW,
-        help:'',
+        help:lang.setCwBitsHelp,
         sub:[]
     };
     steps.push(step);
     step = {name:'markBits',
         description: lang.markBitsDEC,
-        help:'Put the label on correct place',
+        help:lang.markBitsENHelp,
         sub:[]
     };
     steps.push(step);
     step = {name: 'load',
         description: lang.loadDEC,
-        help: 'Click on the Button.',
+        help: lang.loadBitsHelp,
         sub: []
     };
     steps.push(step);
@@ -753,23 +764,23 @@ decoderSteps = function(lang, cycleCount){
         help: 'Executed for each control bits',
         cycleCount: cycleCount,
         sub:[
-            {name: 'selectCbit', description: lang.selectCbit,  help: ''},
-            {name: 'createEqu',  description: lang.createEqu,  help: ''},
-            {name: 'calcEqu',    description: lang.calcEqu, help: ''},
-            {name: 'writeCbit',  description: lang.writeCbit, help: ''}
+            {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
+            {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
+            {name: 'calcEqu',    description: lang.calcEqu, help: lang.calcCbitHelp},
+            {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitCheckHelp}
         ]
     };
     steps.push(step);
     step = {name: 'analysis',
         description: lang.resAnalysis,
-        help: 'Click on the Button.',
+        help: lang.errAnalysisHelp,
         sub: []
     };
     steps.push(step);
 
     step = {name: 'finish',
         description: lang.finish,
-        help: 'For new simulation click \'Reset the Model\' button.',
+        help: lang.finishMsg,
         sub:[]
     };
     steps.push(step);
@@ -783,25 +794,25 @@ encoderSteps = function(lang, cycleCount){
     let step;
     step = {name:'setParam',
         description: lang.setParam,
-        help:'',
+        help:lang.setParamHelp,
         sub:[]
     };
     steps.push(step);
     step = {name:'setBits',
         description: lang.setBits,
-        help:'',
+        help:lang.loadBitsHelp,
         sub:[]
     };
     steps.push(step);
     step = {name:'msrkBits',
         description: lang.markBitsEN,
-        help:'Put the label on correct place',
+        help:lang.markBitsENHelp,
         sub:[]
     };
     steps.push(step);
     step = {name: 'load',
         description: lang.loadEN,
-        help: 'Click on the Button.',
+        help: lang.loadENHelp,
         sub: []
     };
     steps.push(step);
@@ -810,16 +821,16 @@ encoderSteps = function(lang, cycleCount){
         help: 'Executed for each control bits',
         cycleCount: cycleCount,
         sub:[
-            {name: 'selectCbit', description: lang.selectCbit,  help: ''},
-            {name: 'createEqu',  description: lang.createEqu,  help: ''},
-            {name: 'calcCbit',   description: lang.calcCbit, help: ''},
-            {name: 'writeCbit',  description: lang.writeCbit, help: ''}
+            {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
+            {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
+            {name: 'calcCbit',   description: lang.calcCbit, help: lang.calcCbitHelp},
+            {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitHelp}
         ]
     };
     steps.push(step);
     step = {name: 'finish',
         description: lang.finish,
-        help: 'For new simulation click \'Reset the Model\' button.',
+        help: lang.finishMsg,
         sub:[]
     };
     steps.push(step);

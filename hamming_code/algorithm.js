@@ -89,6 +89,14 @@ function ALGORITHM(steps, m, k, lang){
             model.algorithm.markCurrStep('past');
             this.currStep++;
         }
+
+        // check for finish step
+        thisStep = this.steps[this.currStep];
+        if(thisStep.name === 'finish')
+        {
+            model.stat.logData();
+            alert(thisStep.help);
+        }
     };
 
     // get the current step
@@ -236,6 +244,10 @@ createSchema = function(steps, lang, layer){
                                 out:{x: item.x() + item.width()/2, y: item.y() + item.height()}
                 };
 
+                item.hoverTxt = step.help;
+                item = hover1(item,  sch);
+                item = over(item);
+
                 sch.add(item);
                 sch.items.push(item);
                 lastItem = sch.items[sch.items.length-1];
@@ -287,6 +299,9 @@ createSchema = function(steps, lang, layer){
                 item.soket = {  in: {x: item.x() + item.width()/2, y: item.y()},
                                 out:{x: item.x() + item.width()/2, y: item.y() + item.height()}
                 };
+                item.hoverTxt = step.help;
+                item = hover1(item,  sch);
+                item = over(item);
 
                 sch.add(item);
                 sch.items.push(item);
@@ -511,7 +526,6 @@ createItem = function(type, text, layer){
                 verticalAlign: 'middle',
                 fill: prop.fontColor,
             });
-
 
             item.width(item.shape.width());
             item.height(item.yesTxt.y() + item.yesTxt.height() - item.shape.y() - 12);
