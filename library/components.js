@@ -3849,4 +3849,3 @@ function XOR(props,layer){
 
     return xor;
 }//end of XOR
-
