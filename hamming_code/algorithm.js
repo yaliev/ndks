@@ -62,27 +62,39 @@ function ALGORITHM(steps, m, k, lang){
         if(typeof this.steps[this.currStep] === 'undefined'){
             return  console.log('There is no step');
         }
-        if (this.steps[this.currStep].sub.length > 0){ // for the steps with sub steps
-            let subStep = thisStep.sub[this.currSubStep];
-            if (this.currSubStep === 0)
-                algorithm.resetCycle(); // clearing marks at the beginning of the cycle
+
+        // check for finish step
+        if(this.steps[this.currStep].name === 'finish')
+        {
+            model.stat.logData();
+            console.log(thisStep.help);
+            return;
+        }
+        // check for sub steps
+        if (this.steps[this.currStep].sub.length > 0){
+            // clearing marks at the beginning of the cycle
+            if (this.currSubStep === 0)  algorithm.resetCycle();
+
+            //marks the step as past
             model.algorithm.markCurrStep('past');
-            if(this.currSubStep < (this.steps[this.currStep].sub.length) - 1){ //check for last substep
-                model.algorithm.markCurrStep('past');
-                this.currSubStep++;
-            }
-            else{ // new cycle
-                this.currSubStep = 0;
-                if (this.cycle === thisStep.cycleCount-1) { // check for last cycle
-                    this.cycle = 0;
-                    this.currStep++;
+
+            //check for last sub step
+            if(this.currSubStep === (this.steps[this.currStep].sub.length - 1)){
+                this.currSubStep = 0; // reset the sub step counter
+                // check for last cycle
+                if (this.cycle === (thisStep.cycleCount-1)){
+                    this.cycle = 0; // reset the cycle counter
                     algorithm.schema.items.find(i => i.id() === thisStep.name+'-check').markAs('past');
+                    this.currStep++; // increment the step counter
                 }
-                else{ // it isn't last cycle
-                    model.algorithm.markCurrStep('past');
+                else{ // it is not last cycle
+                    this.cycle++; // increment the cycle counter
                     algorithm.schema.items.find(i => i.id() === thisStep.name+'-check').markAs('curr');
-                    this.cycle++;
                 }
+
+            }
+            else{ // it is not last sub step
+                this.currSubStep++; // // increment the sub step counter
             }
         }
         else{ //  for the steps without sub steps
@@ -91,11 +103,9 @@ function ALGORITHM(steps, m, k, lang){
         }
 
         // check for finish step
-        thisStep = this.steps[this.currStep];
-        if(thisStep.name === 'finish')
+        if(this.steps[this.currStep].name === 'finish')
         {
             model.stat.logData();
-            alert(thisStep.help);
         }
     };
 

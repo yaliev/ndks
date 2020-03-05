@@ -812,7 +812,7 @@ encoderSteps = function(lang, cycleCount){
     steps.push(step);
     step = {name: 'load',
         description: lang.loadEN,
-        help: lang.loadENHelp,
+        help: lang.loadBitsHelp,
         sub: []
     };
     steps.push(step);

@@ -500,7 +500,7 @@ function HAMMING_GA(props, layer, alg, stat) {
                         }
                 });
             });
-        }
+        };
 
         //make error analaysis for auto mode
         en.error.makeAnalysis = () =>{
@@ -633,7 +633,8 @@ function HAMMING_GA(props, layer, alg, stat) {
             }; // temp object
             switch (en.bits[i].id()) {
                 case 'C1':
-                    bit = {}, val = 0;
+                    bit = {};
+                    val = 0;
                     for (let j = i; j < ln; j += 2) {
                         if (j === i)  if(en.process === 'enc') continue;
                         thisBit = en.bits[j];
@@ -647,7 +648,8 @@ function HAMMING_GA(props, layer, alg, stat) {
                     }
                     break;
                 case 'C2':
-                    bit = {}, val = 0;
+                    bit = {};
+                    val = 0;
                     for (let j = i; j < ln; j += 4) {
                         for (let t = j; t < j + 2; t++) {
                             if (t === i) if(en.process === 'enc') continue;
@@ -665,7 +667,8 @@ function HAMMING_GA(props, layer, alg, stat) {
                     }
                     break;
                 case 'C3':
-                    bit = {}, val = 0;
+                    bit = {};
+                    val = 0;
                     for (let j = i; j < ln; j += 8) {
                         for (let t = j; t < j + 4; t++) {
                             if (t === i) if(en.process === 'enc') continue;
@@ -683,7 +686,8 @@ function HAMMING_GA(props, layer, alg, stat) {
                     }
                     break;
                 case 'C4':
-                    bit = {}, val = 0;
+                    bit = {};
+                    val = 0;
                     for (let j = i; j < ln; j += 16) {
                         for (let t = j; t < j + 8; t++) {
                             if (t === i) if(en.process === 'enc') continue;
@@ -701,7 +705,8 @@ function HAMMING_GA(props, layer, alg, stat) {
                     }
                     break;
                 case 'C5':
-                    bit = {}, val = 0;
+                    bit = {};
+                    val = 0;
                     for (let j = i; j < ln; j += 32) {
                         for (let t = j; t < j + 16; t++) {
                             if (t === i) if(en.process === 'enc') continue;
@@ -719,7 +724,8 @@ function HAMMING_GA(props, layer, alg, stat) {
                     }
                     break;
                 case 'C0':
-                    bit = {}, val = 0;
+                    bit = {};
+                    val = 0;
                     let start = en.process === 'enc' ? 1 : 0;
                     for (let j = start; j < ln; j++) {
                         thisBit = en.bits[j];
@@ -792,15 +798,14 @@ function HAMMING_GA(props, layer, alg, stat) {
                     this.hover.show('e',msg);
                 }
                 else if(msg === true){
-                    alg.increment(); // pass calculating step
+                    //alg.increment(); // pass calculating step
                     alg.increment(); // pass write step
-                    if(en.isLastCbit())  alg.increment(); // enable next step
+                    //if(en.isLastCbit())  alg.increment(); // enable next step
                 }
             });
         });
         layer.batchDraw();
-    } // end of createCBitCheck
-
+    }; // end of createCBitCheck
 
         // add member to the current control bit equation
     en.addToEqu = (bit) => {
@@ -977,7 +982,6 @@ function HAMMING_GA(props, layer, alg, stat) {
             else if(en.process === 'dec'){ // for decoding
                 let CbitCheck = en.CbitCheck.Cbits.find(b => b.id() === en.currCbit);
                 CbitCheck.text(CbitCheck.text() + Cbit.auto.res);
-                //CbitCheck.off('click touchstart');
             }
         }
 
@@ -995,7 +999,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             });
             en.equBtn.visible(false);
             if(en.process === 'enc'){
-                //alg.increment(); // enable next step
+                alg.increment(); // enable next step
             }
             else if(en.process === 'dec'){ // for encoding
                 let str = '';
@@ -1017,7 +1021,8 @@ function HAMMING_GA(props, layer, alg, stat) {
                 //alg.increment(); // enable next step
             }
         }
-        if(mode === 'auto') alg.increment(); // enable next step
+        alg.increment(); // enable next step
+       // if(mode === 'auto') alg.increment(); // enable next step
         layer.batchDraw();
         return true;
     };
@@ -1027,7 +1032,7 @@ function HAMMING_GA(props, layer, alg, stat) {
         let check = true;
         en.Cbits.forEach(cbit =>{
             if(cbit.man.res === '') check = false;
-        })
+        });
 
         return check;
     };
@@ -1086,8 +1091,6 @@ function HAMMING_GA(props, layer, alg, stat) {
                 binStr += "\u2295" + el.bin.toString();
             }
         });
-
-
         obj.str = en.process === 'enc' ? bitId + ' = ' + equStr + ' => ' + binStr + ' = ' : bitId + ' =>  ' + binStr + ' = ';
         return obj;
     };

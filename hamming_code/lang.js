@@ -11,10 +11,10 @@ function LnagPack(thisLang){
     l.bg.gn.irLabel='Информационен регистър';
     l.en.gn.crLabel='Codeword Register';
     l.bg.gn.crLabel='Регистър на кодовата дума';
-    l.en.gn.wrongK='Wrong \'k\' value!';
-    l.bg.gn.wrongK='Грешна стойност за \'k\'';
-    l.en.gn.wrongN='Wrong \'n\' value!';
-    l.bg.gn.wrongN='Грешна стойност за \'n\'';
+    l.en.gn.wrongK='Wrong "k" value!';
+    l.bg.gn.wrongK='Грешна стойност за "k"';
+    l.en.gn.wrongN='Wrong "n" value!';
+    l.bg.gn.wrongN='Грешна стойност за "n"';
     l.en.gn.setAllBit='Not all information bits are set!';
     l.bg.gn.setAllBit='Не са зададени всички информационни битове!';
     l.en.gn.setAllCwBit='Not all Codeword Bits are Set!';
