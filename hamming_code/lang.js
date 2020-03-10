@@ -95,6 +95,14 @@ function LnagPack(thisLang){
     l.bg.gn.wrongDecCode='Грешна позиция на грешката';
     l.en.gn.resultAnalysis='Result Analysis';
     l.bg.gn.resultAnalysis='Анализ на резултата';
+    l.en.gn.mTitle='Number of information bits';
+    l.bg.gn.mTitle='Брой на информационните битове';
+    l.en.gn.lTitle='Number of errors the code can detect';
+    l.bg.gn.lTitle='Брой на грешките, които кода може да открива';
+    l.en.gn.kTitle='Number of control bits';
+    l.bg.gn.kTitle='Брой на контролните битове';
+    l.en.gn.nTitle='Number of codeword bits';
+    l.bg.gn.nTitle='Брой на битовете на кодовата комбинация';
 
     // statistics
     l.en.stat.title='Statistics';

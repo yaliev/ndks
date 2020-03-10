@@ -103,7 +103,7 @@
         <span class="menuItem" id="currUser" name="currUser"></span>
         <span class="menuItem">
             <label for="infoBitNum">m =</label>
-            <select id="infoBitNum" name="InfoBits">
+            <select id="infoBitNum" name="InfoBits" title="Info Bits Number">
               <option value=4 >4</option>
               <option value=5 >5</option>
               <option value=6 >6</option>
@@ -296,6 +296,12 @@
             $('label[for=encRadio]').html(lang.gn.encRadio);
             $('label[for=decRadio]').html(lang.gn.decRadio);
             $('#mode').html(lang.gn.mode);
+
+            $('#infoBitNum').prop('title', lang.gn.mTitle);
+            $('#errDetectNum').prop('title', lang.gn.lTitle);
+            $('#parityBitNum').prop('title', lang.gn.kTitle);
+            $('#cwBitNum').prop('title', lang.gn.nTitle);
+
         }
 
 		function changeDivSize(){
