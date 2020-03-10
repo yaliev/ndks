@@ -291,14 +291,10 @@ createStatistics = function(lang){
 	};
 
 	stat.reset = function(){
-		this.totalTime.min += this.timer.min;
-		this.totalTime.sec += this.timer.sec;
-		if(this.totalTime.sec > 59) {
-			this.totalTime.sec = this.totalTime.sec % 60;
-			this.totalTime.min++;
-		}
 		this.timer.min = 0;
 		this.timer.sec = 0;
+		this.error.count = 0;
+		this.error.history = '';
 		this.timer.stop();
 		this.layer.destroy();
 	};

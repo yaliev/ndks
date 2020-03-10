@@ -3835,20 +3835,98 @@ function XOR(props,layer){
 
     // mouse hover actions
     xor.hoverOn = function(){
-        xor.circ.shadowColor('red'),
-            xor.circ.shadowBlur(10),
-            xor.circ.shadowOpacity(1.0),
-            stage.container().style.cursor = 'pointer';
+        xor.circ.shadowColor('red');
+        xor.circ.shadowBlur(10);
+        xor.circ.shadowOpacity(1.0);
+        stage.container().style.cursor = 'pointer';
         layer.batchDraw();
     };
     // mouse hover left actions
     xor.hoverOff = function(){
-        xor.circ.shadowColor(''),
-            xor.circ.shadowBlur(0),
-            xor.circ.shadowOpacity(0),
-            stage.container().style.cursor = 'default';
+        xor.circ.shadowColor('');
+        xor.circ.shadowBlur(0);
+        xor.circ.shadowOpacity(0);
+        stage.container().style.cursor = 'default';
         layer.batchDraw();
     };
 
     return xor;
 }//end of XOR
+
+//sent data to data base
+function sentData (params){
+    const form = document.createElement('form');
+    for (const key in params) {
+        if (params.hasOwnProperty(key)) {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = key;
+            hiddenField.value = params[key];
+            form.appendChild(hiddenField);
+        }
+    }
+    $.ajax({
+        url:'/ndks/log/logToDB.php',
+        type:'post',
+        data:$(form).serialize(),
+        success:function(){
+            console.log("Data are sent");
+        }
+    });
+}
+
+// Hamming Encoder, return codeword;
+function hcEncoder(props){
+    if(typeof props.infoBits === 'undefined') {return console.log('Info bits aren\'t defined!');}
+    if(typeof props.l === 'undefined') props.l=1;
+    if(typeof props.errCount === 'undefined') props.errCount=1;
+    let m, l, k, n, infoBits;
+    infoBits = props.infoBits;
+    l = props.l;
+    m =  infoBits.length;
+    // calculating control bits number k
+    for(let i=3; i<7; i++){
+        if(((Math.pow(2, i) - i) >= (m + 1))){
+            if(l === 1) k = i;
+            else k = i+1;
+            break;
+        }
+    }
+    n=m+k;
+    let cw= new Array(n).fill(0);
+
+    let cBitsIdx=[];
+    if(l===1) {
+        for(let i=0; i<k; i++) cBitsIdx.push(Math.pow(2, i)-1);
+    }
+    else{
+        cBitsIdx.push(0);
+        for(let i=0; i<k-1; i++) cBitsIdx.push(Math.pow(2, i));
+    }
+    let iBitsIdx=0;
+    for(let i=0; i<n; i++){
+        if(typeof cBitsIdx.find(el => el===i) !== 'undefined') continue;
+        cw[i] = infoBits[iBitsIdx];
+        iBitsIdx++;
+    }
+
+    for(let i=0; i<k; i++){
+        if (l===2 && i===0) continue;
+        let pow = i;
+        if(l === 2) pow -=1;
+        let gr = Math.pow(2, pow);
+        let res=0;
+        for(let j=cBitsIdx[i]; j<n; j+=gr*2){
+            for(let t=j; t<j+gr; t++){
+                res ^=cw[t];
+            }
+        }
+        cw[cBitsIdx[i]]=res;
+    }
+    if (l===2){
+        let res=0;
+        for(let i=1; i<n; i++) res ^=cw[i];
+        cw[0]=res;
+    }
+    return cw;
+}

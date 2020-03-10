@@ -3,6 +3,18 @@ function LnagPack(thisLang){
              bg:{ alg:{}, stat:{}, gn:{}}
     };
     // general
+    l.en.gn.hcModelTitle='Interactive Simulation Model of Hamming Code - General Algorithm';
+    l.bg.gn.hcModelTitle='Интерактивен Симулационен Модел на Код на Хеминг - Обикновен Алгоритъм';
+    l.en.gn.openMdlBtn='Open the Model';
+    l.bg.gn.openMdlBtn='Отвори модела';
+    l.en.gn.resetMdlBtn='Reset the Model';
+    l.bg.gn.resetMdlBtn='Изчисти модела';
+    l.en.gn.encRadio='Encoder';
+    l.bg.gn.encRadio='Кодер';
+    l.en.gn.decRadio='Decoder';
+    l.bg.gn.decRadio='Декодер';
+    l.en.gn.mode='Mode:';
+    l.bg.gn.mode='Режим:';
     l.en.gn.enLabel='Hamming Encoder - General Algorithm';
     l.bg.gn.enLabel='Хеминг кодер - обикновен алгоритъм';
     l.en.gn.decLabel='Hamming Decoder - General Algorithm';
@@ -29,14 +41,18 @@ function LnagPack(thisLang){
     l.bg.gn.noModel='Моделът не е създаден!';
     l.en.gn.randHover='Generate Random Bits';
     l.bg.gn.randHover='Генерирай случайни битове';
+    l.en.gn.randCwHover='Generate Random Codeword without Error';
+    l.bg.gn.randCwHover='Генерирай случайна кодова дума без грешка';
+    l.en.gn.randErrHover='Generate Random Codeword with Error';
+    l.bg.gn.randErrHover='Генерирай случайна кодова дума с грешка';
     l.en.gn.placeLabel='Place the Label on the Correct Bit';
     l.bg.gn.placeLabel='Постави етикета върху коректния бит';
     l.en.gn.checkLabels='Check the Labels';
     l.bg.gn.checkLabels='Провери етикетите';
     l.en.gn.incorrectLabel='Incorrect Marked Bits';
     l.bg.gn.incorrectLabel='Грешно маркирани битове';
-    l.en.gn.loadBits='Load the Info Bits';
-    l.bg.gn.loadBits='Зареди информационните битове';
+    l.en.gn.loadBits='Load the Bits';
+    l.bg.gn.loadBits='Зареди битовете';
     l.en.gn.equBtnTxt='Control Bits Equation Field';
     l.bg.gn.equBtnTxt='Поле за уравнение на контролените битове';
     l.en.gn.noSelectedBit='There is no Selected Control Bit';
@@ -65,6 +81,8 @@ function LnagPack(thisLang){
     l.bg.gn.writeCbitCheck='Запиши стойността на контролния бит';
     l.en.gn.randCWLabel='Random CW';
     l.bg.gn.randCWLabel='Случайна КД';
+    l.en.gn.randCwErrLabel='Random CW with Error';
+    l.bg.gn.randCwErrLabel='Случайна КД с грешка';
     l.en.gn.randInfoLabel='Random Bits';
     l.bg.gn.randInfoLabel='Случайни битове';
     l.en.gn.setDecCode='Set the Error Position';
@@ -158,11 +176,11 @@ function LnagPack(thisLang){
     l.bg.alg.calcCbitHelp='Кликнете върху полето на уравнението';
     l.en.alg.writeCbitHelp='Click the arrow on the calculated control bit';
     l.bg.alg.writeCbitHelp='Кликнете върху  стрелката на изчисления контролен бит';
-    l.en.alg.finishMsg='The simulation finished! Click on "Reset the Model" button for new simulation.';
-    l.bg.alg.finishMsg='Симулацията приключи! Кликнете върху бутона "Reset the model" за нова симулация.';
+    l.en.alg.finishMsg='The simulation finished! Click on "'+l.en.gn.resetMdlBtn+'" button for new simulation.';
+    l.bg.alg.finishMsg='Симулацията приключи! Кликнете върху бутона "'+l.bg.gn.resetMdlBtn+'" за нова симулация.';
 
     l.en.alg.setCwBitsHelp='Click on CW register\'s bits or Random CW';
-    l.bg.alg.setCwBitsHelp='Кликнете върху битовете на Резистъра на КД или на Случанна КД';
+    l.bg.alg.setCwBitsHelp='Кликнете върху битовете на Регистъра на КД или на Случанна КД';
     l.en.alg.writeCbitCheckHelp='Click on the checked control bit, below the equation';
     l.bg.alg.writeCbitCheckHelp='Кликнете върху проверявания контролен бит, под уравнението';
     l.en.alg.errAnalysisHelp='Set the binary error code. Then the error position if there is a possibility of correction';

@@ -66,7 +66,6 @@ function ALGORITHM(steps, m, k, lang){
         // check for finish step
         if(this.steps[this.currStep].name === 'finish')
         {
-            model.stat.logData();
             console.log(thisStep.help);
             return;
         }
@@ -91,7 +90,6 @@ function ALGORITHM(steps, m, k, lang){
                     this.cycle++; // increment the cycle counter
                     algorithm.schema.items.find(i => i.id() === thisStep.name+'-check').markAs('curr');
                 }
-
             }
             else{ // it is not last sub step
                 this.currSubStep++; // // increment the sub step counter
@@ -578,4 +576,4 @@ createItem = function(type, text, layer){
         layer.batchDraw();
     };
     return item;
-} // end of createItem
+}; // end of createItem

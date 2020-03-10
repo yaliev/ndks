@@ -99,37 +99,9 @@ class hcModel {
         });
 
         // set timer max time
-        model.stat.timer.setMaxTime({min:20, sec:30});
+        model.stat.timer.setMaxTime({min:20});
         // starting the timer
         model.stat.timer.start();
-
-
-        // initialization timer in minutes
-        //this.stat.timer.init(5);
-        // starting timer
-        // this.stat.timer.on('click touchstart', function(){
-        //     if (model.algorithm.getCurrStep().name === 'finish') {
-        //         // sim finish message
-        //         return;
-        //     }
-        //     else if (model.stat.timer.min >= 20) {
-        //         alert('The max time is 20 min!');
-        //         return;
-        //     }
-        //     if(model.stat.timer.ID !== -1) { // stop the timer if it was started
-        //         model.stat.timer.hoverTxt = model.stat.lang.startTimer;
-        //         model.stat.timer.stop();
-        //         model.stat.timer.ID = -1;
-        //         //model.cover.visible(true);
-        //         model.layer.batchDraw();
-        //         return;
-        //     }
-        //     // start the timer
-        //     model.stat.timer.hoverTxt = model.stat.lang.stopTimer;
-        //     model.stat.timer.start();
-        //     //model.cover.visible(false);
-        //     model.layer.batchDraw();
-        // });
 
         // mark the step setParam as pass
         this.algorithm.increment();
@@ -164,7 +136,7 @@ class hcModel {
                 position: {x:this.stat.x(), y:this.stat.y()+this.stat.height()+10},
                 name: lang.crLabel,
                 bitsNum: this.n,
-                randHover: lang.randHover,
+                randHover: lang.randCwHover,
                 randBtnLabel: lang.randCWLabel,
                 draggable: false,
                 bit: {name: 'CW Bit', firstNum: this.t === 1 ? 1 : 0, labelTxt:'', hover: lang.bitHover, enabled: true},
@@ -188,11 +160,64 @@ class hcModel {
                 }
             });
         });
-        // CR 'Random' click event
+
+        //
+        this.cr.randErr = this.cr.rand.clone();
+        this.cr.add(this.cr.randErr);
+        this.cr.randErr.text(lang.randCwErrLabel);
+        this.cr.randErr.x(this.cr.rand.x() + this.cr.rand.width() + 20);
+        this.cr.randErr.off();
+        this.cr.randErr=over(this.cr.randErr);
+        this.cr.randErr.hoverTxt = lang.randErrHover;
+        this.cr.randErr=hover1(this.cr.randErr, this.cr);
+
+        // CR 'Random CW with Error' click event
+        this.cr.randErr.on('click touchstart', function(){
+            let check = model.algorithm.validStep('setBits');
+            if (check === true) {
+                let randBits=[];
+                for(let i=0; i<model.m; i++){
+                    randBits.push((Math.random() > 0.5) ? 1 : 0);
+                }
+                let cw = hcEncoder({infoBits: randBits, l:model.t});
+                //let errCount = Math.floor(Math.random() * 3);
+                let errCount = Math.floor(Math.random() * (1+model.t));
+                if(errCount === 1){
+                    let errPos = Math.floor(Math.random() * (cw.length));
+                    console.log('errPos = '+errPos);
+                    cw[errPos] = cw[errPos] === 0 ? 1 : 0;
+                }
+                else if (errCount === 2){
+                    let errPos1 = Math.floor(Math.random() * (cw.length));
+                    let errPos2;
+                    while(true){
+                        errPos2 = Math.floor(Math.random() * (cw.length));
+                        if(errPos1 !== errPos2) break;
+                    }
+                    cw[errPos1] = cw[errPos1] === 0 ? 1 : 0;
+                    cw[errPos2] = cw[errPos2] === 0 ? 1 : 0;
+                    console.log('errPos1 = '+errPos1,'errPos2 = '+errPos2);
+                }
+                if(errCount === 0) console.log('No error');
+                model.cr.load(cw);
+                model.algorithm.markCurrStep('curr');
+            }
+            else {
+                this.hover.show('e', check);
+                model.stat.error.add(check);
+                return;
+            }
+        });
+
+        // CR 'Random CW' click event
         this.cr.rand.on('click touchstart', function(){
             let check = model.algorithm.validStep('setBits');
             if (check === true) {
-                model.cr.randGen();
+                let randBits=[];
+                for(let i=0; i<model.m; i++){
+                    randBits.push((Math.random() > 0.5) ? 1 : 0);
+                }
+                model.cr.load(hcEncoder({infoBits: randBits, l:model.t}));
                 model.algorithm.markCurrStep('curr');
             }
             else {
@@ -244,7 +269,7 @@ class hcModel {
             label.on('dragmove', function(e) {
                 //model.dec.checkLabelIntersection(label);
                 if (model.cr.areAllBitsSetted()){
-                    if (model.algorithm.getCurrStep().name === 'setBit')
+                    if (model.algorithm.getCurrStep().name === 'setBits')
                          model.algorithm.increment(); // enable next step
                     this.hover.hide();
                 }
@@ -254,6 +279,7 @@ class hcModel {
                 }
                 model.algorithm.markCurrStep('curr');
             });
+
         });
 
         // check labels position button
@@ -399,7 +425,7 @@ class hcModel {
         // drag events for the labels
         this.en.labels.forEach(label =>{
             label.on('dragmove', function(e) {
-                model.en.checkLabelIntersection(label);
+                //model.en.checkLabelIntersection(label);
                 if (model.ir.areAllBitsSetted()){
                     if (model.algorithm.getCurrStep().name === 'setBits')
                         model.algorithm.increment(); // enable next step
@@ -426,7 +452,6 @@ class hcModel {
                 this.hover.show('e',model.en.lang.incorrectLabel);
             }
             else{
-                //model.algorithm.markCurrStep('past');
                 model.algorithm.increment(); // enable next step
             }
         });
