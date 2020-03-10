@@ -170,32 +170,31 @@ function LnagPack(thisLang){
     l.en.alg.resAnalysis='Analysis of the Result';
     l.bg.alg.resAnalysis='Анализ на резултата';
 
-    l.en.alg.setParamHelp='Set the value of: m, t, k and n';
-    l.bg.alg.setParamHelp='Задайте стойностите на: m, t, k и n';
-    l.en.alg.setIrBitsHelp='Click on Info register\'s bits or Random Bits';
-    l.bg.alg.setIrBitsHelp='Кликнете върху битовете на Информационния регисър или на Случанни битове';
-    l.en.alg.markBitsENHelp='Drag all labels on the correct bits the click the "'+l.en.gn.checkLabels+'" button';
-    l.bg.alg.markBitsENHelp='Провлачете всички етикети върху правилните битове после кликнете върху бутона "'+l.bg.gn.checkLabels+'"';
+    l.en.alg.setParamHelp='Set the value of: m, l, k and n';
+    l.bg.alg.setParamHelp='Задайте стойностите на: m, l, k и n';
+    l.en.alg.setIrBitsHelp='Click on Info register\'s bits or "'+l.en.gn.randInfoLabel+'"';
+    l.bg.alg.setIrBitsHelp='Кликнете върху битовете на Информационния регисър или бърху "'+l.bg.gn.randInfoLabel+'"';
+    l.en.alg.markBitsENHelp='Drag all labels on the correct bits after click the "'+l.en.gn.checkLabels+'" button';
+    l.bg.alg.markBitsENHelp='Провлачете всички етикети върху правилните битове и след това кликнете върху бутона "'+l.bg.gn.checkLabels+'"';
     l.en.alg.loadBitsHelp='Click on "'+l.en.gn.loadBits+'" button';
     l.bg.alg.loadBitsHelp='Кликнете върху бутона "'+l.bg.gn.loadBits+'"';
     l.en.alg.selectCbitHelp='Click on the control bit that we will calculate/check';
     l.bg.alg.selectCbitHelp='Кликнете върху контролния бит, който ще изчислявате/проверявате';
     l.en.alg.createEquHelp='Click on the bits involved in the equation';
-    l.bg.alg.createEquHelp='Кликнете върху битове, участващи в уравнението';
+    l.bg.alg.createEquHelp='Кликнете върху битовете, участващи в уравнението';
     l.en.alg.calcCbitHelp='Click on the equation field';
     l.bg.alg.calcCbitHelp='Кликнете върху полето на уравнението';
     l.en.alg.writeCbitHelp='Click the arrow on the calculated control bit';
-    l.bg.alg.writeCbitHelp='Кликнете върху  стрелката на изчисления контролен бит';
+    l.bg.alg.writeCbitHelp='Кликнете върху стрелката на изчисления контролен бит';
     l.en.alg.finishMsg='The simulation finished! Click on "'+l.en.gn.resetMdlBtn+'" button for new simulation.';
     l.bg.alg.finishMsg='Симулацията приключи! Кликнете върху бутона "'+l.bg.gn.resetMdlBtn+'" за нова симулация.';
 
-    l.en.alg.setCwBitsHelp='Click on CW register\'s bits or Random CW';
-    l.bg.alg.setCwBitsHelp='Кликнете върху битовете на Регистъра на КД или на Случанна КД';
+    l.en.alg.setCwBitsHelp='Click on CW register\'s bits or "'+l.en.gn.randCWLabel+'" or "'+l.en.gn.randCwErrLabel+'"';
+    l.bg.alg.setCwBitsHelp='Кликнете върху битовете на Регистъра на кодовата дума или върху "'+l.bg.gn.randCWLabel+'" или върху "'+l.bg.gn.randCwErrLabel+'"';
     l.en.alg.writeCbitCheckHelp='Click on the checked control bit, below the equation';
     l.bg.alg.writeCbitCheckHelp='Кликнете върху проверявания контролен бит, под уравнението';
     l.en.alg.errAnalysisHelp='Set the binary error code. Then the error position if there is a possibility of correction';
-    l.bg.alg.errAnalysisHelp='Задайте двоичния код на грешката. След това позицията на грешката, ако има възможност за корекция';
-
+    l.bg.alg.errAnalysisHelp='Задайте двоичния код на грешката. След това задайте десетичния код на грешката.';
 
     return (thisLang === 'bg') ? l.bg : l.en
 }

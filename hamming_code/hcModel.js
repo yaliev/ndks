@@ -812,7 +812,6 @@ decoderSteps = function(lang, cycleCount){
     return steps;
 };
 
-
 // Create steps
 encoderSteps = function(lang, cycleCount){
     let steps=[];
@@ -825,7 +824,7 @@ encoderSteps = function(lang, cycleCount){
     steps.push(step);
     step = {name:'setBits',
         description: lang.setBits,
-        help:lang.loadBitsHelp,
+        help:lang.setIrBitsHelp,
         sub:[]
     };
     steps.push(step);
