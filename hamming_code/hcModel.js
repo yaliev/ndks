@@ -139,7 +139,7 @@ class hcModel {
                 randHover: lang.randCwHover,
                 randBtnLabel: lang.randCWLabel,
                 draggable: false,
-                bit: {name: 'CW Bit', firstNum: this.t === 1 ? 1 : 0, labelTxt:'', hover: lang.bitHover, enabled: true},
+                bit: {name: 'CW Bit', firstNum: this.t === 1 ? 1 : 0, labelTxt:'', hoverTxt: lang.regBitHover, enabled: true},
             }, layer
         );
         layer.add(this.cr);
@@ -358,7 +358,7 @@ class hcModel {
                 randHover: lang.randHover,
                 randBtnLabel: lang.randInfoLabel,
                 draggable: false,
-                bit: {name: 'IR Bit', labelTxt: 'S_', hover: lang.bitHover, enabled: true},
+                bit: {name: 'IR Bit', labelTxt: 'S_', hoverTxt: lang.regBitHover, enabled: true},
             }, layer
         );
 

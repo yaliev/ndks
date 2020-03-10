@@ -103,6 +103,8 @@ function LnagPack(thisLang){
     l.bg.gn.kTitle='Брой на контролните битове';
     l.en.gn.nTitle='Number of codeword bits';
     l.bg.gn.nTitle='Брой на битовете на кодовата комбинация';
+    l.en.gn.regBitHover='Set value';
+    l.bg.gn.regBitHover='Задай стойност';
 
 
 
