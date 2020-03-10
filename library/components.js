@@ -299,6 +299,7 @@ function HAMMING_GA(props, layer, alg, stat) {
         return check;
     };
 
+
     // coloring  and enabling encoder's bits
     en.enableBits = () => {
         en.bits.forEach(bit => {
