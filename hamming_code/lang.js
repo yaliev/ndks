@@ -104,6 +104,7 @@ function LnagPack(thisLang){
     l.en.gn.nTitle='Number of codeword bits';
     l.bg.gn.nTitle='Брой на битовете на кодовата комбинация';
 
+
     // statistics
     l.en.stat.title='Statistics';
     l.bg.stat.title='Статистика';
