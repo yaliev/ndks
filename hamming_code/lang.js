@@ -105,6 +105,7 @@ function LnagPack(thisLang){
     l.bg.gn.nTitle='Брой на битовете на кодовата комбинация';
 
 
+
     // statistics
     l.en.stat.title='Statistics';
     l.bg.stat.title='Статистика';
