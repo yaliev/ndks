@@ -219,6 +219,12 @@ class hcModel {
                 }
                 model.cr.load(hcEncoder({infoBits: randBits, l:model.t}));
                 model.algorithm.markCurrStep('curr');
+
+                console.log('Random codeword without error generating.');
+                let valStr='';
+                for(let i=0; i<model.cr.vals.length; i++) valStr += model.cr.vals[i].toString();
+                console.log(valStr);
+
             }
             else {
                 this.hover.show('e', check);
@@ -384,6 +390,9 @@ class hcModel {
             if (check === true) {
                 model.ir.randGen();
                 model.algorithm.markCurrStep('curr');
+                let valStr='';
+                for(let i=0; i<model.ir.vals.length; i++) valStr += model.ir.vals[i].toString();
+                console.log(valStr);
                 // if(model.ir.areAllBitsSetted()) model.algorithm.markCurrStep('past');
                 // else model.algorithm.markCurrStep('curr');
             }

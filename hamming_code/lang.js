@@ -156,7 +156,7 @@ function LnagPack(thisLang){
     l.en.alg.calcCbit='Calculating the Control Bit';
     l.bg.alg.calcCbit='Изчисляване на контролен бит';
     l.en.alg.writeCbit='Writing the Control Bit';
-    l.bg.alg.writeCbit='Записване на контроления бит';
+    l.bg.alg.writeCbit='Записване на контролния бит';
     l.en.alg.finish='The simulation finish!';
     l.bg.alg.finish='Симулацията приключи!';
     l.en.alg.yes='Yes';
