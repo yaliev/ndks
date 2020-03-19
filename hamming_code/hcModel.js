@@ -58,12 +58,13 @@ class hcModel {
     init(errors) {
         // create arr for all layers
         let layers =[];
+        let lang = this.lang.gn;
 
         // creating the Statistics panel
         this.stat = new STATISTICS(this.lang.stat);
         this.stat.position({ x: 20, y: 5});
         this.stat.rect.width(stage.width() - this.stat.x()*3);
-        this.stat.userName ='s063199';
+        this.stat.userName ='';
 
 
         // if there is error to now add to the stat obj
@@ -115,6 +116,37 @@ class hcModel {
             if(componentsPos.cr !== '') this.cr.position(componentsPos.cr);
             if(componentsPos.dec !== '') this.dec.position(componentsPos.dec);
         }
+
+        this.simFinish=function(){
+            let str='';
+            if(this.process==='enc'){ // encoding
+                str='<p>'+lang.modeEnc+'<\p>';
+                str +='<p>'+lang.codeParam+': m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
+                let valStr='';
+                for(let i=0; i<model.ir.vals.length; i++) valStr += model.ir.vals[i].toString();
+                str+='<p>'+lang.infoBits+': X = '+valStr+'<\p>';
+                valStr='';
+                for(let i=0; i<model.en.vals.length; i++) valStr += model.en.vals[i].toString();
+                str+='<p>'+lang.cwBits+': [X] = '+valStr+'<\p>';
+            }
+            else{ // decoding
+                str='<p>'+lang.modeDec+'<\p>';
+                str +='<p>'+lang.codeParam+': m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
+                let valStr='';
+                for(let i=0; i<model.cr.vals.length; i++) valStr += model.cr.vals[i].toString();
+                str+='<p>'+lang.cwBits+': [X] = '+valStr+'<\p>';
+                if(this.dec.errStatus.auto === 'noError') valStr = lang.noErr;
+                else if(this.dec.errStatus.auto === 'singleError') valStr = lang.singleErr + ' ('+this.dec.error.decCode.auto+')';
+                else valStr = lang.doubleErr;
+                str+='<p>'+lang.errStatus+': '+valStr+'<\p>';
+                str+='<p>'+lang.decodedMsg+': X = '+this.dec.decodedMsg.auto+'<\p>';
+            }
+
+
+            $("#div-simFinish").dialog('option','title', lang.finishMsg);
+            $("#simFinishMsg").html(str);
+            $("#div-simFinish" ).dialog('open');
+        };
 
         layers.push(this.layer);
         layers.push(this.stat.layer);
@@ -184,7 +216,7 @@ class hcModel {
                 let errCount = Math.floor(Math.random() * (1+model.t));
                 if(errCount === 1){
                     let errPos = Math.floor(Math.random() * (cw.length));
-                    console.log('errPos = '+errPos);
+                    //console.log('errPos = '+errPos);
                     cw[errPos] = cw[errPos] === 0 ? 1 : 0;
                 }
                 else if (errCount === 2){
@@ -613,8 +645,8 @@ class hcModel {
                     break;
                 // Write control bit
                 case 'writeCbit':
+                    console.log(model.algorithm.getCurrStep().description);
                     if(this.dec.writeCbitRes('auto') === true){
-                       console.log(model.algorithm.getCurrStep().description);
                         //this.algorithm.increment(); // enable next step
                     }
                     break;
@@ -717,7 +749,7 @@ class hcModel {
             return;
         }
         document.getElementById('autoRunBtn').innerHTML='Pause Autorun';
-        speed = speed || 1000;
+        speed = speed || 500;
         model.autoRunTimerId =  setInterval(function(){
             model.runCurrStep();
             if (model.algorithm.getCurrStep().name === 'finish'){
@@ -732,7 +764,7 @@ class hcModel {
     // finishing simulation
     finish(){
         //model.stat.timer.stop();
-        alert(model.algorithm.getCurrStep().description);
+        //alert(model.algorithm.getCurrStep().description);
         console.log(model.algorithm.getCurrStep().description+' '+model.algorithm.getCurrStep().help);
         document.getElementById('nextBtn').disabled=true;
         document.getElementById('autoRunBtn').disabled=true;

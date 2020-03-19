@@ -66,7 +66,7 @@ function ALGORITHM(steps, m, k, lang){
         // check for finish step
         if(this.steps[this.currStep].name === 'finish')
         {
-            console.log(thisStep.help);
+            //console.log(thisStep.help);
             return;
         }
         // check for sub steps
@@ -103,6 +103,8 @@ function ALGORITHM(steps, m, k, lang){
         // check for finish step
         if(this.steps[this.currStep].name === 'finish')
         {
+            model.simFinish();
+            console.log('show finish message');
             model.stat.logData();
         }
     };

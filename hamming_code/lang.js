@@ -3,6 +3,42 @@ function LnagPack(thisLang){
              bg:{ alg:{}, stat:{}, gn:{}}
     };
     // general
+    l.en.gn.message='Message';
+    l.bg.gn.message='Съобщение';
+    l.en.gn.wrongUserName='Wrong user name!';
+    l.bg.gn.wrongUserName='Грешно потребителско име!';
+    l.en.gn.infoBits='Information bits';
+    l.bg.gn.infoBits='Информационни битове';
+    l.en.gn.cwBits='Code combination';
+    l.bg.gn.cwBits='Кодова комбинация';
+    l.en.gn.codeParam='Code parameters';
+    l.bg.gn.codeParam='Параметри на кода';
+    l.en.gn.modeEnc='Mode: Encoding';
+    l.bg.gn.modeEnc='Режим: Кодиране';
+    l.en.gn.modeDec='Mode: Decoding';
+    l.bg.gn.modeDec='Режим: Декодиране';
+    l.en.gn.decodedMsg='Decoded message';
+    l.bg.gn.decodedMsg='Декодирано съобщение';
+    l.en.gn.cantDecode='The message cannot be decode';
+    l.bg.gn.cantDecode='Съобщението не може да бъде декодирано';
+    l.en.gn.singleErr='Single error';
+    l.bg.gn.singleErr='Единична грешка';
+    l.en.gn.doubleErr='Double error';
+    l.bg.gn.doubleErr='Двойна грешка';
+    l.en.gn.noErr='There is no error';
+    l.bg.gn.noErr='Няма грешка';
+    l.en.gn.selectErr='Set error status';
+    l.bg.gn.selectErr='Задай статус на грешката';
+    l.en.gn.errStatus='Error status';
+    l.bg.gn.errStatus='Статус на грешката';
+    l.en.gn.wrongErrStatus='Wrong error status';
+    l.bg.gn.wrongErrStatus='Грешен статус на грешката';
+    l.en.gn.wrongDecMsg='Wrong decoded message';
+    l.bg.gn.wrongDecMsg='Грешен декодирано съобщение';
+
+    l.en.gn.finishMsg='The simulation finished!';
+    l.bg.gn.finishMsg='Симулацията приключи!';
+
     l.en.gn.hcModelTitle='Interactive Simulation Model of Hamming Code - General Algorithm';
     l.bg.gn.hcModelTitle='Интерактивен Симулационен Модел на Код на Хеминг - Обикновен Алгоритъм';
     l.en.gn.openMdlBtn='Open the Model';
@@ -33,8 +69,6 @@ function LnagPack(thisLang){
     l.bg.gn.setAllCwBit='Не са зададени всички битове на кодовата дума!';
     l.en.gn.startTimer='Start the timer!';
     l.bg.gn.startTimer='Стартирай таймера!';
-    l.en.gn.simFinish='The simulation is finished! For new simulation click "Reset the model" button !';
-    l.bg.gn.simFinish='Симулацията приключи! За нова симулация  натиснете бутона "Нулиране на модела"!';
     l.en.gn.timerExp='The timer is expired! For new simulation click "Reset the model" button !';
     l.bg.gn.timerExp='Таймерът изтече! За нова симулация  натиснете бутона "Нулиране на модела"!';
     l.en.gn.noModel='The model is not created!';
@@ -105,8 +139,6 @@ function LnagPack(thisLang){
     l.bg.gn.nTitle='Брой на битовете на кодовата комбинация';
     l.en.gn.regBitHover='Set value';
     l.bg.gn.regBitHover='Задай стойност';
-
-
 
     // statistics
     l.en.stat.title='Statistics';
@@ -188,8 +220,8 @@ function LnagPack(thisLang){
     l.bg.alg.calcCbitHelp='Кликнете върху полето на уравнението';
     l.en.alg.writeCbitHelp='Click the arrow on the calculated control bit';
     l.bg.alg.writeCbitHelp='Кликнете върху стрелката на изчисления контролен бит';
-    l.en.alg.finishMsg='The simulation finished! Click on "'+l.en.gn.resetMdlBtn+'" button for new simulation.';
-    l.bg.alg.finishMsg='Симулацията приключи! Кликнете върху бутона "'+l.bg.gn.resetMdlBtn+'" за нова симулация.';
+    l.en.alg.finishMsg='The simulation finished!';
+    l.bg.alg.finishMsg='Симулацията приключи!';
 
     l.en.alg.setCwBitsHelp='Click on CW register\'s bits or "'+l.en.gn.randCWLabel+'" or "'+l.en.gn.randCwErrLabel+'"';
     l.bg.alg.setCwBitsHelp='Кликнете върху битовете на Регистъра на кодовата дума или върху "'+l.bg.gn.randCWLabel+'" или върху "'+l.bg.gn.randCwErrLabel+'"';

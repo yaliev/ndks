@@ -137,7 +137,7 @@ function HAMMING_GA(props, layer, alg, stat) {
     // first bit position
     let pos = {
         x: addDist / 2,
-        y: en.rect.y() + 80
+        y: en.labelRect.y() + en.labelRect.height() + 50
     };
     let num = 1, sCount = 1, cCount = 1;
     if (props.errDet === 2) {
@@ -401,10 +401,11 @@ function HAMMING_GA(props, layer, alg, stat) {
         en.error = new PANEL({
             id: 'resAnalysis',
             name: en.lang.resultAnalysis,
-            position: {x: en.bits[3].x(), y: en.CbitCheck.y()}
+            position: {x: 90, y:  en.equBtn.y()+ en.equBtn.height()+10}
         });
+        en.error.moveToTop();
         en.error.visible(false);
-        en.error.size({width: 200, height: 60});
+        en.error.size({width: 380, height: 120});
         en.add(en.error);
 
         // binary code
@@ -451,7 +452,10 @@ function HAMMING_GA(props, layer, alg, stat) {
                 str = str.replace('(','');
                 str = str.replace(')','');
                 thisObj.man = str;
-                if(oldStr !== str) en.error.check(thisObj);
+                if(oldStr !== str)
+                    if(en.error.check(thisObj))
+                        en.error.binCode.off();
+
             });
         });
 
@@ -493,21 +497,174 @@ function HAMMING_GA(props, layer, alg, stat) {
                     str = str.replace('(','');
                     str = str.replace(')','');
                     thisObj.man = str;
-                    if(oldStr !== str)
+                    if(oldStr !== str){
                         if(en.error.check(thisObj) === true){
-                            alg.increment();
-                            stat.timer.stop();
-
+                            en.error.decCode.fill(en.error.binCode.fill());
+                            en.error.errStatusShow();
+                            en.error.getLayer().batchDraw();
+                            en.error.decCode.off();
                         }
+                    }
                 });
             });
         };
+
+        // no error text
+        en.error.noErrTxt =  SUB(en.lang.noErr);
+        en.error.noErrTxt.visible(false);
+        en.error.noErrTxt.id('noErrTxt');
+        en.error.noErrTxt.fill('grey');
+        en.error.noErrTxt.position({x:en.error.binCode.x(), y:en.error.binCode.y()+30});
+        en.error.noErrTxt.fontSize(14);
+        en.error.noErrTxt=over(en.error.noErrTxt);
+        en.error.noErrTxt.hoverTxt = en.lang.selectErr;
+        en.error.noErrTxt=hover1(en.error.noErrTxt, en.error);
+        en.error.add(en.error.noErrTxt);
+
+        // single error text
+        en.error.sErrTxt =  en.error.noErrTxt.clone();
+        en.error.sErrTxt.text(en.lang.singleErr);
+        en.error.sErrTxt.id('sErrTxt');
+        en.error.sErrTxt.position({x:en.error.noErrTxt.x()+en.error.noErrTxt.width()+20, y:en.error.noErrTxt.y()});
+        en.error.sErrTxt.off();
+        en.error.sErrTxt = over(en.error.sErrTxt);
+        en.error.sErrTxt.hoverTxt = en.lang.selectErr;
+        en.error.sErrTxt=hover1(en.error.sErrTxt, en.error);
+        en.error.add(en.error.sErrTxt);
+
+        // double error text
+        en.error.dErrTxt =  en.error.noErrTxt.clone();
+        en.error.dErrTxt.text(en.lang.doubleErr);
+        en.error.dErrTxt.id('dErrTxt');
+        en.error.dErrTxt.position({x:en.error.sErrTxt.x()+en.error.sErrTxt.width()+20, y:en.error.sErrTxt.y()});
+        en.error.dErrTxt.off();
+        en.error.dErrTxt=over(en.error.dErrTxt);
+        en.error.dErrTxt.hoverTxt = en.lang.selectErr;
+        en.error.dErrTxt=hover1(en.error.dErrTxt, en.error);
+        en.error.add(en.error.dErrTxt);
+
+        // decoded message label
+        en.error.decMsgLabel =  new Konva.Text({
+            id: 'decMsgLabel',
+            position: {x:en.error.noErrTxt.x(), y:en.error.noErrTxt.y()+30},
+            text: en.lang.decodedMsg + ': X = ',
+            fontSize: 16,
+            fontFamily: 'Calibri',
+            fill: 'Gray',
+            visible: false
+        });
+        en.error.add(en.error.decMsgLabel);
+
+        // decoded message label
+        en.error.decMsg =  en.error.decMsgLabel.clone();
+        en.error.decMsg.text('?????????');
+        en.error.decMsg.id('decMsg');
+        en.error.decMsg.position({x:en.error.decMsgLabel.x()+en.error.decMsgLabel.width()+5, y:en.error.decMsgLabel.y()});
+        en.error.decMsg=over(en.error.decMsg);
+        en.error.decMsg.hoverTxt = en.lang.decodedMsg;
+        en.error.decMsg=hover1(en.error.decMsg, en.error);
+        en.error.add(en.error.decMsg);
+        en.error.decMsg.on('dblclick', ()=>{
+            let oldStr = en.error.decMsg.text();
+            editable(en.error.decMsg, function(obj){
+                let newStr = obj.text();
+                if(oldStr !== newStr){
+                    if(en.decodedMsg.auto !== newStr){
+                        obj.fill('red');
+                        stat.error.add(en.lang.wrongDecMsg);
+                        en.error.decMsg.hover.show('e',en.lang.wrongDecMsg);
+                    }
+                    else{
+                        en.decodedMsg.man = newStr;
+                        en.error.decMsg.fill(en.error.binCode.fill());
+                        alg.increment();
+                        stat.timer.stop();
+                    }
+                }
+                if(newStr === '') en.error.decMsg.text(oldStr);
+                en.getLayer().batchDraw();
+            });
+        });
+
+        // no error event
+        en.error.noErrTxt.on('click touchstart', function(){
+            en.errStatus.man='noError';
+            if(en.errStatus.auto !== en.errStatus.man){
+                stat.error.add(en.lang.wrongErrStatus);
+                return this.hover.show('e',en.lang.wrongErrStatus);
+            }
+            this.fill(en.error.binCode.fill());
+            en.error.decMsgLabel.visible(true);
+            en.error.decMsg.visible(true);
+            en.error.getLayer().batchDraw();
+
+        });
+        // single error event
+        en.error.sErrTxt.on('click touchstart', function(){
+            en.errStatus.man='singleError';
+            if(en.errStatus.auto !== en.errStatus.man){
+                stat.error.add(en.lang.wrongErrStatus);
+                return this.hover.show('e',en.lang.wrongErrStatus);
+            }
+            // single error correcting
+            if(en.errStatus.auto === 'singleError'){
+                let C0 = en.Cbits.find(Cbit => Cbit.id === 'C0');
+                let pos = Number(en.error.decCode.man);
+                if(typeof C0 === 'undefined') pos--;
+                en.bits[pos].txt.text(en.vals[pos].toString());
+                en.bits[pos].txt.fill('ForestGreen');
+                //en.bits[pos].txt.moveToTop();
+            }
+
+            this.fill(en.error.binCode.fill());
+            en.error.decMsgLabel.visible(true);
+            en.error.decMsg.visible(true);
+            en.error.getLayer().batchDraw();
+
+        });
+        // double error event
+        en.error.dErrTxt.on('click touchstart', function(){
+            en.errStatus.man='doubleError';
+            if(en.errStatus.auto !== en.errStatus.man){
+                stat.error.add(en.lang.wrongErrStatus);
+                return this.hover.show('e',en.lang.wrongErrStatus);
+            }
+            this.fill(en.error.binCode.fill());
+            en.error.decMsgLabel.visible(true);
+            en.error.decMsg.visible(true);
+            en.error.getLayer().batchDraw();
+        });
+
+        // show error status
+        en.error.errStatusShow=()=>{
+            en.error.noErrTxt.visible(true);
+            en.error.sErrTxt.visible(true);
+            en.error.dErrTxt.visible(true);
+            en.getLayer().batchDraw();
+        };
+
 
         //make error analaysis for auto mode
         en.error.makeAnalysis = () =>{
             en.error.binCode.text('('+en.error.binCode.auto+')_2');
             en.error.decCode.text('('+en.error.decCode.auto+')_2');
             en.error.updatePos();
+            let color = en.error.binCode.fill();
+            en.error.decCode.fill(color);
+            if(en.errStatus.auto === 'noError') en.error.noErrTxt.fill(color);
+            else if(en.errStatus.auto === 'singleError') en.error.sErrTxt.fill(color);
+            else en.error.dErrTxt.fill(color);
+            en.error.errStatusShow();
+            for(let i=0; i<en.vals.length; i++){
+                if (en.vals[i].toString() !== en.bits[i].txt.text()) {
+                    en.bits[i].txt.text(en.vals[i].toString());
+                    en.bits[i].txt.fill('ForestGreen');
+                }
+            }
+            en.error.decMsgLabel.visible(true);
+            en.error.decMsg.fill(color);
+            en.error.decMsg.text(en.decodedMsg.auto);
+            en.error.decMsg.visible(true);
             en.error.getLayer().batchDraw();
         };
 
@@ -572,7 +729,6 @@ function HAMMING_GA(props, layer, alg, stat) {
             arrow.setP([b.x, b.y, e.x, e.y]);
         }
         else{ // control bit
-
             arrow.dir = 'u'; // set arrow direction as up
             arrow.setP([e.x, e.y, b.x, b.y]);
             //console.log(arrow.id().search('arr'));
@@ -751,6 +907,7 @@ function HAMMING_GA(props, layer, alg, stat) {
                 }
             });
         } // end of for
+
         // set the events
         en.createCbitEvt();
     }; // end of method
@@ -799,13 +956,11 @@ function HAMMING_GA(props, layer, alg, stat) {
                     this.hover.show('e',msg);
                 }
                 else if(msg === true){
-                    //alg.increment(); // pass calculating step
                     alg.increment(); // pass write step
-                    //if(en.isLastCbit())  alg.increment(); // enable next step
                 }
             });
         });
-        layer.batchDraw();
+        en.getLayer().batchDraw();
     }; // end of createCBitCheck
 
         // add member to the current control bit equation
@@ -880,10 +1035,11 @@ function HAMMING_GA(props, layer, alg, stat) {
     // select a control bit for calculating/checking
     en.selectCbit = (CbitId) =>{
         if (typeof en.Cbits === 'undefined') return console.error('The model is busy!');
-        if (typeof CbitId === 'undefined' || CbitId === '') { // for outo mode
+        if (typeof CbitId === 'undefined' || CbitId === '') { // for auto mode
             let CbitSeq = ['C1', 'C2', 'C3', 'C4', 'C5', 'C0'];
             for (let i = 0; i < CbitSeq.length; i++) {
                 let thisCbit = en.bits.find(b => b.id() === CbitSeq[i]);
+                if(typeof thisCbit === 'undefined') continue;
                 if(en.Cbits.find(b => b.id === thisCbit.id()).man.res === ''){
                     CbitId = thisCbit.id();
                     break;
@@ -1012,14 +1168,55 @@ function HAMMING_GA(props, layer, alg, stat) {
                 }
                 en.error.binCode.auto = str;
                 en.error.decCode.auto = parseInt(str, 2).toString();
-                en.error.visible(true);
 
+                // set error status
+                en.errStatus={auto:'', man:''};
+                let C0 = en.Cbits.find(Cbit => Cbit.id === 'C0');
+                if(typeof C0 === 'undefined'){
+                    en.errStatus.auto = 'noError';
+                    en.Cbits.forEach(cBit => {
+                        if(cBit.auto.res !== 0)  en.errStatus.auto = 'singleError';
+                    });
+                }
+                else{
+                    if(C0.auto.res === 0){
+                        let errCode=0;
+                        en.Cbits.forEach(cBit => {
+                            if(cBit.id !== 'C0' && cBit.auto.res !== 0)  errCode = 1;
+                        });
+                        if(errCode === 0) en.errStatus.auto = 'noError';
+                        else en.errStatus.auto = 'doubleError';
+                    }
+                    else{ // C0=1
+                        en.errStatus.auto = 'singleError';
+                    }
+                }
+
+                // set decoded message
+                en.decodedMsg = {auto:'', man:''};
+                if(en.errStatus.auto === 'singleError'){ // single error correcting
+                    let pos = en.error.decCode.auto;
+                    //console.log('pos='+pos);
+                    let C0 = en.Cbits.find(Cbit => Cbit.id === 'C0');
+                    if(typeof C0 === 'undefined') pos--;
+                    en.vals[pos] = en.vals[pos] === 0 ? 1 : 0;
+                }
+                // creating decoded message
+                if(en.errStatus.auto !== 'doubleError'){
+                    let msg = '', idx=-1;
+                    en.bits.forEach(bit =>{
+                        idx++;
+                        if (bit.id().substr(0,1) === 'S') msg += en.vals[idx].toString();
+                    });
+                    en.decodedMsg.auto = msg;
+                }
+                else en.decodedMsg.auto = '?';
+
+                en.error.visible(true);
                 en.CbitCheck.Cbits.forEach(Cbit =>{
                     Cbit.off('click touchstart');
                     Cbit.off('mouseover touchstart');
                 });
-
-                //alg.increment(); // enable next step
             }
         }
         alg.increment(); // enable next step
@@ -1101,11 +1298,6 @@ function HAMMING_GA(props, layer, alg, stat) {
 
 
 editable = (textNode, closeFunc) => {
-    // create textarea over canvas with absolute position
-
-    // first we need to find position for textarea
-    // how to find it?
-
     // at first lets find position of text node relative to the stage:
     let textPosition = textNode.getAbsolutePosition();
 
@@ -1120,9 +1312,7 @@ editable = (textNode, closeFunc) => {
 
     // create textarea and style it
     let textarea = document.createElement('input');
-
     document.body.appendChild(textarea);
-
     textarea.value = textNode.text();
     textarea.style.position = 'absolute';
     textarea.style.top = areaPosition.y + 'px';
@@ -2855,7 +3045,7 @@ function INFO(layer, gr){
 
 
 ///// Button OBJECT //////////////////////////////////////////////////////
-function Button(props, layer){
+function Button(props){
     // BIT properties
     props.id = props.id || '';
     props.width = props.width || 20;
@@ -3001,7 +3191,7 @@ function Button(props, layer){
             btn.rect.fill(btn.passiveColor);
             btn.label.fill(btn.passiveColor);
         }
-        layer.batchDraw();
+        //if(typeof btn.getLayer() !== 'null') btn.getLayer().batchDraw();
     };
 
     // clickable method
@@ -3009,7 +3199,7 @@ function Button(props, layer){
         if (val === true){
             // mоuse hover event
             btn = hover1(btn, btn);
-            btn = over(btn, layer);
+            btn = over(btn);
         }
         else{
             // click event

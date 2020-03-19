@@ -5,13 +5,19 @@
         <meta charset="UTF-8" />
         <title>Hamming code</title>
         <script type="text/javascript" src="../library/jquery.min.js" ></script>
+        <script type="text/javascript" src="../library/jquery-ui.min.js" ></script>
         <script type="text/javascript" src="../library/konva.js"></script>
         <script type="text/javascript" src="../library/components.js"></script>
         <script type="text/javascript" src="../library/SmoothMovement1.js"></script>
+        <script type="text/javascript" src="../library/jquery.md5.min.js"></script>
         <script type="text/javascript" src="lang.js"></script>
 		<script type="text/javascript" src="hcModel.js"></script>
 		<script type="text/javascript" src="algorithm.js"></script>
 		<script type="text/javascript" src="statistics.js"></script>
+
+        <link rel="stylesheet" href="../library/jquery-ui.min.css">
+        <link rel="stylesheet" href="../library/jquery-ui.structure.min.css">
+        <link rel="stylesheet" href="../library/jquery-ui.theme.min.css">
 
 
 		<style>
@@ -91,12 +97,12 @@
 
         <span  class="menuItem bordered" style="display: inline;">
             <label >Language:</label>
-            <input type="radio" name="lang" value="bg" onchange="langChange();" checked> Bulgarian
-            <input type="radio" name="lang" value="en" onchange="langChange();"> English
+            <input type="radio" name="lang" id="langBG" value="bg" onchange="langChange();" checked> <label for="langBG">Bulgarian</label>
+            <input type="radio" name="lang" id="langEN" value="en" onchange="langChange();"> <label for="langEN">English</label>
         </span>
 
         <span  class="menuItem">
-            <button type="button" id="loginBtn" onclick="login()">Login</button>
+            <button class="ui-button ui-widget ui-corner-all" type="button" id="loginBtn" >Login</button>
         </span>
     </div>
     <div class="cp" id="cp"  style="display: none">
@@ -188,10 +194,10 @@
             <button type="button" id="checkBtn" onclick="ckeckParam()">Open the Model</button>
         </span>
         <span  class="menuItem">
-            <button type="button" id="nextBtn" onclick="model.runCurrStep()" disabled style="display: none;">Run Step</button>
+            <button type="button" id="nextBtn" onclick="model.runCurrStep()" disabled style="display: inline;">Run Step</button>
         </span>
         <span  class="menuItem">
-            <button type="button" id="autoRunBtn" onclick="model.autoRun()" disabled style="display: none">Autorun</button>
+            <button type="button" id="autoRunBtn" onclick="model.autoRun()" disabled style="display: inline;">Autorun</button>
         </span>
         <span  class="menuItem">
             <button type="button" id="resetBtn" onclick="model.reset()" disabled>Reset the Model</button>
@@ -199,7 +205,7 @@
         <span  class="menuItem bordered">
             <label id="mode">Mode:</label>
             <input type="radio" name="process" value="enc" checked id="encRadio"/> <label for="encRadio">Encoder</label>
-            <input type="radio" name="process" value="dec" checked id="decRadio"/> <label for="decRadio">Decoder</label>
+            <input type="radio" name="process" value="dec"  id="decRadio"/> <label for="decRadio">Decoder</label>
         </span>
     </div>
     <div id="scroll-container">
@@ -209,9 +215,28 @@
             <div id="container"></div>
         </div>
     </div>
+
+    <div id="wrongUserName"> <p id="wrongUserNameTxt"></p> </div>
+    <div id="div-simFinish" title="">
+        <span id="simFinishMsg"></span>
+    </div>
+
+    <div id="dialog-password" title="Set password">
+        <form>
+            <fieldset>
+                <p class="validateTips" id="message"></p>
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" value="???????" class="text ui-widget-content ui-corner-all">
+                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+            </fieldset>
+        </form>
+    </div>
+
 	</body>
 	<!--------------------------SCRIPT-------------------------------------->
 	<script type="text/javascript">
+        let currlang = document.querySelector('input[name="lang"]:checked').value;
+        let lang =  new LnagPack(currlang);
         let userName;
         let componentsPos={ir:'', cr:'', en:'', dec:'', alg:''};
         let size = calcSize();
@@ -275,8 +300,6 @@
             }
 		}
 
-
-
         // execute when info bit numbers change
         function calcSize(){
             let e = document.getElementById("cwBitNum");
@@ -290,8 +313,6 @@
 
         // language change function
         function langChange(){
-            let currlang = document.querySelector('input[name="lang"]:checked').value;
-            let lang =  new LnagPack(currlang);
             $('#modelTitle').html(lang.gn.hcModelTitle);
             $('#checkBtn').html(lang.gn.openMdlBtn);
             $('#resetBtn').html(lang.gn.resetMdlBtn);
@@ -303,8 +324,8 @@
             $('#errDetectNum').prop('title', lang.gn.lTitle);
             $('#parityBitNum').prop('title', lang.gn.kTitle);
             $('#cwBitNum').prop('title', lang.gn.nTitle);
-
         }
+
 
 		function changeDivSize(){
 		    let size = calcSize();
@@ -333,18 +354,80 @@
             document.getElementById('autoRunBtn').disabled=true;
         }, false);
 
-        function login(){
-            let user = document.getElementById('userName').value;
-            if(user.length !== 6){
-                alert('Невалиден факултетен номер');
-                return;
+        // login button click event
+        $( "#loginBtn" ).click( function( event ) {
+            let user = $('#userName').val();
+            if(user === 'yaliev' || user === 'earsova' || user === 'givanova'){
+                $("#dialog-password").dialog('open');
             }
-            userName = user;
+            else{
+                if(user.length !== 6){
+                    $('#wrongUserNameTxt').text(lang.gn.wrongUserName);
+                    //$("#wrongUserName" ).dialog();
+                    $( "#wrongUserName" ).dialog({
+                        modal: true,
+                        buttons: {
+                            Ok: function() {
+                                $( this ).dialog( "close" );
+                            }
+                        }
+                    });
 
-            document.getElementById('currUser').innerHTML = user+'  |';
+
+                    return;
+                }
+                $('#autoRunBtn').css('display', 'none');
+                $('#nextBtn').css('display', 'none');
+                login();
+            }
+        });
+
+        login = function(){
+            //let user = $('#userName').val();
+            userName = $('#userName').val();
+            document.getElementById('currUser').innerHTML = userName+'  |';
             $('#currUser').css('color', 'RoyalBlue');
             document.getElementById("loginDiv").style.display = "none";
             document.getElementById("cp").style.display = "block";
-        }
+        };
+
+        checkPass = function(){
+            if($.MD5($('#password').val()) === '88a2fdd0aa43fea0d282b21c4a32895e'){
+                $('#message').text('');
+                $("#dialog-password").dialog('close');
+                $('#autoRunBtn').css('display', 'inline');
+                $('#nextBtn').css('display', 'inline');
+                login();
+            }
+            else $('#message').text('Wrong password!');
+        };
+
+
+        $("#div-simFinish").dialog({
+            autoOpen : false, modal : true, show : "blind", hide : "blind", width: 400
+        });
+        $("#div-simFinish" ).dialog('close');
+
+        let dialog = $("#dialog-password").dialog({
+            autoOpen: false,
+            height: 240,
+            width: 400,
+            modal: true,
+            show : "blind",
+            buttons: {
+                "OK": checkPass,
+                Cancel: function() {
+                    dialog.dialog( "close" );
+                }
+            },
+            close: function() {
+                form[ 0 ].reset();
+            }
+        });
+
+        let form = dialog.find( "form" ).on( "submit", function( event ) {
+            event.preventDefault();
+            checkPass();
+        });
 	</script>
 </html>
