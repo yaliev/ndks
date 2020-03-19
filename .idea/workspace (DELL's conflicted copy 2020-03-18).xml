@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="3916cf0f-55b4-4661-b366-c34cee33f932" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/hamming_code/hcModel.js" beforeDir="false" afterPath="$PROJECT_DIR$/hamming_code/hcModel.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hamming_code/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/hamming_code/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hamming_code/lang.js" beforeDir="false" afterPath="$PROJECT_DIR$/hamming_code/lang.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/library/components.js" beforeDir="false" afterPath="$PROJECT_DIR$/library/components.js" afterDir="false" />
+    </list>
+    <ignored path="$PROJECT_DIR$/.tmp/" />
+    <ignored path="$PROJECT_DIR$/temp/" />
+    <ignored path="$PROJECT_DIR$/tmp/" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="HTML_JavaScript" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hamming_code/index.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="209">
+              <caret line="396" column="45" lean-forward="true" selection-start-line="396" selection-start-column="45" selection-end-line="396" selection-end-column="45" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/hamming_code/hcModel.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="239">
+              <caret line="147" column="42" lean-forward="true" selection-start-line="147" selection-start-column="42" selection-end-line="147" selection-end-column="42" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hamming_code/lang.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="329">
+              <caret line="39" column="15" selection-start-line="39" selection-start-column="12" selection-end-line="39" selection-end-column="21" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/library/components.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="520">
+              <caret line="1199" column="22" selection-start-line="1199" selection-start-column="22" selection-end-line="1199" selection-end-column="22" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/library/components.js" />
+        <option value="$PROJECT_DIR$/hamming_code/index.html" />
+        <option value="$PROJECT_DIR$/hamming_code/hcModel.js" />
+      </list>
+    </option>
+  </component>
+  <component name="IgnoredFileRootStore">
+    <option name="generatedRoots">
+      <set>
+        <option value="D:\OneDrive - ecs.uni-ruse.bg\Program projects\HTML_JavaScript\.idea" />
+      </set>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="260" />
+    <option name="y" value="20" />
+    <option name="width" value="1400" />
+    <option name="height" value="1000" />
+  </component>
+  <component name="ProjectId" id="1QgR88TfMRhkEqtCLBUZmnsOekR" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="ndks" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ndks" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ndks" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ndks" type="462c0819:PsiDirectoryNode" />
+              <item name="hamming_code" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ndks" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ndks" type="462c0819:PsiDirectoryNode" />
+              <item name="library" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\Google Drive\Program projects\HTML_JavaScript\cyclic_code" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="ccModel.js" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/cyclic_code/ccModel.js" working-dir="$PROJECT_DIR$/cyclic_code">
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Node.js.ccModel.js" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="StructureViewFactory">
+    <option name="ACTIVE_ACTIONS" value=",HTML5_OUTLINE_MODE,SHOW_CLASSES,HIDE_INHERITED_FROM_OBJECT,SHOW_FIELDS,ALPHA_COMPARATOR" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3916cf0f-55b4-4661-b366-c34cee33f932" name="Default Changelist" comment="" />
+      <created>1568190090790</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1568190090790</updated>
+      <workItem from="1568190094970" duration="21983000" />
+      <workItem from="1568230820414" duration="24000" />
+      <workItem from="1568231023790" duration="80000" />
+      <workItem from="1568268206808" duration="5131000" />
+      <workItem from="1568357900452" duration="58321000" />
+      <workItem from="1568712235736" duration="37641000" />
+      <workItem from="1568962625761" duration="24283000" />
+      <workItem from="1569302774022" duration="45047000" />
+      <workItem from="1572962222736" duration="1748000" />
+      <workItem from="1573547761701" duration="12000" />
+      <workItem from="1573547893173" duration="681000" />
+      <workItem from="1573556082094" duration="590000" />
+      <workItem from="1577460677266" duration="6000" />
+      <workItem from="1578900540608" duration="6715000" />
+      <workItem from="1578986929818" duration="50300000" />
+      <workItem from="1579529127895" duration="8341000" />
+      <workItem from="1579702960564" duration="50285000" />
+      <workItem from="1580112561309" duration="69845000" />
+      <workItem from="1580804945623" duration="18110000" />
+      <workItem from="1581406326225" duration="29000" />
+      <workItem from="1581406547807" duration="350000" />
+      <workItem from="1581406958364" duration="115000" />
+      <workItem from="1581420581650" duration="5884000" />
+      <workItem from="1581514847052" duration="7493000" />
+      <workItem from="1581538842168" duration="21000" />
+      <workItem from="1582133928091" duration="34000" />
+      <workItem from="1582299032742" duration="17000" />
+      <workItem from="1582299558438" duration="15000" />
+      <workItem from="1582464321760" duration="2520000" />
+      <workItem from="1582544012000" duration="5000" />
+      <workItem from="1582544376706" duration="2065000" />
+      <workItem from="1582622695281" duration="147000" />
+      <workItem from="1582623026478" duration="118219000" />
+      <workItem from="1583245266245" duration="15605000" />
+      <workItem from="1583304026428" duration="11254000" />
+      <workItem from="1583329079407" duration="42807000" />
+      <workItem from="1583742298483" duration="31668000" />
+      <workItem from="1584009873363" duration="24294000" />
+      <workItem from="1584285095894" duration="5604000" />
+      <workItem from="1584549275807" duration="591000" />
+      <workItem from="1584559956134" duration="1893000" />
+      <workItem from="1584562000788" duration="852000" />
+      <workItem from="1584564540683" duration="1765000" />
+    </task>
+    <task id="LOCAL-00001" summary="first commit">
+      <created>1582545173867</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1582545173867</updated>
+    </task>
+    <task id="LOCAL-00002" summary="first commit">
+      <created>1582623090244</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1582623090244</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Add login system">
+      <created>1583273022227</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1583273022227</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Add login system">
+      <created>1583273066993</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1583273066993</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Add login system">
+      <created>1583273532638</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1583273532638</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Add login system">
+      <created>1583274015051</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1583274015051</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Add login system">
+      <created>1583274190227</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1583274190227</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Add login system">
+      <created>1583309672818</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1583309672818</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Add login system">
+      <created>1583421680036</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1583421680036</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Bug corrected">
+      <created>1583837759438</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1583837759438</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Bug corrected">
+      <created>1583838023018</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1583838023018</updated>
+    </task>
+    <task id="LOCAL-00012" summary="Bug corrected">
+      <created>1583838608246</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1583838608246</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Bug corrected">
+      <created>1583839281334</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1583839281334</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Bug corrected">
+      <created>1583840933261</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1583840933261</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Bug corrected">
+      <created>1583841238925</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1583841238925</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Bug corrected">
+      <created>1583841430148</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1583841430148</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Bug corrected">
+      <created>1583849518438</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1583849518438</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Bug corrected">
+      <created>1583852288383</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1583852288383</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Bug corrected">
+      <created>1583920088554</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1583920088554</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
+    <servers />
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="5101000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.3110119" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Terminal" order="9" />
+      <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.inc" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="first commit" />
+    <MESSAGE value="Add login system" />
+    <MESSAGE value="Bug corrected" />
+    <option name="LAST_COMMIT_MESSAGE" value="Bug corrected" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="240" y="0" width="976" height="812" key="CommitChangelistDialog2" timestamp="1583920087039">
+      <screen x="0" y="0" width="1366" height="728" />
+    </state>
+    <state x="240" y="0" width="1020" height="728" key="CommitChangelistDialog2/0.0.1366.728@0.0.1366.728" timestamp="1583920087039" />
+    <state x="313" y="133" width="976" height="812" key="CommitChangelistDialog2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583841426702" />
+    <state x="313" y="138" key="CommitChangelistDialog2/0.0.1920.1080/1920.0.1920.1080@0.0.1920.1080" timestamp="1583852281501" />
+    <state x="740" y="261" key="FileChooserDialogImpl" timestamp="1582544446388">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="740" y="261" key="FileChooserDialogImpl/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582544446388" />
+    <state x="461" y="162" key="SettingsEditor" timestamp="1584010302430">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="461" y="162" key="SettingsEditor/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1584010302430" />
+    <state x="353" y="75" key="Vcs.Push.Dialog.v2" timestamp="1583920107877">
+      <screen x="0" y="0" width="1366" height="728" />
+    </state>
+    <state x="353" y="75" key="Vcs.Push.Dialog.v2/0.0.1366.728@0.0.1366.728" timestamp="1583920107877" />
+    <state x="552" y="241" key="Vcs.Push.Dialog.v2/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583841435663" />
+    <state x="552" y="250" key="Vcs.Push.Dialog.v2/0.0.1920.1080/1920.0.1920.1080@0.0.1920.1080" timestamp="1583852291586" />
+    <state x="1920" y="100" width="1575" height="1028" key="dock-window-1" timestamp="1582625946938">
+      <screen x="1920" y="0" width="1920" height="1040" />
+    </state>
+    <state x="1920" y="100" width="1575" height="1028" key="dock-window-1/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1582625946938" />
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup" timestamp="1583599711843">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="623" y="225" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040/1920.0.1920.1040@0.0.1920.1040" timestamp="1583599711843" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/library/components.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="520">
+          <caret line="1199" column="22" selection-start-line="1199" selection-start-column="22" selection-end-line="1199" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hamming_code/lang.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="329">
+          <caret line="39" column="15" selection-start-line="39" selection-start-column="12" selection-end-line="39" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hamming_code/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="209">
+          <caret line="396" column="45" lean-forward="true" selection-start-line="396" selection-start-column="45" selection-end-line="396" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hamming_code/hcModel.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="239">
+          <caret line="147" column="42" lean-forward="true" selection-start-line="147" selection-start-column="42" selection-end-line="147" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
