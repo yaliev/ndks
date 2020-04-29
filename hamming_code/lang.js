@@ -39,8 +39,8 @@ function LnagPack(thisLang){
     l.en.gn.finishMsg='The simulation finished!';
     l.bg.gn.finishMsg='Симулацията приключи!';
 
-    l.en.gn.hcModelTitle='Interactive Simulation Model of Hamming Code - General Algorithm';
-    l.bg.gn.hcModelTitle='Интерактивен Симулационен Модел на Код на Хеминг - Обикновен Алгоритъм';
+    l.en.gn.hcGenModelTitle='Interactive Simulation Model of Hamming Code - General Algorithm';
+    l.bg.gn.hcGenModelTitle='Интерактивен Симулационен Модел на Код на Хеминг - Обикновен Алгоритъм';
     l.en.gn.openMdlBtn='Open the Model';
     l.bg.gn.openMdlBtn='Отвори модела';
     l.en.gn.resetMdlBtn='Reset the Model';
@@ -139,6 +139,8 @@ function LnagPack(thisLang){
     l.bg.gn.nTitle='Брой на битовете на кодовата комбинация';
     l.en.gn.regBitHover='Set value';
     l.bg.gn.regBitHover='Задай стойност';
+    l.en.gn.showEndMsg='Show simulation finish message';
+    l.bg.gn.showEndMsg='Покажи съобщението за край на симулацията';
 
     // statistics
     l.en.stat.title='Statistics';

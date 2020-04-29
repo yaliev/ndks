@@ -1,5 +1,5 @@
 class hcModel {
-    constructor(props) {
+    constructor() {
         this.process;
         this.lang;
         this.layer = null;
@@ -92,7 +92,7 @@ class hcModel {
         this.layer.draw();
 
         // dragmove event for algorithm panel
-        this.algorithm.schema.on('dragmove', function(e){
+        this.algorithm.schema.on('dragmove', function(){
             if(typeof componentsPos.alg !== 'undefined'){
                 componentsPos.alg = this.position();
             }
@@ -118,6 +118,13 @@ class hcModel {
         }
 
         this.simFinish=function(){
+            let end = this.algorithm.schema.items.find(e => e.id() === 'end');
+            end.hoverTxt = lang.showEndMsg;
+            end = hover1(end, end.getParent());
+            end = over(end);
+            end.on('click touchstart', function(){
+                $("#div-simFinish" ).dialog('open');
+            });
             let str='';
             if(this.process==='enc'){ // encoding
                 str='<p>'+lang.modeEnc+'<\p>';
@@ -749,7 +756,7 @@ class hcModel {
             return;
         }
         document.getElementById('autoRunBtn').innerHTML='Pause Autorun';
-        speed = speed || 500;
+        speed = speed || 250;
         model.autoRunTimerId =  setInterval(function(){
             model.runCurrStep();
             if (model.algorithm.getCurrStep().name === 'finish'){
@@ -773,7 +780,7 @@ class hcModel {
     // Reset the Model method
     reset(){
         if(model.autoRunTimerId !== -1){
-            clearInterval(model.autoRunTimerId) // stop autorun timer if it is started
+            clearInterval(model.autoRunTimerId); // stop autorun timer if it is started
             document.getElementById('autoRunBtn').innerHTML='Autorun';
         }
         document.getElementById('checkBtn').disabled=false;

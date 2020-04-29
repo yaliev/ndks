@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <title>НДКС-Виртуална библиотека</title>
+
+
+        <script src="library/js/jquery.js"></script>
+        <script src="library/js/jquery-ui.min.js"></script>
+
+        <script src="library/js/jquery.md5.min.js"></script>
+        <script src="library/js/components.js"></script>
+        <script src="library/js/algorithm.js"></script>
+        <script src="library/js/statistics.js"></script>
+        <script src="library/js/lang.js"></script>
+
+        <script src="library/js/konva.js"></script>
+        <script src="library/js/models/hcMatModel.js"></script>
+        <script src="library/js/models/hcModel.js"></script>
+
+        <link rel="stylesheet" href="library/css/jquery-ui.min.css">
+        <link rel="stylesheet" href="library/css/jquery-ui.structure.min.css">
+        <link rel="stylesheet" href="library/css/jquery-ui.theme.min.css">
+        <link rel="stylesheet" href="library/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="library/css/bootstrap.bundle.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="library/css/bootstrap-grid.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="library/css/bootstrap-reboot.min.css" rel="stylesheet">
+
+        <link rel="stylesheet" href="library/css/custom.css">
+
+    </head>
+
+    <body>
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
+            <div class="container">
+                <span class="navbar-brand " >НАДЕЖДНОСТ И ДИАГНОСТИКА НА КОМПЮТЪРНИТЕ СИСТЕМИ</span>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#" id="navHome"> Home
+                                <span class="sr-only">(current)</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">  </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">  </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">  </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div class="container-fluid" id="content">
+        </div>
+
+        <!-- Jquery UI DIALOGS -->
+        <div id="msgDialog" title="">
+            <span id="simFinishMsg"></span>
+        </div>
+
+        <!-- login-->
+        <div id="loginDiv" title="Login">
+            <form method="post">
+                <p class="validateTips" id="wrongUserName" style="display: none"></p>
+                <fieldset>
+                    <legend id="userNameTxt">User name</legend>
+                    <input type="text" class="text ui-widget-content ui-corner-all" id="userName" name="userName">
+                </fieldset>
+                <fieldset>
+                    <legend id="selLang">Select a language</legend>
+                    <label for="langBG">Български</label>
+                    <input type="radio" name="lang" id="langBG" value="bg" onchange="langChange();" checked>
+                    <label for="langEN">English</label>
+                    <input type="radio" name="lang" id="langEN" value="en" onchange="langChange();">
+                </fieldset>
+            </form>
+        </div>
+
+        <div id="passDiv" title="Set password">
+            <form>
+                <p class="validateTips" id="wrongPass" style="display: none"></p>
+                <fieldset>
+                    <legend id="passTxt">Password</legend>
+                    <input type="password" name="password" id="password" value="???????" class="text ui-widget-content ui-corner-all">
+                    <!--                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">-->
+                </fieldset>
+            </form>
+        </div>
+    </body>
+</html>
+
+<!--------------------------SCRIPT-------------------------------------->
+<script type="text/javascript">
+    let currlang = document.querySelector('input[name="lang"]:checked').value;
+    let lang =  new LnagPack(currlang);
+    let userName = '063199';
+
+    $("#msgDialog").dialog({
+        autoOpen : false, modal : true, show : "blind", hide : "blind",
+        minHeight:100, minWidth:100,  height: 'auto', width: 'auto'
+    });
+    $("#msgDialog" ).dialog('close');
+
+    // login button click event
+    loginBtnEvent = function() {
+        let user = $('#userName').val();
+        if(user === 'yaliev' || user === 'earsova' || user === 'givanova'){
+            $("#passDiv").dialog('open');
+            userName = user;
+        }
+        else{
+            if(user.length !== 6){
+                $('#wrongUserName').css('display', 'inline');
+                return;
+            }
+            $("#loginDiv" ).dialog('close');
+            userName = user;
+            loadPage('home');
+        }
+    };
+
+    checkPass = function(){
+        if($.MD5($('#password').val()) === '88a2fdd0aa43fea0d282b21c4a32895e'){
+            $('#wrongPass').text('');
+            $("#passDiv").dialog('close');
+            $("#loginDiv").dialog('close');
+            loadPage('home');
+        }
+        else {
+            $('#wrongPass').text(lang.gn.wrongPass);
+            $('#wrongPass').css('display', 'inline');
+        }
+    };
+
+    $("#navHome" ).click(function() { loadPage('home');});
+
+    let dialogPass = $("#passDiv").dialog({
+        autoOpen: false,
+        height: 'auto',
+        width: 'auto',
+        modal: true,
+        show : "blind",
+        buttons: {
+            "OK": checkPass,
+            Cancel: function() {
+                dialogPass.dialog("close");
+            }
+        },
+        close: function() {
+            form[0].reset();
+        }
+    });
+
+    $("#loginDiv").dialog({
+        autoOpen : true, modal : true, show : "blind", hide : "blind",
+        minWidth: 320,
+        maxWidth: 320,
+        height: 'auto',
+        width: 'auto',
+        buttons: {
+            'login': loginBtnEvent
+        },
+    });
+    $("#langBG").checkboxradio();
+    $("#langEN").checkboxradio();
+
+    let form = dialogPass.find( "form" ).on( "submit", function( event ) {
+        event.preventDefault();
+        checkPass();
+    });
+
+    function loadPage(pageName) {
+            $("#content").load('pages/'+pageName+'.html');
+    }
+
+    function langChange(){
+        currlang = document.querySelector('input[name="lang"]:checked').value;
+        lang =  new LnagPack(currlang);
+        $('#userNameTxt').html(lang.gn.userNameTxt);
+        $('#selLang').html(lang.gn.selLang);
+        $('#loginBtn').html(lang.gn.login);
+        $('#loginDiv' ).dialog({title: lang.gn.login});
+        $('#passDiv' ).dialog({title: lang.gn.passTxt});
+        $('#wrongUserName').text(lang.gn.wrongUserName);
+        $('#passTxt').text(lang.gn.passTxt);
+        $('#wrongPass').text(lang.gn.wrongPass);
+    }
+
+    langChange();
+
+</script>
+
