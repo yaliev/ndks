@@ -1,0 +1,17 @@
+<div id="modelList" class="row">
+    <h2 id="modelListTitle" class="mx-auto">Models</h2>
+    <button id="hcGenModelBtn" type="button" class="btn btn-info btn-lg btn-block">Hamming Code - General Algorithm</button>
+    <button id="hcMatModelBtn" type="button" class="btn btn-info btn-lg btn-block">Hamming Code - Matrix Algorithm</button>
+</div>
+
+<script>
+$(function() {
+    $('#modelListTitle').text(lang.gn.models);
+    $('#hcGenModelBtn').html(lang.gn.hcGenModelTitle);
+    $('#hcMatModelBtn').html(lang.gn.hcMatModelTitle);
+});
+
+$("#hcMatModelBtn" ).click(function() { loadPage('hamming-matrix');});
+$("#hcGenModelBtn" ).click(function() { loadPage('hamming-general');});
+
+</script>
