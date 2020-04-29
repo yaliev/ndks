@@ -34,6 +34,7 @@
 
     </head>
 
+
     <body>
         <!-- Navigation -->
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
@@ -189,7 +190,7 @@
 
     function langChange(){
         currlang = document.querySelector('input[name="lang"]:checked').value;
-        lang =  new LnagPack(currlang);
+        lang =  new LangPack(currlang);
         $('#userNameTxt').html(lang.gn.userNameTxt);
         $('#selLang').html(lang.gn.selLang);
         $('#loginBtn').html(lang.gn.login);
