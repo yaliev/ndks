@@ -25,7 +25,7 @@ class hcMatModel {
         this.n = param.n;
         this.t = param.t;
         this.process = param.process; // default process is encoding
-        this.lang =  new LnagPack(param.lang); // default language is english
+        this.lang =  new LangPack(param.lang); // default language is english
         let lang = this.lang.gn;
 
         if (this.debug) console.log('Checking parameters...');
