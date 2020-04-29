@@ -1,0 +1,247 @@
+<!--<script src="library/js/konva.js"></script>-->
+<!--<script src="library/js/models/hcMatModel.js"></script>-->
+
+<div id="hammingCode-matrix" >
+    <h5 class="modelTitle" id="modelTitle">Interactive Simulation Model of Hamming Code - Matrix Algorithm</h5>
+    <div class="cp" id="cp"  style="display: inline">
+        <span class="menuItem" id="currUser" name="currUser"></span>
+        <span class="menuItem">
+            <label for="infoBitNum">m =</label>
+            <select id="infoBitNum" name="InfoBits" title="Info Bits Number">
+              <option value=4 >4</option>
+              <option value=5 >5</option>
+              <option value=6 >6</option>
+              <option value=7  selected>7</option>
+              <option value=8 >8</option>
+              <option value=9 >9</option>
+              <option value=10 >10</option>
+              <option value=11 >11</option>
+              <option value=12 >12</option>
+              <option value=13 >13</option>
+              <option value=14 >14</option>
+              <option value=15 >15</option>
+              <option value=16 >16</option>
+              <option value=17 >17</option>
+              <option value=18 >18</option>
+              <option value=19 >19</option>
+              <option value=20 >20</option>
+              <option value=21 >21</option>
+              <option value=22 >22</option>
+              <option value=23 >23</option>
+              <option value=24 >24</option>
+              <option value=25 >25</option>
+              <option value=26 >26</option>
+            </select>
+        </span>
+        <span class="menuItem">
+            <label for="errDetectNum">l<sub>0</sub> =</label>
+            <select id="errDetectNum" name="errDetectNum">
+                <option value=1 >1</option>
+                <option value=2 >2</option>
+            </select>
+        </span>
+
+        <span class="menuItem">
+            2<sup>k</sup> - k &ge; m+1  =>
+        </span>
+
+        <span class="menuItem">
+            <label for="parityBitNum">k =</label>
+            <select id="parityBitNum" name="parityBitNum">
+              <option value=0 ></option>
+              <option value=3 >3</option>
+              <option value=4 selected>4</option>
+              <option value=5 >5</option>
+              <option value=6 >6</option>
+            </select>
+        </span>
+
+        <span  class="menuItem">
+            <label for="cwBitNum">n =</label>
+            <select id="cwBitNum" name="codewordBitNum" onchange="calcSize()">
+              <option value=0 ></option>
+              <option value=7 >7</option>
+              <option value=8 >8</option>
+              <option value=9 >9</option>
+              <option value=10 >10</option>
+              <option value=11 selected>11</option>
+              <option value=12 >12</option>
+              <option value=13 >13</option>
+              <option value=14 >14</option>
+              <option value=15 >15</option>
+              <option value=16 >16</option>
+              <option value=17 >17</option>
+              <option value=18 >18</option>
+              <option value=19 >19</option>
+              <option value=20 >20</option>
+              <option value=21 >21</option>
+              <option value=22 >22</option>
+              <option value=23 >23</option>
+              <option value=24 >24</option>
+              <option value=25 >25</option>
+              <option value=26 >26</option>
+              <option value=27 >27</option>
+              <option value=28 >28</option>
+              <option value=29 >29</option>
+              <option value=30 >30</option>
+              <option value=31 >31</option>
+              <option value=32 >32</option>
+            </select>
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="checkBtn" onclick="ckeckParam()">Open the Model</button>
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="nextBtn" onclick="model.runCurrStep()" disabled style="display: none;">Run Step</button>
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="autoRunBtn" onclick="model.autoRun()" disabled style="display: none;">Autorun</button>
+        </span>
+        <span  class="menuItem">
+            <button type="button" id="resetBtn" onclick="model.reset()" disabled>Reset the Model</button>
+        </span>
+        <span  class="menuItem bordered">
+            <label id="mode">Mode:</label>
+            <input type="radio" name="process" value="enc" checked id="encRadio"/> <label for="encRadio">Encoder</label>
+            <input type="radio" name="process" value="dec"  id="decRadio"/> <label for="decRadio">Decoder</label>
+        </span>
+    </div>
+
+
+    <div id="scroll-container" >
+        <div id="large-container">
+            <div class="smallMargin" id="info"></div>
+            <div id="errDialog" title="Errors"></div>
+            <div id="konvaContainer"> </div>
+        </div>
+    </div>
+
+</div>
+<!--------------------------SCRIPT-------------------------------------->
+<script type="text/javascript">
+    // language set function
+    $(function() {
+        $('#modelTitle').html(lang.gn.hcMatModelTitle);
+        $('#checkBtn').html(lang.gn.openMdlBtn);
+        $('#resetBtn').html(lang.gn.resetMdlBtn);
+        $('label[for=encRadio]').html(lang.gn.encRadio);
+        $('label[for=decRadio]').html(lang.gn.decRadio);
+        $('#mode').html(lang.gn.mode);
+
+        $('#infoBitNum').prop('title', lang.gn.mTitle);
+        $('#errDetectNum').prop('title', lang.gn.lTitle);
+        $('#parityBitNum').prop('title', lang.gn.kTitle);
+        $('#cwBitNum').prop('title', lang.gn.nTitle);
+
+        if(userName === 'yaliev' || userName === 'earsova' || userName === 'givanova'){
+            $('#nextBtn').show();
+            $('#autoRunBtn').show();
+        }
+    });
+
+    let size = calcSize();
+    let divSize ={  width: document.getElementById("large-container").clientWidth,
+        height: document.getElementById("large-container").clientHeight};
+    let winSize = {width: window.innerWidth, height: window.innerHeight};
+    let titleHeight = document.getElementById("modelTitle").clientHeight+2*15;
+    let cpHeight = document.getElementById("cp").clientHeight+2*15;
+    if(winSize.width > size.width) size.width = divSize.width;
+    if(winSize.height-titleHeight-cpHeight > size.height) size.height = winSize.height-titleHeight-cpHeight;
+
+    var componentsPos={ir:'', cr:'', en:'', dec:'', alg:''};
+
+    // creating the Stage
+    var stage = new Konva.Stage({
+        container: 'konvaContainer',
+        width: size.width,
+        height: size.height,
+        cursor: 'default',
+        draggable: false
+    });
+
+    // creating the model object
+    var model = new hcMatModel();
+
+    // error for code parameters
+    let errors = {count:0, history:[]};
+
+    //check for correct code parameters
+    function ckeckParam(){
+        let codeParam ={
+            m: Number(document.getElementById('infoBitNum').value),
+            k: Number(document.getElementById('parityBitNum').value),
+            n: Number(document.getElementById('cwBitNum').value),
+            t: Number(document.getElementById('errDetectNum').value),
+            process: document.querySelector('input[name="process"]:checked').value,
+            lang: document.querySelector('input[name="lang"]:checked').value
+        };
+        let check = model.checkParam(codeParam);
+        if (check === true){ // if parameters is right run the below
+
+            let layers = model.init(errors);
+            layers.forEach(layer => {
+                stage.add(layer);
+            });
+            model.stat.userName = userName;
+            document.getElementById('checkBtn').disabled=true;
+            document.getElementById('infoBitNum').disabled=true;
+            document.getElementById('parityBitNum').disabled=true;
+            document.getElementById('cwBitNum').disabled=true;
+            document.getElementById('errDetectNum').disabled=true;
+            document.getElementById('nextBtn').disabled=false;
+            document.getElementById('resetBtn').disabled=false;
+            document.getElementById('autoRunBtn').disabled=false;
+            document.getElementsByName("lang")[0].disabled = true;
+            document.getElementsByName("lang")[1].disabled = true;
+            document.getElementsByName("process")[0].disabled = true;
+            document.getElementsByName("process")[1].disabled = true;
+        }
+        else{
+            errors.count++;
+            errors.history.unshift(check);
+            $("#msgDialog").dialog('option','title', lang.gn.error);
+            $("#msgDialog").css({'color':'red'});
+            $("#msgDialog").html(check+' !');
+            $("#msgDialog").dialog({show : 'shake'});
+            $("#msgDialog").dialog('open');
+        }
+    }
+
+    // execute when info bit numbers change
+    function calcSize(){
+        let e = document.getElementById("cwBitNum");
+        let bitCount = e.options[e.selectedIndex].value;
+        let bitWidth = 36, dist = 320, padding = 36, margin = 20;
+        let minWidth = margin + padding + (bitWidth*bitCount) + dist + margin;
+        let minHeight = 750 + document.getElementById("cp").clientHeight;
+        let size = {width: minWidth, height: minHeight};
+        return size;
+    }
+
+    function changeDivSize(){
+        let size = calcSize();
+        let currDivSize={   width: document.getElementById("large-container").clientWidth,
+                            height: document.getElementById("large-container").clientHeight};
+        if(currDivSize.width < size.width) {
+            document.getElementById('large-container').setAttribute('class','width');
+            document.getElementById('large-container').style.width = size.width+'px';
+        }
+
+        if(currDivSize.height < size.height) {
+            document.getElementById('large-container').setAttribute("style","height:"+size.height+"px");
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+        changeDivSize();
+        langChange();
+        document.getElementById('checkBtn').disabled=false;
+        document.getElementById('infoBitNum').disabled=false;
+        document.getElementById('parityBitNum').disabled=false;
+        document.getElementById('cwBitNum').disabled=false;
+        document.getElementById('errDetectNum').disabled=false;
+        document.getElementById('nextBtn').disabled=true;
+        document.getElementById('resetBtn').disabled=true;
+        document.getElementById('autoRunBtn').disabled=true;
+    }, false);
+</script>
