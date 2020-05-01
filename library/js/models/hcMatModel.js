@@ -71,7 +71,7 @@ class hcMatModel {
         // encoder
         if(this.process === 'enc'){
             // creating the ALGORITHM PANEL
-            this.algorithm = new ALGORITHM(encoderSteps(this.lang.alg, this.k),this.m, this.k, this.lang.alg);
+            this.algorithm = new ALGORITHM(this.encoderSteps(this.lang.alg, this.k),this.m, this.k, this.lang.alg);
             // setting the algorithm's schema to some position
             this.algorithm.schema.setPos({ x:1000 , y: 50});
             layers.push(this.algorithm.layer);
@@ -80,7 +80,7 @@ class hcMatModel {
         // decoder
         else if(this.process === 'dec'){
             // creating the ALGORITHM PANEL
-            this.algorithm = new ALGORITHM(decoderSteps(this.lang.alg, this.k), this.m, this.k, this.lang.alg);
+            this.algorithm = new ALGORITHM(this.decoderSteps(this.lang.alg, this.k), this.m, this.k, this.lang.alg);
             // setting the algorithm's schema to some position
             this.algorithm.schema.setPos({ x:1000 , y: 50});
             layers.push(this.algorithm.layer);
@@ -691,133 +691,263 @@ class hcMatModel {
         this.layer.destroy();
         stage.clear();
     } // end the reset
-}
 
-// for decoder
-decoderSteps = function(lang, cycleCount){
-    let steps=[];
-    let step;
-    step = {name:'setParam',
-        description: lang.setParam,
-        help:lang.setParamHelp,
-        sub:[]
-    };
-    steps.push(step);
 
-    step = {name:'setBits',
-        description: lang.setBits,
-        help:lang.setIrBitsHelp,
-        sub:[]
-    };
-    steps.push(step);
+    // for decoder
+    decoderSteps(lang, cycleCount){
+        let steps=[];
+        let step;
+        step = {name:'setParam',
+            description: lang.setParam,
+            help:lang.setParamHelp,
+            sub:[]
+        };
+        steps.push(step);
 
-    step = {name:'setHmat',
-        description: lang.setHmat,
-        help:lang.setHmatHelp,
-        sub:[]
-    };
-    steps.push(step);
+        step = {name:'setBits',
+            description: lang.setBits,
+            help:lang.setIrBitsHelp,
+            sub:[]
+        };
+        steps.push(step);
 
-    step = {name:'setH_mat',
-        description: lang.setH_mat,
-        help:lang.setH_matHelp,
-        sub:[]
-    };
-    steps.push(step);
+        step = {name:'setHmat',
+            description: lang.setHmat,
+            help:lang.setHmatHelp,
+            sub:[]
+        };
+        steps.push(step);
 
-    step = {name: 'load',
-        description: lang.loadEN,
-        help: lang.loadInfoBitsHelp,
-        sub: []
-    };
-    steps.push(step);
+        step = {name:'setH_mat',
+            description: lang.setH_mat,
+            help:lang.setH_matHelp,
+            sub:[]
+        };
+        steps.push(step);
 
-    step = {name: 'calcCbits',
-        description: lang.calcParity,
-        help: 'Executed for each control bits',
-        cycleCount: cycleCount,
-        sub:[
-            {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
-            {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
-            {name: 'calcCbit',   description: lang.calcCbit, help: lang.calcCbitHelp},
-            {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitHelp}
-        ]
-    };
-    steps.push(step);
+        step = {name: 'load',
+            description: lang.loadEN,
+            help: lang.loadInfoBitsHelp,
+            sub: []
+        };
+        steps.push(step);
 
-    step = {name: 'analysis',
-        description: lang.resAnalysis,
-        help: lang.errAnalysisHelp,
-        sub: []
-    };
-    steps.push(step);
+        step = {name: 'calcCbits',
+            description: lang.calcParity,
+            help: 'Executed for each control bits',
+            cycleCount: cycleCount,
+            sub:[
+                {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
+                {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
+                {name: 'calcCbit',   description: lang.calcCbit, help: lang.calcCbitHelp},
+                {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitHelp}
+            ]
+        };
+        steps.push(step);
 
-    step = {name: 'finish',
-        description: lang.finish,
-        help: lang.finishMsg,
-        sub:[]
+        step = {name: 'analysis',
+            description: lang.resAnalysis,
+            help: lang.errAnalysisHelp,
+            sub: []
+        };
+        steps.push(step);
+
+        step = {name: 'finish',
+            description: lang.finish,
+            help: lang.finishMsg,
+            sub:[]
+        };
+        steps.push(step);
+        return steps;
     };
-    steps.push(step);
-    return steps;
-};
 
 // Create steps
-encoderSteps = function(lang, cycleCount){
-    let steps=[];
-    let step;
-    step = {name:'setParam',
-        description: lang.setParam,
-        help:lang.setParamHelp,
-        sub:[]
-    };
-    steps.push(step);
+    encoderSteps(lang, cycleCount){
+        let steps=[];
+        let step;
+        step = {name:'setParam',
+            description: lang.setParam,
+            help:lang.setParamHelp,
+            sub:[]
+        };
+        steps.push(step);
 
-    step = {name:'setBits',
-        description: lang.setBits,
-        help:lang.setIrBitsHelp,
-        sub:[]
-    };
-    steps.push(step);
+        step = {name:'setBits',
+            description: lang.setBits,
+            help:lang.setIrBitsHelp,
+            sub:[]
+        };
+        steps.push(step);
 
-    step = {name:'setHmat',
-        description: lang.setHmat,
-        help:lang.setHmatHelp,
-        sub:[]
-    };
-    steps.push(step);
+        step = {name:'setHmat',
+            description: lang.setHmat,
+            help:lang.setHmatHelp,
+            sub:[]
+        };
+        steps.push(step);
 
-    step = {name:'setH_mat',
-        description: lang.setH_mat,
-        help:lang.setH_matHelp,
-        sub:[]
-    };
-    steps.push(step);
+        step = {name:'setH_mat',
+            description: lang.setH_mat,
+            help:lang.setH_matHelp,
+            sub:[]
+        };
+        steps.push(step);
 
-    step = {name: 'load',
-        description: lang.loadEN,
-        help: lang.loadInfoBitsHelp,
-        sub: []
-    };
-    steps.push(step);
+        step = {name: 'load',
+            description: lang.loadEN,
+            help: lang.loadInfoBitsHelp,
+            sub: []
+        };
+        steps.push(step);
 
-    step = {name: 'calcCbits',
-        description: lang.calcParity,
-        help: 'Executed for each control bits',
-        cycleCount: cycleCount,
-        sub:[
-            {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
-            {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
-            {name: 'calcCbit',   description: lang.calcCbit, help: lang.calcCbitHelp},
-            {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitHelp}
-        ]
-    };
-    steps.push(step);
+        step = {name: 'calcCbits',
+            description: lang.calcParity,
+            help: 'Executed for each control bits',
+            cycleCount: cycleCount,
+            sub:[
+                {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
+                {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
+                {name: 'calcCbit',   description: lang.calcCbit, help: lang.calcCbitHelp},
+                {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitHelp}
+            ]
+        };
+        steps.push(step);
 
-    step = {name: 'finish',
-        description: lang.finish,
-        help: lang.finishMsg,
-        sub:[]
+        step = {name: 'finish',
+            description: lang.finish,
+            help: lang.finishMsg,
+            sub:[]
+        };
+        steps.push(step);
+        return steps;
     };
-    steps.push(step);
-    return steps;
-};
+}
+
+// // for decoder
+// decoderSteps = function(lang, cycleCount){
+//     let steps=[];
+//     let step;
+//     step = {name:'setParam',
+//         description: lang.setParam,
+//         help:lang.setParamHelp,
+//         sub:[]
+//     };
+//     steps.push(step);
+//
+//     step = {name:'setBits',
+//         description: lang.setBits,
+//         help:lang.setIrBitsHelp,
+//         sub:[]
+//     };
+//     steps.push(step);
+//
+//     step = {name:'setHmat',
+//         description: lang.setHmat,
+//         help:lang.setHmatHelp,
+//         sub:[]
+//     };
+//     steps.push(step);
+//
+//     step = {name:'setH_mat',
+//         description: lang.setH_mat,
+//         help:lang.setH_matHelp,
+//         sub:[]
+//     };
+//     steps.push(step);
+//
+//     step = {name: 'load',
+//         description: lang.loadEN,
+//         help: lang.loadInfoBitsHelp,
+//         sub: []
+//     };
+//     steps.push(step);
+//
+//     step = {name: 'calcCbits',
+//         description: lang.calcParity,
+//         help: 'Executed for each control bits',
+//         cycleCount: cycleCount,
+//         sub:[
+//             {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
+//             {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
+//             {name: 'calcCbit',   description: lang.calcCbit, help: lang.calcCbitHelp},
+//             {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitHelp}
+//         ]
+//     };
+//     steps.push(step);
+//
+//     step = {name: 'analysis',
+//         description: lang.resAnalysis,
+//         help: lang.errAnalysisHelp,
+//         sub: []
+//     };
+//     steps.push(step);
+//
+//     step = {name: 'finish',
+//         description: lang.finish,
+//         help: lang.finishMsg,
+//         sub:[]
+//     };
+//     steps.push(step);
+//     return steps;
+// };
+//
+// // Create steps
+// encoderSteps = function(lang, cycleCount){
+//     let steps=[];
+//     let step;
+//     step = {name:'setParam',
+//         description: lang.setParam,
+//         help:lang.setParamHelp,
+//         sub:[]
+//     };
+//     steps.push(step);
+//
+//     step = {name:'setBits',
+//         description: lang.setBits,
+//         help:lang.setIrBitsHelp,
+//         sub:[]
+//     };
+//     steps.push(step);
+//
+//     step = {name:'setHmat',
+//         description: lang.setHmat,
+//         help:lang.setHmatHelp,
+//         sub:[]
+//     };
+//     steps.push(step);
+//
+//     step = {name:'setH_mat',
+//         description: lang.setH_mat,
+//         help:lang.setH_matHelp,
+//         sub:[]
+//     };
+//     steps.push(step);
+//
+//     step = {name: 'load',
+//         description: lang.loadEN,
+//         help: lang.loadInfoBitsHelp,
+//         sub: []
+//     };
+//     steps.push(step);
+//
+//     step = {name: 'calcCbits',
+//         description: lang.calcParity,
+//         help: 'Executed for each control bits',
+//         cycleCount: cycleCount,
+//         sub:[
+//             {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
+//             {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
+//             {name: 'calcCbit',   description: lang.calcCbit, help: lang.calcCbitHelp},
+//             {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitHelp}
+//         ]
+//     };
+//     steps.push(step);
+//
+//     step = {name: 'finish',
+//         description: lang.finish,
+//         help: lang.finishMsg,
+//         sub:[]
+//     };
+//     steps.push(step);
+//     return steps;
+// };

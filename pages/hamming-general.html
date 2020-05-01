@@ -90,11 +90,11 @@
         <span  class="menuItem">
             <button type="button" id="checkBtn" onclick="ckeckParam()">Open the Model</button>
         </span>
-        <span  class="menuItem">
-            <button type="button" id="nextBtn" onclick="model.runCurrStep()" disabled style="display: inline;">Run Step</button>
+        <span  class="menuItem" id="nextBtnSpan">
+<!--            <button type="button" id="nextBtn" onclick="model.runCurrStep()">Run Step</button>-->
         </span>
-        <span  class="menuItem">
-            <button type="button" id="autoRunBtn" onclick="model.autoRun()" disabled style="display: inline;">Autorun</button>
+        <span  class="menuItem" id="autoRunBtnSpan">
+<!--            <button type="button" id="autoRunBtn" onclick="model.autoRun()" >Autorun</button>-->
         </span>
         <span  class="menuItem">
             <button type="button" id="resetBtn" onclick="model.reset()" disabled>Reset the Model</button>
@@ -117,7 +117,7 @@
 <script type="text/javascript">
         // language set function
         $(function() {
-            $('#modelTitle').html(lang.gn.hcMatModelTitle);
+            $('#modelTitle').html(lang.gn.hcGenModelTitle);
             $('#checkBtn').html(lang.gn.openMdlBtn);
             $('#resetBtn').html(lang.gn.resetMdlBtn);
             $('label[for=encRadio]').html(lang.gn.encRadio);
@@ -129,10 +129,11 @@
             $('#parityBitNum').prop('title', lang.gn.kTitle);
             $('#cwBitNum').prop('title', lang.gn.nTitle);
 
-            console.log('userName = '+userName);
             if(userName === 'yaliev' || userName === 'earsova' || userName === 'givanova'){
-                $('#nextBtn').show();
-                $('#autoRunBtn').show();
+                let $nextBtn = $('<input type="button" id="nextBtn" onclick="model.runCurrStep()" value ="Run Step" />');
+                let $autoRunBtnBtn = $('<input type="button" id="autoRunBtn" onclick="model.runCurrStep()" value ="Autorun" />');
+                $nextBtn.appendTo($("#nextBtnSpan"));
+                $autoRunBtnBtn.appendTo($("#autoRunBtnSpan"));
             }
         });
 

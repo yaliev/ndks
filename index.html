@@ -26,9 +26,6 @@
         <link rel="stylesheet" href="library/css/jquery-ui.structure.min.css">
         <link rel="stylesheet" href="library/css/jquery-ui.theme.min.css">
         <link rel="stylesheet" href="library/css/bootstrap.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="library/css/bootstrap.bundle.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="library/css/bootstrap-grid.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="library/css/bootstrap-reboot.min.css" rel="stylesheet">
 
         <link rel="stylesheet" href="library/css/custom.css">
 
@@ -65,13 +62,10 @@
         </nav>
 
         <!-- Page Content -->
-        <div class="container-fluid" id="content">
-        </div>
+        <div class="container-fluid" id="content"></div>
 
         <!-- Jquery UI DIALOGS -->
-        <div id="msgDialog" title="">
-            <span id="simFinishMsg"></span>
-        </div>
+        <div id="msgDialog" title=""></div>
 
         <!-- login-->
         <div id="loginDiv" title="Login">
@@ -112,7 +106,10 @@
 
     $("#msgDialog").dialog({
         autoOpen : false, modal : true, show : "blind", hide : "blind",
-        minHeight:100, minWidth:100,  height: 'auto', width: 'auto'
+        minHeight:100, minWidth:100,  height: 'auto', width: 'auto',
+        close: function() {
+            $("#msgDialog").css({'color':'black'});
+        }
     });
     $("#msgDialog" ).dialog('close');
 
@@ -147,7 +144,7 @@
         }
     };
 
-    $("#navHome" ).click(function() { loadPage('home');});
+    $("#navHome").click(function() { loadPage('home');});
 
     let dialogPass = $("#passDiv").dialog({
         autoOpen: false,
