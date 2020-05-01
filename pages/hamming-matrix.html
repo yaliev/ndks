@@ -91,12 +91,8 @@
         <span  class="menuItem">
             <button type="button" id="checkBtn" onclick="ckeckParam()">Open the Model</button>
         </span>
-        <span  class="menuItem">
-            <button type="button" id="nextBtn" onclick="model.runCurrStep()" disabled style="display: none;">Run Step</button>
-        </span>
-        <span  class="menuItem">
-            <button type="button" id="autoRunBtn" onclick="model.autoRun()" disabled style="display: none;">Autorun</button>
-        </span>
+        <span  class="menuItem"  id="nextBtnSpan"></span>
+        <span  class="menuItem" id="autoRunBtnSpan"></span>
         <span  class="menuItem">
             <button type="button" id="resetBtn" onclick="model.reset()" disabled>Reset the Model</button>
         </span>
@@ -106,7 +102,6 @@
             <input type="radio" name="process" value="dec"  id="decRadio"/> <label for="decRadio">Decoder</label>
         </span>
     </div>
-
 
     <div id="scroll-container" >
         <div id="large-container">
@@ -134,8 +129,10 @@
         $('#cwBitNum').prop('title', lang.gn.nTitle);
 
         if(userName === 'yaliev' || userName === 'earsova' || userName === 'givanova'){
-            $('#nextBtn').show();
-            $('#autoRunBtn').show();
+            let $nextBtn = $('<input type="button" id="nextBtn" onclick="model.runCurrStep()" value ="Run Step" />');
+            let $autoRunBtnBtn = $('<input type="button" id="autoRunBtn" onclick="model.runCurrStep()" value ="Autorun" />');
+            $nextBtn.appendTo($("#nextBtnSpan"));
+            $autoRunBtnBtn.appendTo($("#autoRunBtnSpan"));
         }
     });
 
