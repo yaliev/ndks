@@ -15,8 +15,8 @@ function LangPack(thisLang){
     l.bg.gn.userNameTxt='Потребителско име / Фак.№';
     l.en.gn.passTxt='Password';
     l.bg.gn.passTxt='Парола';
-    l.en.gn.wrongUserName='Wrong user name / Fak.№ !';
-    l.bg.gn.wrongUserName='Грешно потребителско име / Фак.№ !';
+    l.en.gn.wrongUserName='Wrong user name / Fak.№';
+    l.bg.gn.wrongUserName='Грешно потребителско име / Фак.№';
     l.en.gn.wrongPass='Wrong password!';
     l.bg.gn.wrongPass='Грешна парола!';
     l.en.gn.infoBits='Information bits';

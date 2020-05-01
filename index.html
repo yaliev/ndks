@@ -69,7 +69,7 @@
 
         <!-- login-->
         <div id="loginDiv" title="Login">
-            <form method="post">
+            <form id="loginForm" method="post">
                 <p class="validateTips" id="wrongUserName" style="display: none"></p>
                 <fieldset>
                     <legend id="userNameTxt">User name</legend>
@@ -115,6 +115,7 @@
 
     // login button click event
     loginBtnEvent = function() {
+        $('#wrongUserName').css('display', 'none');
         let user = $('#userName').val();
         if(user === 'yaliev' || user === 'earsova' || user === 'givanova'){
             $("#passDiv").dialog('open');
@@ -123,6 +124,7 @@
         else{
             if(user.length !== 6){
                 $('#wrongUserName').css('display', 'inline');
+                $( "#wrongUserName" ).effect( 'shake', effectCallback );
                 return;
             }
             $("#loginDiv" ).dialog('close');
@@ -131,7 +133,20 @@
         }
     };
 
+    // login form submit function
+    $( "#loginForm" ).submit(function(e) {
+        loginBtnEvent();
+        e.preventDefault();
+    });
+
+    function effectCallback() {
+        setTimeout(function() {
+            $( "#effect" ).removeAttr( "style" ).hide().fadeIn();
+        }, 1000 );
+    };
+
     checkPass = function(){
+        $('#wrongPass').css('display', 'none');
         if($.MD5($('#password').val()) === '88a2fdd0aa43fea0d282b21c4a32895e'){
             $('#wrongPass').text('');
             $("#passDiv").dialog('close');
@@ -141,6 +156,7 @@
         else {
             $('#wrongPass').text(lang.gn.wrongPass);
             $('#wrongPass').css('display', 'inline');
+            $("#wrongPass" ).effect( 'shake', effectCallback );
         }
     };
 
@@ -171,8 +187,9 @@
         width: 'auto',
         buttons: {
             'login': loginBtnEvent
-        },
+        }
     });
+
     $("#langBG").checkboxradio();
     $("#langEN").checkboxradio();
 
