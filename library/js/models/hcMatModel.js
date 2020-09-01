@@ -126,32 +126,32 @@ class hcMatModel {
 
             let str='';
             if(this.process==='enc'){ // encoding
-                str='<p>'+lang.modeEnc+'<\p>';
-                str +='<p>'+lang.codeParam+': m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
+                str='<p><b>'+lang.modeEnc+'</b><\p>';
+                str +='<p><b>'+lang.codeParam+':</b> m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
                 let valStr='';
                 for(let i=0; i<model.ir.vals.length; i++) valStr += model.ir.vals[i].toString();
-                str+='<p>'+lang.infoBits+': X = '+valStr+'<\p>';
+                str+='<p><b>'+lang.infoBits+':</b> X = '+valStr+'<\p>';
                 valStr='';
                 for(let i=0; i<model.en.vals.length; i++) valStr += model.en.vals[i].toString();
-                str+='<p>'+lang.cwBits+': [X] = '+valStr+'<\p>';
+                str+='<p><b>'+lang.cwBits+':</b> [X] = '+valStr+'<\p>';
             }
             else{ // decoding
-                str='<p>'+lang.modeDec+'<\p>';
-                str +='<p>'+lang.codeParam+': m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
+                str='<p><b>'+lang.modeDec+'</b><\p>';
+                str +='<p><b>'+lang.codeParam+':</b> m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
                 let valStr='';
                 for(let i=0; i<model.cr.vals.length; i++) valStr += model.cr.vals[i].toString();
-                str+='<p>'+lang.cwBits+': [X] = '+valStr+'<\p>';
+                str+='<p><b>'+lang.cwBits+':</b> [X] = '+valStr+'<\p>';
                 if(this.dec.err.status.val === '0') valStr = lang.noErr;
                 else if(this.dec.err.status.val === '2') valStr = lang.doubleErr;
                 else valStr = lang.singleErr + ' ('+this.dec.err.pos.val+')';
 
-                str+='<p>'+lang.errStatus+': '+valStr+'<\p>';
+                str+='<p><b>'+lang.errStatus+':</b> '+valStr+'<\p>';
                 if(this.dec.err.status.val !== '2')
-                    str+='<p>'+lang.decodedMsg+': X = '+this.dec.err.decMessage.val+'<\p>';
+                    str+='<p><b>'+lang.decodedMsg+':</b> X = '+this.dec.err.decMessage.val+'<\p>';
             }
 
             $("#msgDialog").dialog('option','title', lang.finishMsg);
-            $("#simFinishMsg").html(str);
+            $("#msgDialog").html(str);
             $("#msgDialog" ).dialog('open');
         };
 
@@ -246,7 +246,7 @@ class hcMatModel {
                 process: this.process,
                 id: 'en',
                 position: {x: this.ir.x(), y: this.ir.y()+this.ir.height()+10},
-                name: lang.enLabel,
+                name: lang.hammEncMatLabel,
                 pos:{x:20, y:200},
                 bitsNum: this.n,
                 errDet: this.t,
@@ -425,7 +425,7 @@ class hcMatModel {
                 process: this.process,
                 id: 'dec',
                 position: {x: this.cr.x(), y: this.cr.y()+this.cr.height()+10},
-                name: lang.decLabel,
+                name: lang.hammDecMatLabel,
                 pos:{x:20, y:200},
                 bitsNum: this.n,
                 errDet: this.t,

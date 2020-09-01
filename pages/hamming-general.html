@@ -2,115 +2,108 @@
 
 <div id="hammingCode-matrix" >
     <h5 class="modelTitle" id="modelTitle">Interactive Simulation Model of Hamming Code - General Algorithm</h5>
-    <div class="cp" id="cp"  style="display: inline">
-        <span class="menuItem" id="currUser" name="currUser"></span>
-        <span class="menuItem">
-            <label for="infoBitNum">m =</label>
-            <select id="infoBitNum" name="InfoBits" title="Info Bits Number">
-              <option value=4 >4</option>
-              <option value=5 >5</option>
-              <option value=6 >6</option>
-              <option value=7 >7</option>
-              <option value=8 >8</option>
-              <option value=9 >9</option>
-              <option value=10 >10</option>
-              <option value=11 >11</option>
-              <option value=12 >12</option>
-              <option value=13 >13</option>
-              <option value=14 >14</option>
-              <option value=15 >15</option>
-              <option value=16 >16</option>
-              <option value=17 >17</option>
-              <option value=18 >18</option>
-              <option value=19 >19</option>
-              <option value=20 >20</option>
-              <option value=21 >21</option>
-              <option value=22 >22</option>
-              <option value=23 >23</option>
-              <option value=24 >24</option>
-              <option value=25 >25</option>
-              <option value=26 >26</option>
-            </select>
-        </span>
-        <span class="menuItem">
-            <label for="errDetectNum">l<sub>0</sub> =</label>
-            <select id="errDetectNum" name="errDetectNum">
-                <option value=1 >1</option>
-                <option value=2 >2</option>
-            </select>
-        </span>
-
-        <span class="menuItem">
-            2<sup>k</sup> - k &ge; m+1  =>
-        </span>
-
-        <span class="menuItem">
-            <label for="parityBitNum">k =</label>
-            <select id="parityBitNum" name="parityBitNum">
-              <option value=0 ></option>
-              <option value=3 >3</option>
-              <option value=4 >4</option>
-              <option value=5 >5</option>
-              <option value=6 >6</option>
-            </select>
-        </span>
-
-        <span  class="menuItem">
-            <label for="cwBitNum">n =</label>
-            <select id="cwBitNum" name="codewordBitNum" onchange="calcSize()">
-              <option value=0 ></option>
-              <option value=7 >7</option>
-              <option value=8 >8</option>
-              <option value=9 >9</option>
-              <option value=10 >10</option>
-              <option value=11 >11</option>
-              <option value=12 >12</option>
-              <option value=13 >13</option>
-              <option value=14 >14</option>
-              <option value=15 >15</option>
-              <option value=16 >16</option>
-              <option value=17 >17</option>
-              <option value=18 >18</option>
-              <option value=19 >19</option>
-              <option value=20 >20</option>
-              <option value=21 >21</option>
-              <option value=22 >22</option>
-              <option value=23 >23</option>
-              <option value=24 >24</option>
-              <option value=25 >25</option>
-              <option value=26 >26</option>
-              <option value=27 >27</option>
-              <option value=28 >28</option>
-              <option value=29 >29</option>
-              <option value=30 >30</option>
-              <option value=31 >31</option>
-              <option value=32 >32</option>
-            </select>
-        </span>
-        <span  class="menuItem">
-            <button type="button" id="checkBtn" onclick="ckeckParam()">Open the Model</button>
-        </span>
-        <span  class="menuItem" id="nextBtnSpan">
-<!--            <button type="button" id="nextBtn" onclick="model.runCurrStep()">Run Step</button>-->
-        </span>
-        <span  class="menuItem" id="autoRunBtnSpan">
-<!--            <button type="button" id="autoRunBtn" onclick="model.autoRun()" >Autorun</button>-->
-        </span>
-        <span  class="menuItem">
-            <button type="button" id="resetBtn" onclick="model.reset()" disabled>Reset the Model</button>
-        </span>
-        <span  class="menuItem bordered">
-            <label id="mode">Mode:</label>
-            <input type="radio" name="process" value="enc" checked id="encRadio"/> <label for="encRadio">Encoder</label>
-            <input type="radio" name="process" value="dec"  id="decRadio"/> <label for="decRadio">Decoder</label>
-        </span>
-    </div>
     <div id="scroll-container">
-        <div id="large-container">
-            <div class="smallMargin" id="info"></div>
-            <div id="errDialog" title="Errors"></div>
-            <div id="konvaContainer"></div>
+        <div class="cp" id="cp">
+            <span class="menuItem">
+                <label for="infoBitNum">m =</label>
+                <select id="infoBitNum" name="InfoBits" title="Info Bits Number">
+                  <option value=4 >4</option>
+                  <option value=5 >5</option>
+                  <option value=6 >6</option>
+                  <option value=7 >7</option>
+                  <option value=8 >8</option>
+                  <option value=9 >9</option>
+                  <option value=10 >10</option>
+                  <option value=11 >11</option>
+                  <option value=12 selected>12</option>
+                  <option value=13 >13</option>
+                  <option value=14 >14</option>
+                  <option value=15 >15</option>
+                  <option value=16 >16</option>
+                  <option value=17 >17</option>
+                  <option value=18 >18</option>
+                  <option value=19 >19</option>
+                  <option value=20 >20</option>
+                  <option value=21 >21</option>
+                  <option value=22 >22</option>
+                  <option value=23 >23</option>
+                  <option value=24 >24</option>
+                  <option value=25 >25</option>
+                  <option value=26 >26</option>
+                </select>
+            </span>
+            <span class="menuItem">
+                <label for="errDetectNum">l<sub>0</sub> =</label>
+                <select id="errDetectNum" name="errDetectNum">
+                    <option value=1 >1</option>
+                    <option value=2 selected>2</option>
+                </select>
+            </span>
+
+            <span class="menuItem">
+                2<sup>k</sup> - k &ge; m+1  =>
+            </span>
+
+            <span class="menuItem">
+                <label for="parityBitNum">k =</label>
+                <select id="parityBitNum" name="parityBitNum">
+                  <option value=0 ></option>
+                  <option value=3 >3</option>
+                  <option value=4 >4</option>
+                  <option value=5 >5</option>
+                  <option value=6 selected>6</option>
+                </select>
+            </span>
+
+            <span  class="menuItem">
+                <label for="cwBitNum">n =</label>
+                <select id="cwBitNum" name="codewordBitNum" onchange="calcSize()">
+                  <option value=0 ></option>
+                  <option value=7 >7</option>
+                  <option value=8 >8</option>
+                  <option value=9 >9</option>
+                  <option value=10 >10</option>
+                  <option value=11 >11</option>
+                  <option value=12 >12</option>
+                  <option value=13 >13</option>
+                  <option value=14 >14</option>
+                  <option value=15 >15</option>
+                  <option value=16 >16</option>
+                  <option value=17 >17</option>
+                  <option value=18 selected>18</option>
+                  <option value=19 >19</option>
+                  <option value=20 >20</option>
+                  <option value=21 >21</option>
+                  <option value=22 >22</option>
+                  <option value=23 >23</option>
+                  <option value=24 >24</option>
+                  <option value=25 >25</option>
+                  <option value=26 >26</option>
+                  <option value=27 >27</option>
+                  <option value=28 >28</option>
+                  <option value=29 >29</option>
+                  <option value=30 >30</option>
+                  <option value=31 >31</option>
+                  <option value=32 >32</option>
+                </select>
+            </span>
+            <span  class="menuItem">
+                <button type="button" id="checkBtn" class="btn btn-primary btn-sm" data-toggle="button" aria-pressed="false" onclick="ckeckParam()">Open the Model</button>
+            </span>
+            <span  class="menuItem" id="nextBtnSpan">    </span>
+            <span  class="menuItem" id="autoRunBtnSpan"> </span>
+            <span  class="menuItem">
+                <button type="button" id="resetBtn" class="btn btn-primary btn-sm" onclick="model.reset()" disabled>Reset the Model</button>
+            </span>
+            <span  class="menuItem bordered">
+                <label id="mode">Mode:</label>
+                <input type="radio" name="process" value="enc" checked id="encRadio"/> <label for="encRadio">Encoder</label>
+                <input type="radio" name="process" value="dec"  id="decRadio"/> <label for="decRadio">Decoder</label>
+            </span>
         </div>
+
+        <div id="konvaContainer"></div>
+
     </div>
 </div>
 	<!--------------------------SCRIPT-------------------------------------->
@@ -130,16 +123,16 @@
             $('#cwBitNum').prop('title', lang.gn.nTitle);
 
             if(userName === 'yaliev' || userName === 'earsova' || userName === 'givanova'){
-                let $nextBtn = $('<input type="button" id="nextBtn" onclick="model.runCurrStep()" value ="Run Step" />');
-                let $autoRunBtnBtn = $('<input type="button" id="autoRunBtn" onclick="model.runCurrStep()" value ="Autorun" />');
+                let $nextBtn = $('<input type="button" id="nextBtn" onclick="model.runCurrStep()" value ="Run Step" disabled/>');
+                let $autoRunBtnBtn = $('<input type="button" id="autoRunBtn" onclick="model.autoRun()" value ="Autorun" disabled />');
                 $nextBtn.appendTo($("#nextBtnSpan"));
                 $autoRunBtnBtn.appendTo($("#autoRunBtnSpan"));
             }
         });
 
         let size = calcSize();
-        let divSize ={  width: document.getElementById("large-container").clientWidth,
-            height: document.getElementById("large-container").clientHeight};
+        let divSize ={  width: document.getElementById("scroll-container").clientWidth,
+            height: document.getElementById("scroll-container").clientHeight};
         let winSize = {width: window.innerWidth, height: window.innerHeight};
         let titleHeight = document.getElementById("modelTitle").clientHeight+2*15;
         let cpHeight = document.getElementById("cp").clientHeight+2*15;
@@ -234,15 +227,15 @@
 
 		function changeDivSize(){
 		    let size = calcSize();
-            let currDivSize={   width: document.getElementById("large-container").clientWidth,
-                                height: document.getElementById("large-container").clientHeight};
+            let currDivSize={   width: document.getElementById("scroll-container").clientWidth,
+                                height: document.getElementById("scroll-container").clientHeight};
             if(currDivSize.width < size.width) {
-                document.getElementById('large-container').setAttribute('class','width');
-                document.getElementById('large-container').style.width = size.width+'px';
+                document.getElementById('scroll-container').setAttribute('class','width');
+                document.getElementById('scroll-container').style.width = size.width+'px';
             }
 
             if(currDivSize.height < size.height) {
-                document.getElementById('large-container').setAttribute("style","height:"+size.height+"px");
+                document.getElementById('scroll-container').setAttribute("style","height:"+size.height+"px");
             }
         }
 

@@ -1,3 +1,739 @@
+//CYCLIC ENCODER - POLYNOMIAL ALGORITHM/////////////////////////////////////////////////////////////////////////////////////////
+function CYCLIC_POLY(props, alg, stat, inReg) {
+    // CONFIG DEFAULT PROPERTIES
+    // GENERAL properties
+    props.id = props.id || 'en';
+    props.name = props.name || 'Cyclic Code Encoder - Polynomial Algorithm';
+    props.position = props.position || {x: 0, y: 0};
+    props.fill = props.fill || 'FloralWhite';
+    props.labelSize = props.labelSize || 20;
+    props.txtSize = props.txtSize || 16;
+    props.labelDistance = props.labelDistance || 5;
+    props.labelColor = props.labelColor || 'white';
+    props.txtColor = props.txtColor || 'Navy';
+    props.labelBgColor = props.labelBgColor || 'RoyalBlue';
+    props.labelPadding = props.labelPadding || 4;
+    props.pading = props.pading || 10;
+    props.width = props.width || 800;
+    props.height = props.height || 600;
+    props.errDet = props.errDet || 1;
+    props.checkBits = props.checkBits || 4;
+    props.bitsNum = props.bitsNum || 11;
+    props.draggable = props.draggable || false;
+    props.process = props.process || 'enc';
+    props.checkBits = props.checkBits || 4;
+
+    let lang = props.lang;
+    let mdl = new PANEL(props);
+    mdl.size({width: props.width, height: props.height});
+    mdl.dragmove(true);
+
+    // Info Polynomial panel
+    mdl.infoPoly = new PANEL({
+        id: 'infoPolyPanel',
+        name: lang.infoBitPoly,
+        position: { x: 10, y:50},
+        type: 2,
+        labelSize: 18
+    });
+    mdl.add(mdl.infoPoly);
+    mdl.infoPoly.size({height: 40, width: 460});
+    mdl.infoPoly.text = custText('G(x)=x^9+x^7+x^5+x^3+x^2+x^0');
+    mdl.infoPoly.text.position({x: 10, y: 15});
+    mdl.infoPoly.add(mdl.infoPoly.text);
+    mdl.infoPoly.text.fill('red'); // init color
+    mdl.infoPoly.text = over(mdl.infoPoly.text);
+    mdl.infoPoly.text.hoverTxt = lang.dblclick;
+    mdl.infoPoly.text = hover1(mdl.infoPoly.text, mdl.infoPoly);
+    mdl.infoPoly.val = 'G(x)=x^9+x^7+x^5+x^3+x^2+x^0';
+    mdl.infoPoly.text.on('dblclick tap', function() {
+        //check for set bits
+        if(inReg.vals.includes(undefined) === true)  {
+            mdl.infoPoly.text.hover.show('e',lang.setAllBit);
+            return;
+        };
+        // auto calulatin
+        mdl.setInfoPoly();
+        mdl.setDivPoly();
+
+        let thisObj =  mdl.infoPoly.text;
+        thisObj.hover.hide();
+        thisObj.text(strToPoly(thisObj.text(),'remove'));
+        let str =  thisObj.str;
+        let oldStr = str;
+        editable(thisObj, function(obj){
+            // if(alg.getCurrStep().name === 'setBits') alg.increment();
+            // alg.markCurrStep('curr');
+            thisObj.text(strToPoly(thisObj.text()));
+            let s = strToPoly(obj.text());
+            if(s === '') return obj.text(oldStr);
+            if(oldStr !== s){
+                if(mdl.infoPoly.val === s){
+                    thisObj.fill(props.txtColor);
+                    mdl.getLayer().batchDraw();
+                    thisObj.hover.hide('r');
+                    thisObj.off();
+                }
+                else {
+                    //error
+                    thisObj.fill('red');
+                    stat.error.add(lang.wrongInfoPoly);
+                    return thisObj.hover.show('e', lang.wrongInfoPoly);
+                }
+            }
+
+        }, mdl.infoPoly.width()-25);
+    });
+    mdl.setInfoPoly = function(){
+        let mems=[];
+        inReg.bits.forEach(bit =>{
+            if(bit.text() === '1') mems.push('x^'+bit.label.text());
+        });
+        mdl.infoPoly.val = strToPoly('G(x)='+mems.toString().replace(/,/g,'+'));
+    };
+
+
+    // Codeword formula
+    mdl.cwFormula = new PANEL({
+        id: 'cwFormula',
+        name: lang.cwFormula,
+        type: 2,
+        labelSize: 18
+    });
+    mdl.cwFormula.size({width:300, height: mdl.infoPoly.height()});
+    mdl.cwFormula.position({ x: mdl.width()-mdl.cwFormula.width()-10, y:mdl.infoPoly.y()});
+    mdl.add(mdl.cwFormula);
+    mdl.cwFormula.text = custText('F(x)=x^k.G(x)+R(x)');
+    mdl.cwFormula.text.position({x: 10, y: 15});
+    mdl.cwFormula.add(mdl.cwFormula.text);
+    mdl.cwFormula.text.fill('red'); // init color
+    mdl.cwFormula.text = over(mdl.cwFormula.text);
+    mdl.cwFormula.text.hoverTxt = lang.dblclick;
+    mdl.cwFormula.text = hover1(mdl.cwFormula.text, mdl.cwFormula);
+    mdl.cwFormula.val = 'F(x)=x^k.G(x)+R(x)';
+    mdl.cwFormula.text.on('dblclick tap', function() {
+        let thisObj =  mdl.cwFormula.text;
+        thisObj.hover.hide();
+        thisObj.text(strToPoly(thisObj.text(),'remove'));
+        let str =  thisObj.str;
+        let oldStr = str;
+        editable(thisObj, function(obj){
+            // if(alg.getCurrStep().name === 'setBits') alg.increment();
+            // alg.markCurrStep('curr');
+            obj.text(strToPoly(obj.text()));
+            let s = obj.text();
+            if(s === '') return obj.text(oldStr);
+            if(oldStr !== s){
+                if(mdl.cwFormula.val === s){
+                    thisObj.fill(props.txtColor);
+                    mdl.getLayer().batchDraw();
+                    thisObj.hover.hide('r');
+                    thisObj.off();
+                }
+                else {
+                    //error
+                    thisObj.fill('red');
+                    stat.error.add(lang.wrongCWformula);
+                    return thisObj.hover.show('e', lang.wrongCWformula);
+                }
+            }
+            if(mdl.cwFormula.text.x()+mdl.cwFormula.text.width() > mdl.cwFormula.width()){
+                mdl.cwFormula.size({width:mdl.cwFormula.text.x()+mdl.cwFormula.text.width() + 10});
+            }
+
+        }, mdl.cwFormula.width()-25);
+    });
+
+    // Polynomial Divisible
+    mdl.divPoly = new PANEL({
+        id: 'divPoly',
+        name: lang.polyDivisible,
+        position: { x: mdl.infoPoly.x(), y:mdl.infoPoly.y()+mdl.infoPoly.height()+20},
+        type: 2,
+        labelSize: 18
+    });
+    mdl.add(mdl.divPoly);
+    mdl.divPoly.size({width: mdl.infoPoly.width(), height: mdl.infoPoly.height()});
+    mdl.divPoly.text = custText('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
+    mdl.divPoly.text.position({x: 10, y: 15});
+    mdl.divPoly.add(mdl.divPoly.text);
+    mdl.divPoly.text.fill('red'); // init color
+    mdl.divPoly.text = over(mdl.divPoly.text);
+    mdl.divPoly.text.hoverTxt = lang.dblclick;
+    mdl.divPoly.text = hover1(mdl.divPoly.text, mdl.divPoly);
+    mdl.divPoly.val = strToPoly('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
+    mdl.divPoly.text.on('dblclick tap', function() {
+        let thisObj =  mdl.divPoly.text;
+        thisObj.hover.hide();
+        thisObj.text(strToPoly(thisObj.text(),'remove'));
+        let str =  thisObj.str;
+        let oldStr = str;
+        editable(thisObj, function(obj){
+            // if(alg.getCurrStep().name === 'setBits') alg.increment();
+            // alg.markCurrStep('curr');
+            thisObj.text(strToPoly(thisObj.text()));
+            let s = strToPoly(obj.text());
+            if(s === '') return obj.text(oldStr);
+            if(oldStr !== s){
+                if(mdl.divPoly.val === s){
+                    thisObj.fill(props.txtColor);
+                    mdl.getLayer().batchDraw();
+                    thisObj.hover.hide('r');
+                    thisObj.off();
+                }
+                else {
+                    //error
+                    thisObj.fill('red');
+                    stat.error.add(lang.wrongDivPoly);
+                    return thisObj.hover.show('e', lang.wrongDivPoly);
+                }
+            }
+        }, mdl.divPoly.width()-25);
+    });
+
+    // calculating polynomial divisible
+    mdl.setDivPoly = function(){
+        let mems=[];
+        inReg.bits.forEach(bit =>{
+            if(bit.text() === '1') mems.push('x^'+(Number(bit.label.text())+Number(props.checkBits)));
+        });
+        mdl.divPoly.val = strToPoly('x^k.G(x)='+mems.toString().replace(/,/g,'+'));
+    };
+
+    // for test
+    mdl.setInfoPoly();
+    mdl.setDivPoly();
+
+    // Generator polynomial
+    mdl.genPoly = new PANEL({
+        id: 'genPoly',
+        name: lang.genPoly,
+        position: { x: mdl.cwFormula.x(), y:mdl.divPoly.y()},
+        type: 2,
+        labelSize: 18
+    });
+    mdl.add(mdl.genPoly);
+    mdl.genPoly.size({width: mdl.cwFormula.width(), height: mdl.infoPoly.height()});
+    mdl.genPoly.text = custText('P(x)='+props.genPoly.txt.toLowerCase());
+    mdl.genPoly.val =  strToPoly(mdl.genPoly.text.text());
+    mdl.genPoly.text.position({x: 10, y: 15});
+    mdl.genPoly.add(mdl.genPoly.text);
+    mdl.genPoly.text.fill(props.txtColor); // init color
+
+    // POLYNOMIAL DIVISION
+    mdl.div = new PANEL({
+        id: 'divPan',
+        name: lang.polyDivision,
+        position: { x: mdl.infoPoly.x(), y:mdl.divPoly.y()+mdl.divPoly.height()+20},
+        type: 2,
+        labelSize: 18
+    });
+    mdl.add(mdl.div);
+    mdl.div.size({width: mdl.width()-20, height: 400});
+
+    //dividend
+    mdl.div.dividend = custText(mdl.divPoly.val.split('=')[1]);
+    mdl.div.dividend.vals = mdl.divPoly.val.split('=')[1].replace(/x/g,'').replace(/\^/g,'').split('+').map(Number);
+    mdl.div.dividend.position({x: 20, y: 15});
+    mdl.div.add(mdl.div.dividend);
+    mdl.div.dividend.fill(props.txtColor); // init color
+
+    //divisor
+    mdl.div.divisor = custText(mdl.genPoly.text.text().split('=')[1]);
+    mdl.div.divisor.vals = mdl.genPoly.val.split('=')[1].replace(/x/g,'').replace(/\^/g,'').split('+').map(Number);
+    mdl.div.divisor.position({x: mdl.div.width()/2, y: mdl.div.dividend.y()});
+    mdl.div.add(mdl.div.divisor);
+    mdl.div.divisor.fill(props.txtColor); // init color
+    mdl.div.divisor.line = new Konva.Line({
+        points: [mdl.div.divisor.x()-5, mdl.div.divisor.y(),
+                 mdl.div.divisor.x()-5, mdl.div.divisor.y()+mdl.div.divisor.height(),
+                 mdl.div.divisor.x()+mdl.div.divisor.width(), mdl.div.divisor.y()+mdl.div.divisor.height()
+        ],
+        stroke: props.txtColor,
+        strokeWidth: 2,
+        lineCap: 'round',
+        lineJoin: 'round'
+    });
+    mdl.div.add(mdl.div.divisor.line);
+
+    //new cycle button
+    mdl.div.newCycBtn = new Button({id: 'newCycBtn',  defVal: lang.newCycle, txtSize:12});
+    mdl.div.add(mdl.div.newCycBtn);
+    mdl.div.newCycBtn.size({height: mdl.div.divisor.height()-5});
+    mdl.div.newCycBtn.fill('Linen');
+    mdl.div.newCycBtn.txt.fill('DimGrey');
+    mdl.div.newCycBtn.x(mdl.div.divisor.x());
+    mdl.div.newCycBtn.y(mdl.div.divisor.y()+mdl.div.divisor.y() + 10);
+    mdl.div.newCycBtn.on('click touchstart', function(){
+        if(mdl.div.quotients.length !== 0){
+            if(mdl.div.quotients[mdl.div.quotients.length-1].rem.text.fill() === 'red') {
+                //error
+
+                return this.hover.show('e',lang.notComplCycle);
+            }
+            if(mdl.div.quotients[mdl.div.quotients.length-1].isLast === true) {
+                //error
+
+                return this.hover.show('e',lang.wrongOper);
+            }
+        }
+        mdl.div.lastCycBtn.visible(false);
+        mdl.div.newQuotient();
+    });
+
+    //last cycle button
+    mdl.div.lastCycBtn = new Button({id: 'lastCycBtn',  defVal: lang.lastCyc, txtSize:12});
+    mdl.div.lastCycBtn.visible(false);
+    mdl.div.add(mdl.div.lastCycBtn);
+    mdl.div.lastCycBtn.size({height: mdl.div.divisor.height()-5});
+    mdl.div.lastCycBtn.fill('Linen');
+    mdl.div.lastCycBtn.txt.fill('DimGrey');
+    mdl.div.lastCycBtn.on('click touchstart', function(){
+
+        if(mdl.div.quotients[mdl.div.quotients.length-1].isLast !== true) {
+            //error
+
+            return this.hover.show('e',lang.wrongOper);
+        }
+        mdl.div.lastCycBtn.visible(false);
+        mdl.div.newCycBtn.visible(false);
+        mdl.div.quotients[mdl.div.quotients.length-1].rem.text.fill('ForestGreen');
+    });
+
+    // show current cycle items for auto calculation
+    mdl.div.showCycle = function(){
+        if(mdl.div.quotients.length === 0) {
+            mdl.div.newQuotient();
+            mdl.div.quotients[mdl.div.quotients.length -1].show();
+            return;
+        }
+
+        if(mdl.div.quotients[mdl.div.quotients.length-1].isLast === true){
+            return console.log('The cycles are completed!');
+        }
+
+            let lastQ = mdl.div.quotients[mdl.div.quotients.length -1];
+        if(lastQ.completed === false) lastQ.show();
+        else{
+            mdl.div.newQuotient();
+            mdl.div.quotients[mdl.div.quotients.length -1].show();
+        }
+
+        //check for last cycle
+        if(mdl.div.quotients[mdl.div.quotients.length-1].isLast === true){
+            mdl.div.lastCycBtn.visible(false);
+            mdl.div.newCycBtn.visible(false);
+            mdl.div.quotients[mdl.div.quotients.length-1].rem.text.fill('ForestGreen');
+        }
+    }
+
+    //quotients
+    mdl.div.quotients = [];
+
+    // add new quotient
+    mdl.div.newQuotient = function(){
+        let vOffset = 10;
+        let currIdx = mdl.div.quotients.length;
+        // let q = {mul:{},res:{},rem:{},line:{}};
+        let q = new Konva.Group();
+        q.highLight = new Konva.Rect({
+            fill: 'Cornsilk',
+            shadowBlur: 3,
+            cornerRadius: 3,
+            opacity: 0.5,
+            visible:false
+        });
+        q.add(q.highLight);
+        q.enableHL = function(flag){
+            if(flag === true){
+                q.on('mouseover touchstart', function(){
+                    q.highLight.visible(true);
+
+                    stage.container().style.cursor = 'pointer';
+
+                    mdl.getLayer().batchDraw();
+                });
+                q.on('mouseout touchend', function(){
+                    q.highLight.visible(false);
+                    stage.container().style.cursor = 'default';
+                    mdl.getLayer().batchDraw();
+                });
+            }
+            else q.off();
+        }
+
+        mdl.div.add(q);
+        q.completed = false;
+        q.isLast = false;
+        q.mul={};
+        q.res={};
+        q.rem={};
+
+        //multiplicator
+        q.mul.text = custText(currIdx === 0 ? strToPoly('x?'): strToPoly('+x?'));
+        if(currIdx === 0)
+            q.mul.text.position({x: mdl.div.divisor.x(), y: mdl.div.divisor.y()+ mdl.div.divisor.height()+vOffset});
+        else {
+            let last = mdl.div.quotients[currIdx-1].mul.text;
+            q.mul.text.position({x: last.x()+last.width(), y: last.y()});
+            if(mdl.div.divisor.line.points()[4]< q.mul.text.x()+q.mul.text.width())
+                mdl.div.divisor.line.points()[4] = q.mul.text.x()+q.mul.text.width();
+        }
+        q.add(q.mul.text);
+        q.mul.text.fill('red'); // init color
+        q.mul.text = over(q.mul.text);
+        q.mul.text.hoverTxt = lang.dblclick;
+        q.mul.text = hover1(q.mul.text, mdl.div);
+        //q.mul.val = '';
+        q.mul.val = currIdx === 0 ? q.mul.val = mdl.div.dividend.vals[0] - mdl.div.divisor.vals[0] :
+                                    q.mul.val = mdl.div.quotients[currIdx-1].rem.vals[0] - mdl.div.divisor.vals[0];
+        q.mul.text.on('dblclick tap', function(){
+            let thisObj =  q.mul.text;
+            thisObj.hover.hide();
+            thisObj.text(strToPoly(thisObj.text(),'remove'));
+            let str =  thisObj.str;
+            let oldStr = str;
+            editable(thisObj, function(obj){
+                // if(alg.getCurrStep().name === 'setBits') alg.increment();
+                // alg.markCurrStep('curr');
+                thisObj.text(strToPoly(thisObj.text()));
+                let s = strToPoly(obj.text());
+                if(s === '') return obj.text(oldStr);
+                if(oldStr !== s){
+                    if('x^'+q.mul.val === s || '+x^'+q.mul.val === s){
+                        thisObj.fill(props.txtColor);
+                        q.res.text.visible(true);
+                        q.plus.visible(true);
+                        q.line.visible(true);
+                        mdl.getLayer().batchDraw();
+                        q.mul.text.hover.hide('r');
+                        q.mul.text.off();
+                    }
+                    else {
+                        //error
+                        thisObj.fill('red');
+                        stat.error.add(lang.wrongMul);
+                        return thisObj.hover.show('e', lang.wrongMul);
+                    }
+                }
+            });
+        });
+        mdl.div.newCycBtn.x(q.mul.text.x() + q.mul.text.width()+5);
+
+        // Result
+        q.res.text = custText(strToPoly('x?+x?+x?+x?+x?+x?'));
+        if(currIdx === 0)
+            q.res.text.position({x: mdl.div.dividend.x(), y: mdl.div.dividend.y()+ mdl.div.dividend.height()+vOffset});
+        else {
+            let last = mdl.div.quotients[mdl.div.quotients.length-1].rem.text;
+            q.res.text.position({x: last.x(), y: last.y()+last.height()+vOffset});
+        }
+        q.add(q.res.text);
+        q.res.text.visible(false);
+        q.res.text.fill('red'); // init color
+        q.res.text = over(q.res.text);
+        q.res.text.hoverTxt = lang.dblclick;
+        q.res.text = hover1(q.res.text, mdl.div);
+        q.res.vals = [];
+        // calculating of the result
+        q.res.calc = function(){
+            for(let i=0; i<mdl.div.divisor.vals.length; i++)
+                q.res.vals.push(q.mul.val + mdl.div.divisor.vals[i]);
+        };
+        q.res.text.on('dblclick tap', function() {
+            let thisObj =  q.res.text;
+            thisObj.hover.hide();
+            thisObj.text(strToPoly(thisObj.text(),'remove'));
+            let str =  thisObj.str;
+            let oldStr = str;
+            editable(thisObj, function(obj){
+                // if(alg.getCurrStep().name === 'setBits') alg.increment();
+                // alg.markCurrStep('curr');
+                thisObj.text(strToPoly(thisObj.text()));
+                let s = strToPoly(obj.text());
+                if(s === '') return obj.text(oldStr);
+                if(oldStr !== s){
+                    let str = 'x\^'+q.res.vals.toString().replace(/,/g,'+x^');
+                    if(str === s){
+                        thisObj.fill(props.txtColor)
+                        q.rem.text.visible(true);
+                        mdl.getLayer().batchDraw();
+                        q.res.text.hover.hide('r');
+                        q.res.text.off();
+                    }
+                    else {
+                        //error
+                        thisObj.fill('red');
+                        stat.error.add(lang.wrongRes);
+                        return thisObj.hover.show('e', lang.wrongRes);
+                    }
+                }
+            });
+        });
+
+        // Remainder
+        q.rem.text = custText(strToPoly('x?+x?+x?+x?+x?+x?'));
+        q.rem.text.position({x: q.res.text.x()+10, y: q.res.text.y()+ q.res.text.height()+vOffset});
+        if(q.rem.text.y()+q.rem.text.height()+10 > mdl.div.height())
+            mdl.div.size({height:q.rem.text.y()+q.rem.text.height()+20});
+        q.add(q.rem.text);
+        q.rem.text.visible(false);
+        q.rem.text.fill('red'); // init color
+        q.rem.text = over(q.rem.text);
+        q.rem.text.hoverTxt = lang.dblclick;
+        q.rem.text = hover1(q.rem.text, mdl.div);
+        q.rem.vals = [];
+        // calculating of the remainder
+        q.rem.calc = function(){
+            let forRemove=[];
+            let tempArr = q.res.vals.concat(currIdx === 0 ? mdl.div.dividend.vals : mdl.div.quotients[currIdx-1].rem.vals);
+            tempArr.forEach(val => {
+                if(q.rem.vals.indexOf(val) !== -1)
+                    forRemove.push(val);
+                q.rem.vals.push(val);
+            });
+            forRemove.forEach(el => {
+                for( let i = 0; i < q.rem.vals.length; i++)
+                    if ( q.rem.vals[i] === el)
+                        q.rem.vals.splice(i--, 1);
+            });
+            q.rem.vals.sort(function(a, b){return b-a});
+        }
+        mdl.div.lastCycBtn.x(q.rem.text.x() + q.rem.text.width()+10);
+        mdl.div.lastCycBtn.y(q.rem.text.y());
+        q.rem.text.on('dblclick tap', function() {
+            let thisObj =  q.rem.text;
+            thisObj.hover.hide();
+            thisObj.text(strToPoly(thisObj.text(),'remove'));
+            let str =  thisObj.str;
+            let oldStr = str;
+            editable(thisObj, function(obj){
+                // if(alg.getCurrStep().name === 'setBits') alg.increment();
+                // alg.markCurrStep('curr');
+                thisObj.text(strToPoly(thisObj.text()));
+                let s = strToPoly(obj.text());
+                if(s === '') return obj.text(oldStr);
+                if(oldStr !== s){
+                    let str = 'x\^'+q.rem.vals.toString().replace(/,/g,'+x^');
+                    if(str === s){
+                        thisObj.fill(props.txtColor);
+                        q.enableHL(true);
+                        mdl.getLayer().batchDraw();
+                        q.rem.text.hover.hide('r');
+                        q.rem.text.off();
+                        mdl.div.lastCycBtn.visible(true);
+                        q.completed = true;
+                        if(q.rem.vals[0] < mdl.div.divisor.vals[0])
+                            q.isLast = true;
+                    }
+                    else {
+                        //error
+                        thisObj.fill('red');
+                        stat.error.add(lang.wrongRem);
+                        return thisObj.hover.show('e', lang.wrongRem);
+                    }
+                    // repositioning button X cordinate according to the field width
+                    mdl.div.lastCycBtn.x(q.rem.text.x() + q.rem.text.width()+10);
+                }
+            });
+        });
+
+        // line
+        q.line = new Konva.Line({
+            points: [q.res.text.x(),                    q.res.text.y()+q.res.text.height()+vOffset-8,
+                     q.rem.text.x()+q.rem.text.width(), q.res.text.y()+q.res.text.height()+vOffset-8
+            ],
+            visible: false,
+            stroke: props.txtColor,
+            strokeWidth: 2,
+            lineCap: 'round',
+            lineJoin: 'round'
+        });
+        q.add(q.line);
+
+        // plus "+" sign
+        q.plus = new Konva.Text({
+            text: '+',
+            fill: props.txtColor,
+            fontSize: props.txtSize,
+            x: q.res.text.x()-14,
+            visible: false
+        });
+        q.add(q.plus);
+        q.plus.y(q.res.text.y() - q.plus.height()+3);
+
+        //auto calcualting
+        q.res.calc();
+        q.rem.calc();
+
+        // calc the highLight's position and size
+        q.highLight.x(q.res.text.x()-5);
+        q.highLight.y(q.res.text.y()-7);
+        q.highLight.width(q.rem.text.x()+q.rem.text.width()-q.res.text.x() + 5);
+        q.highLight.height(q.rem.text.y()+q.rem.text.height()-q.res.text.y() + 7);
+        q.highLight.moveToBottom();
+
+        q.show = function(){
+            q.mul.text.text(strToPoly(currIdx === 0 ? 'x^'+q.mul.val : '+x^'+q.mul.val));
+            q.res.text.text(strToPoly('x\^'+q.res.vals.toString().replace(/,/g,'+x^')));
+            q.rem.text.text(strToPoly('x\^'+q.rem.vals.toString().replace(/,/g,'+x^')));
+            q.mul.text.fill(props.txtColor);
+            q.res.text.fill(props.txtColor);
+            q.rem.text.fill(props.txtColor);
+            q.mul.text.visible(true);
+            q.res.text.visible(true);
+            q.rem.text.visible(true);
+            q.plus.visible(true);
+            q.line.visible(true);
+            q.completed = true;
+            if(q.rem.vals[0] < mdl.div.divisor.vals[0])
+                q.isLast = true;
+        };
+
+        mdl.getLayer().batchDraw();
+        mdl.div.quotients.push(q);
+        return true;
+    };
+
+    return mdl;
+}// END of CYCLIC_POLY
+
+
+// prepare a polynomial string to custText
+function strToPoly(str,remove){
+    if(typeof remove !== 'undefined') {
+        str = str.replace(/\^/g, '');
+    }
+    else{
+        str = str.replace(/\s/g, ''); //clear spaces
+        str = str.replace(/\(x\)/g, '|');
+        str = str.replace(/x/g, 'x^');
+        str = str.replace(/\^\^/g, '^');
+        str = str.replace('x\^\+', 'x\^1\+');
+        str = str.replace(/\+1/g, '\+x\^0');
+        str = str.replace(/\|/g, '\(x\)');
+        str = str.replace(/x\^0/g, '1');
+
+        if(str.substr(str.length-4) === '+x^1'){
+            console.log('str.substr(str.length-3) = '+str.substr(str.length-3));
+            str = str.replace(/\+x\^1/g, ' + x');
+        }
+
+        str = str.replace(/x\^1\+/g, 'x+');
+    }
+    return str;
+}
+
+
+///// CUSTOM TEXT OBJECT //////////////////////////////////////////////////////
+function custText(string) {
+    //example str =>  x^k+G(x)+x^n+1
+    if (typeof (string) === 'undefined') console.error('Incorrect argument for custText(str)');
+    let gr = new Konva.Group();
+    gr.mems;
+
+    // forming the new string members
+    gr.forming = function(str){
+        let mems=[];
+        let elms=[];
+        if(str.indexOf('^') !== -1 || str.indexOf('_') !== -1){
+            let str1 = '';
+            str1 = str.replace(/\s/g, ''); //clear spaces
+            str1 = str1.replace(/=/g, '| = ');
+            str1 = str1.replace(/\./g, '|.');
+            str1 = str1.replace(/\+/g, '|+ ');
+            elms = str1.split('|');
+        }
+        else elms = str.split('|');
+
+        
+        let nextX = 0;
+        for (let i = 0; i < elms.length; i++) {
+            let mem;
+            mem = SUPB(elms[i]);
+            mem.x(nextX);
+            nextX += mem.width() + 3;
+            mems.push(mem);
+        }
+        return mems;
+    }
+    gr.mems = gr.forming(string);
+    gr.str = string.replace(/\s/g, '');
+    gr.mems.forEach(mem =>{gr.add(mem);});
+
+
+    // update group size
+    updateSize = function(){
+        if(gr.mems.length === 1){
+            gr.width(gr.mems[0].width());
+            gr.height(gr.mems[0].height());
+        }
+        else{
+            gr.width(gr.mems[gr.mems.length - 1].x() + gr.mems[gr.mems.length - 1].width());
+            gr.height(gr.mems[0].height());
+        }
+
+    };
+    updateSize();
+
+    // fill
+    gr.fill = function (color) {
+        if (typeof color === 'undefined') return gr.mems[0].fill();
+        gr.mems.forEach(mem => {
+            mem.fill(color)
+        });
+        try {gr.getLayer().batchDraw();}
+        catch (e) {}
+        return true;
+    };
+    gr.fill('Navy'); // default text color
+
+    // fontSize
+    gr.fontSize = function (size) {
+        if (typeof size === 'undefined') return gr.mems[0].fontSize();
+        gr.mems.forEach(mem => {
+            mem.fontSize(size)
+        });
+        updateSize();
+        try {gr.getLayer().batchDraw();}
+        catch (e) {}
+        return true;
+    };
+    gr.fontSize(16); //default font size
+
+    // enable editable
+    gr.isEditable = false; // default editable is false
+
+    // set text
+    gr.text = function(newStr){
+        if(typeof newStr === 'undefined') return gr.str;
+        gr.removeChildren();
+        let currSize = gr.fontSize();
+        let currFill = gr.fill();
+        gr.mems = gr.forming(newStr);
+        gr.str = newStr.replace(/\s/g, '');
+        gr.mems.forEach(mem =>{gr.add(mem);});
+        gr.fontSize(currSize);
+        gr.fill(currFill);
+        updateSize();
+        try {gr.getLayer().batchDraw();} catch{}
+    }
+
+    return gr;
+} // End of custText
+
+
+// FINDING ALL INDEXES OF THE SEARCHED SEGMENT IN STRING
+function findIdxs(str, find){
+    if(typeof str === 'undefined' || typeof find === 'undefined') return console.error('Incorrect argument of findIdxs');
+    let f = find.toString();
+    let idxs = [];
+    for(let i=0; i<str.length; i++){
+        if(str[i] === f) idxs.push(i)
+    }
+    return idxs;
+}
+
 //HAMMING ENCODER - MATRIX ALGORITHM/////////////////////////////////////////////////////////////////////////////////////////
 function HAMMING_MA(props, alg, stat, inReg) {
     // CONFIG DEFAULT PROPERTIES
@@ -406,7 +1142,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
         if(alg.getCurrStep().name === 'setHmat' || alg.getCurrStep().name === 'setH_mat')  alg.increment();
     });
 
-    // current matrix for check
+    // current matrix's id for check
     mdl.checkMatrixId = 'Hmat';
 
     // check matrix function
@@ -487,7 +1223,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
     mdl.bits = [];
     mdl.vals = [];
 
-    //load codewor bits (decoding)
+    //load codeword bits (decoding)
     mdl.loadCW = function(reg){
         mdl.bitsPan.visible(true);
         // increment step
@@ -500,11 +1236,11 @@ function HAMMING_MA(props, alg, stat, inReg) {
         for(let i=0; i<mdl.Hmat.colLabels.length; i++) {
             if(i === 0){
                 // first position
-                relPos.push({x: 8, y: 26});
-                pos.push({x:thisAbsPos.x + 8, y: thisAbsPos.y + 26});
+                relPos.push({x: 8, y: 29});
+                pos.push({x:thisAbsPos.x + 8, y: thisAbsPos.y + 29});
             }else{
-                pos.push({x: pos[pos.length-1].x + 27, y: pos[pos.length-1].y});
-                relPos.push({x: relPos[relPos.length-1].x + 27, y: relPos[relPos.length-1].y});
+                pos.push({x: pos[pos.length-1].x + 26, y: pos[pos.length-1].y});
+                relPos.push({x: relPos[relPos.length-1].x + 26, y: relPos[relPos.length-1].y});
             }
 
             //create bits
@@ -520,7 +1256,8 @@ function HAMMING_MA(props, alg, stat, inReg) {
             let bit = new Button(props);
             bit.text(reg.bits[i].text());
             bit.position(relPos[i]);
-            bit.label.y(bit.rect.y() - bit.label.height() - 5);
+            bit.label.x(bit.rect.width()/2 - bit.label.width()/2);
+            bit.label.y(bit.rect.y() - bit.label.height() - 0);
 
             //for control bits
             if(bit.id().substr(0,1) === 'C'){
@@ -557,7 +1294,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
             //hide bit
             bit.visible(false);
 
-            bit.scale({x:0.85,y:0.85});
+            bit.scale({x:0.9,y:0.9});
             mdl.bitsPan.add(bit);
             mdl.bits.push(bit);
             mdl.vals.push(reg.vals[i]);
@@ -578,8 +1315,9 @@ function HAMMING_MA(props, alg, stat, inReg) {
                     mdl.getLayer().batchDraw();
                 },
                 function () { // closure function
-                    cloneObj.scale({x:0.85,y:0.85});
+                    cloneObj.scale({x:0.9,y:0.9});
                     cloneObj.destroy();
+                    bit.txt.fontSize(bit.txt.fontSize()-2);
                     bit.visible(true);
                     if (i === reg.bits.length - 1) { // run its if it is last bit
                         // display equation panela
@@ -611,8 +1349,8 @@ function HAMMING_MA(props, alg, stat, inReg) {
         mdl.loadBtn.visible(false);
         let pos = [], relPos=[];
         let thisAbsPos = mdl.bitsPan.getAbsolutePosition();
-        relPos.push({x: 8, y: 26});
-        pos.push({x:thisAbsPos.x + 8, y: thisAbsPos.y + 26}); // first position
+        relPos.push({x: 8, y: 28});
+        pos.push({x:thisAbsPos.x + 8, y: thisAbsPos.y + 28}); // first position
         for(let i=1; i<mdl.Hmat.colLabels.length; i++) {
             pos.push({x: pos[pos.length-1].x + 27, y: pos[pos.length-1].y});
             relPos.push({x: relPos[relPos.length-1].x + 27, y: relPos[relPos.length-1].y});
@@ -620,25 +1358,25 @@ function HAMMING_MA(props, alg, stat, inReg) {
 
         let infoIdx=0, controlIdx = props.errDet === 2 ? 0 : 1;
         for (let i = 0; i < mdl.Hmat.colLabels.length; i++) {
-            let cloneObj = reg.bits[infoIdx].clone();
+            let cloneObj = new Button({defVal: reg.bits[infoIdx].txt.text(), label:reg.bits[infoIdx].label.text(),
+                width:reg.bits[infoIdx].width(), height:reg.bits[infoIdx].height()});
+            cloneObj.position(mdl.Hmat.colLabels[i].position());
             cloneObj.id(mdl.Hmat.colLabels[i].id());
+            cloneObj.fill(reg.bits[infoIdx].fill());
+            cloneObj.txt.fill(reg.bits[infoIdx].txt.fill());
+            cloneObj.txt.fontSize(reg.bits[infoIdx].txt.fontSize());
+            cloneObj.label.position(reg.bits[infoIdx].label.position());
             cloneObj.off();
 
             //control bits by cloning info bit
             if(mdl.Hmat.colLabels[i].id().substr(0,1) === 'C'){
                 mdl.vals.push(null);
-                cloneObj.rect = cloneObj.findOne('.rect');
-                cloneObj.rect.fill('RoyalBlue');
-                cloneObj.txt = cloneObj.findOne('.text');
-                cloneObj.txt.text('');
-                cloneObj.label = {};
-                cloneObj.label.txt = cloneObj.findOne('.base');
-                cloneObj.label.sub = cloneObj.findOne('.sub');
-                cloneObj.label.txt.fill('RoyalBlue');
-                cloneObj.label.sub.fill('RoyalBlue');
-                cloneObj.label.txt.text('C');
-                cloneObj.label.sub.text((controlIdx++).toString());
-                cloneObj.scale({x:0.85,y:0.85});
+                cloneObj.fill('RoyalBlue');
+                cloneObj.text('?');
+                cloneObj.label.text('C_'+(controlIdx++).toString());
+                cloneObj.label.fill('RoyalBlue');
+
+                cloneObj.scale({x:0.9,y:0.9});
                 cloneObj.moveTo(mdl.bitsPan);
                 cloneObj.position(relPos[i]);
 
@@ -648,7 +1386,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
                     cloneObj = hover1(cloneObj, mdl);
                     cloneObj.on('click touchstart', function(){
                         //check for calculated result
-                        if(this.txt.text() !== ''){
+                        if(this.text() !== '?'){
                             //error
                             return this.hover.show('e', lang.wasCalculated);
                         }
@@ -708,7 +1446,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
                         mdl.getLayer().batchDraw();
                     },
                     function () { // closure function
-                        cloneObj.scale({x:0.85,y:0.85});
+                        cloneObj.scale({x:0.9,y:0.9});
                         cloneObj.moveTo(mdl.bitsPan);
                         cloneObj.position(relPos[i]);
                         if (i === reg.bits.length - 1) { // run its if it is last bit
@@ -718,6 +1456,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
                     }
                 );
             }
+            //cloneObj.txt.fontSize(cloneObj.txt.fontSize()-2);
             mdl.bits.push(cloneObj);
         }
 
@@ -1998,7 +2737,8 @@ function HAMMING_GA(props, layer, alg, stat) {
             sCount++;
         }
 
-        let bit = new Button(props.bit, layer);
+        let bit = new Button(props.bit);
+        bit.txt.text('');
         bit.position(pos);
         if (bit.id().search('C') !== -1){
             bit.activeColor = 'RoyalBlue';
@@ -2210,18 +2950,19 @@ function HAMMING_GA(props, layer, alg, stat) {
     en.loadBtn.enable(true); // second over events
     en.loadBtn.visible(false);
 
-    // equation field
+    // equation field/button
     en.equBtn = new Button({
         id: 'loadBtn',
         height: 40,
         width: en.bits[en.bits.length - 1].x() + en.bits[0].width() - en.bits[0].x(),
         defVal: en.lang.equBtnTxt,
-        txtSize: 16,
+        txtSize: 14,
         fill: 'LightGrey',
         stroke: 'black',
         strokeWidth: 5
     }, layer);
     en.equBtn.position({x: en.bits[0].x(), y: en.bits[0].y() + 80});
+
     en.equBtn.visible(false);
     en.add(en.equBtn);
     en.equBtn.hoverTxt = en.lang.calcCbit;
@@ -2483,8 +3224,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             en.getLayer().batchDraw();
         };
 
-
-        //make error analaysis for auto mode
+        //make error analysis for auto mode
         en.error.makeAnalysis = () =>{
             en.error.binCode.text('('+en.error.binCode.auto+')_2');
             en.error.decCode.text('('+en.error.decCode.auto+')_2');
@@ -2552,7 +3292,11 @@ function HAMMING_GA(props, layer, alg, stat) {
                 if (Cbit.auto.equ[i].bitId !== Cbit.man.equ[i].bitId)
                     return en.lang.wrongEqu + ' => ' + en.currCbit; // check for correct equation
         } else return en.lang.wrongEqu + ' => ' + en.currCbit; // check for correct equation
-        en.equBtn.txt.text(Cbit.man.str + val.toString());
+        // en.equBtn.text(Cbit.man.str + val.toString());
+        let currWidth = en.equBtn.rect.width();
+        en.equBtn.text(Cbit.man.str + val.toString());
+        if(en.equBtn.txt.width() > currWidth) en.equBtn.txt.width(currWidth);
+
         layer.batchDraw();
         return true;
     };
@@ -2612,7 +3356,7 @@ function HAMMING_GA(props, layer, alg, stat) {
         layer.batchDraw();
     };
 
-    // method for creating parity equatiоns for Cbits
+    // method for creating parity equations for Cbits
     en.createCbits = () => {
         en.Cbits = [];
         let bitId = '';
@@ -2802,7 +3546,7 @@ function HAMMING_GA(props, layer, alg, stat) {
         en.getLayer().batchDraw();
     }; // end of createCBitCheck
 
-        // add member to the current control bit equation
+    // add member to the current control bit equation
     en.addToEqu = (bit) => {
         //check for selected control bit
         if (typeof en.Cbits === 'undefined' || en.currCbit === '') return en.lang.noSelectedBit;
@@ -2826,7 +3570,13 @@ function HAMMING_GA(props, layer, alg, stat) {
         }
 
         en.Cbits.find(Cbit => Cbit.id === en.currCbit).man = en.procesCbit(thisCbit.id, thisCbit.man);
-        en.equBtn.txt.text(thisCbit.man.str);
+        // en.equBtn.text(thisCbit.man.str);
+        let currWidth = en.equBtn.rect.width();
+        en.equBtn.text(thisCbit.man.str);
+        if(en.equBtn.txt.width() > currWidth) {
+            en.equBtn.txt.width(currWidth);
+            en.equBtn.rect.width(currWidth);
+        }
         layer.batchDraw();
         return true;
     };
@@ -2858,7 +3608,7 @@ function HAMMING_GA(props, layer, alg, stat) {
                     en.Cbits.find(b => b.id === Cbit.id).man.equ = [];
                     en.Cbits.find(b => b.id === Cbit.id).man.res = '';
                     en.currCbit = '';
-                    en.equBtn.txt.text('');
+                    en.equBtn.text('');
                     en.bits.forEach(b => {
                         if (b.arrow.visible() === true) b.arrow.visible(false);
                         if (b.id().substr(0, 1) === 'C') b.hoverTxt = en.lang.selectCbit;
@@ -2871,6 +3621,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             });
         });
     };
+
     // select a control bit for calculating/checking
     en.selectCbit = (CbitId) =>{
         if (typeof en.Cbits === 'undefined') return console.error('The model is busy!');
@@ -2908,10 +3659,10 @@ function HAMMING_GA(props, layer, alg, stat) {
             let thisBit = en.bits.find(bit => bit.id() === Cbit.id);
             thisBit.hoverTxt = en.lang.selectCbit;
             if(en.process === 'dec') { // add to the equation
-                en.equBtn.txt.text('');
+                en.equBtn.text('');
                 en.addToEqu(thisBit);
             }
-            else en.equBtn.txt.text('');
+            else en.equBtn.text('');
             thisBit.arrow.visible(true); // show/hide arrow
             layer.batchDraw();
         } else console.log('Non-existent control bit =>', CbitId);
@@ -2922,7 +3673,12 @@ function HAMMING_GA(props, layer, alg, stat) {
     en.showCurrCbitEqu = () => {
         en.Cbits.forEach(Cbit => {
             if (Cbit.id === en.currCbit) {
-                en.equBtn.txt.text(Cbit.auto.str);
+                let currWidth = en.equBtn.rect.width();
+                en.equBtn.text(Cbit.auto.str);
+                if(en.equBtn.txt.width() > currWidth) {
+                    en.equBtn.txt.width(currWidth);
+                    en.equBtn.rect.width(currWidth);
+                }
                 Cbit.auto.equ.forEach(el => {
                     let thisBit = en.bits.find(bit => bit.id() === el.bitId);
                     if (thisBit.id().substr(0, 1) === 'C') thisBit.arrow.reverse(true);
@@ -2938,7 +3694,7 @@ function HAMMING_GA(props, layer, alg, stat) {
     en.showCurrCbitRes = () => {
         en.Cbits.forEach(Cbit => {
             if (Cbit.id === en.currCbit) {
-                en.equBtn.txt.text(Cbit.auto.str + Cbit.auto.res);
+                en.equBtn.text(Cbit.auto.str + Cbit.auto.res);
                 layer.batchDraw();
             }
         });
@@ -2968,7 +3724,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             Cbit.man.res = Cbit.auto.res;
         }
         else if (mode === 'man') {
-            if (en.equBtn.txt.text() === '') return en.lang.noEqu;
+            if (en.equBtn.text() === '') return en.lang.noEqu;
             if (Cbit.man.equ.length !== Cbit.auto.equ.length) return en.lang.wrongEqu+' => '+en.currCbit;
             if (Cbit.man.res !== Cbit.auto.res) return en.lang.wrongCval+' => '+en.currCbit; // check for correct result
             if(en.process === 'enc'){
@@ -2983,7 +3739,7 @@ function HAMMING_GA(props, layer, alg, stat) {
 
         if(en.process === 'enc') en.equs.add(en.equBtn.txt);
         en.currCbit = '';
-        en.equBtn.txt.text('');
+        en.equBtn.text('');
         en.bits.forEach(b => {
             if (b.arrow.visible() === true) b.arrow.visible(false);
         });
@@ -3088,14 +3844,15 @@ function HAMMING_GA(props, layer, alg, stat) {
             let str = cloneObj.text();
             cloneObj.text(str.split('=>')[0] + ' = ' + str.split('=>')[1].split('=')[1]);
         }
-        // calculatin the new position
-        cloneObj.height(cloneObj.height() - 20);
+        // calculating the new position
+        //cloneObj.height(cloneObj.height() - 20);
         if (en.equs.poss.length === 0) {
             newPos = {x: en.bits[0].x(), y: en.rect.height() - cloneObj.height() - dist};
         } else {
             newPos.x = en.equs.poss[en.equs.poss.length - 1].x;
             newPos.y = en.equs.poss[en.equs.poss.length - 1].y - cloneObj.height() - dist;
         }
+        //console.log('cloneObj.height() ='+cloneObj.height());
         //cloneObj.align('left');
         en.add(cloneObj);
         // moving animation
@@ -3108,6 +3865,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             },
             function () { // closure function
                 cloneObj.align('left');
+                cloneObj.fontSize(cloneObj.fontSize());
             }
         );
         en.equs.poss.push(newPos);
@@ -3135,7 +3893,7 @@ function HAMMING_GA(props, layer, alg, stat) {
 }
 
 
-
+/////////////////////////////////////////////////////////////////////////////
 editable = (textNode, closeFunc, width) => {
     // at first lets find position of text node relative to the stage:
     let textPosition = textNode.getAbsolutePosition();
@@ -3161,7 +3919,7 @@ editable = (textNode, closeFunc, width) => {
     if(typeof width !== 'undefined' &&  width > textNode.width())
         textarea.style.width = width+'px';
     else
-        textarea.style.width = textNode.width()+5+'px';
+        textarea.style.width = textNode.width()+15+'px';
     textarea.focus();
 
     textarea.addEventListener('keydown', function(e){
@@ -3190,18 +3948,21 @@ over = (obj, cursorStyle) =>{
     cursorStyle = cursorStyle || 'pointer';
     let shapes = [];
     if(obj.getType() === 'Group'){
-        obj.findOne(node => {
-            if(node.getType() === 'Shape')
-                shapes.push(node);
-        });
+        shapes = obj.find('Text');
+        shapes = shapes.concat(obj.find('Rect'));
     }
     else{
         shapes.push(obj);
     }
     obj.on('mouseover touchstart', function(){
-        shapes[0].shadowColor('red');
-        shapes[0].shadowBlur(10);
-        shapes[0].shadowOpacity(1.0);
+        // shapes[0].shadowColor('red');
+        // shapes[0].shadowBlur(10);
+        // shapes[0].shadowOpacity(1.0);
+        shapes.forEach(shape => {
+            shape.shadowColor('red');
+            shape.shadowBlur(10);
+            shape.shadowOpacity(1.0);
+        });
 
         stage.container().style.cursor = cursorStyle;
         if(typeof this.hover !== 'undefined'){
@@ -3213,9 +3974,14 @@ over = (obj, cursorStyle) =>{
     });
     // mouse hover out event
     obj.on('mouseout touchend', function(){
-        shapes[0].shadowColor('');
-        shapes[0].shadowBlur(0);
-        shapes[0].shadowOpacity(0);
+        // shapes[0].shadowColor('');
+        // shapes[0].shadowBlur(0);
+        // shapes[0].shadowOpacity(0);
+        shapes.forEach(shape => {
+            shape.shadowColor('');
+            shape.shadowBlur(0);
+            shape.shadowOpacity(0);
+        });
         stage.container().style.cursor = 'default';
         if(typeof this.hover !== 'undefined') this.hover.hide();
         obj.getLayer().batchDraw();
@@ -3371,6 +4137,7 @@ function PANEL(props){
     pan.size = function(size){
         if(typeof size === 'undefined') return {width: pan.width(), height: pan.height()};
         if(typeof size.width !== 'undefined'){
+            if(size.width < pan.labelRect.width()) return console.log('The size.width  is < label.width()');
             pan.width(size.width);
             pan.rect.width(size.width);
             if(props.type === 1){
@@ -3379,12 +4146,24 @@ function PANEL(props){
             }
         }
         if(typeof size.height !== 'undefined'){
+            if(size.height < pan.labelRect.height()) return console.log('The size.height  is < label.height()');
             //pan.height(size.height);
             pan.rect.height(size.height);
         }
         pan.width(pan.rect.width());
         pan.height(pan.rect.height());
+        try {pan.getLayer().batchDraw();} catch{};
+        try{
+            let parent = pan.getParent();
+            if(pan.y()+pan.height()+10 > parent.height())
+                parent.size({height: pan.y()+pan.height()+10});
+        } catch{ }
+
     };
+
+    // auto correct the panel width according to label with
+    pan.rect.width(pan.labelRect.width() + 15);
+    pan.width(pan.rect.width());
 
     pan.dragmove = function(arg){
         if(typeof arg === 'undefined') return pan.draggable();
@@ -4493,12 +5272,13 @@ function REGISTER1(props, layer){
 
     // BIT properties
     if (typeof props.bit === 'undefined') props.bit = {};
-    let ratio = 0.6, w = 26, h = w / ratio;
-    props.bit.width = w;
-    props.bit.height = h;
+    let ratio = 0.65, w = 26, h = w / ratio;
+    //props.bit.width = w;
+    //props.bit.height = h;
 
-    let addDist = props.bit.width + props.pading*0.8;
-    let height = props.bit.height+2*props.pading + 55;
+    //let addDist = props.bit.width + props.pading*0.8;
+    let addDist = w + props.pading * 0.8;
+    let height = h + 2 * props.pading + 55;
     let width = addDist*(props.bitsNum)+addDist/1.4;
     // creating the general register group
     let reg = new Konva.Group ({
@@ -4602,8 +5382,10 @@ function REGISTER1(props, layer){
     props.bit.stroke = props.bit.stroke || 'RosyBrown';
     props.bit.txtColor = props.bit.txtColor || 'Snow';
     props.bit.defVal = props.bit.defVal || '';
-    props.bit.labelTxt = props.bit.labelTxt || '';
+    //props.bit.labelTxt = props.bit.labelTxt || '';
     props.bit.labelDistance = 5;
+    props.bit.firstNum = props.bit.firstNum !== 1 ? props.bit.firstNum : 1;
+    props.bit.numReverse = props.bit.numReverse || 'false';
     if(typeof props.bit.firstNum === 'undefined') props.bit.firstNum = 1;
     reg.bits=[]; // empty array for register's bits
     // first bit position
@@ -4612,12 +5394,20 @@ function REGISTER1(props, layer){
     let zIndex = null;
     for (let i=0; i<props.bitsNum; i++){
         props.bit.id = reg.id()+'-bit'+i;
-        //props.bit.pos = pos;
-        if(props.bit.firstNum === 0) props.bit.label = props.bit.labelTxt+i;
-        else props.bit.label = props.bit.labelTxt+(i+props.bit.firstNum);
-        let bit = new Button(props.bit, layer);
+        props.bit.width = w;
+        props.bit.height = h;
+        let num = i;
+        props.bit.label = props.bit.labelTxt+(num+props.bit.firstNum);
+        if(props.bit.numReverse === 'true'){
+            num = props.bitsNum - 1 - i;
+            props.bit.label = props.bit.labelTxt+(num-props.bit.firstNum);
+        }
+
+        let bit = new Button(props.bit);
+        reg.add(bit);
+        //bit.size({width: w, height: h});
         bit.position(pos);
-        bit.label.y(bit.rect.y() - bit.label.height() - 5);
+        bit.label.y(bit.rect.y() - bit.label.height()-1);
         pos.x += addDist; //  change position for the next bit
 
         // setBit bit
@@ -4625,16 +5415,13 @@ function REGISTER1(props, layer){
             // set current bit
             if (reg.vals[i] === 0)  reg.vals[i] = 1;
             else 					reg.vals[i] = 0;
-            bit.txt.text(reg.vals[i].toString());
-            layer.batchDraw();
+            bit.text(reg.vals[i]);
+            try{ bit.getLayer().batchDraw()}catch{}
             return true;
         };
 
-        reg.bits[i]=bit;
-        reg.add(bit);
-
-        bit.add(bit.rect, bit.txt);
-        bit = hover(bit,layer);
+        reg.bits.push(bit);
+        bit = hover(bit);
         // default clickable event
         bit.enable(props.bit.enabled);
 
@@ -4683,10 +5470,10 @@ function REGISTER1(props, layer){
         }
         reg.vals=vals;
         for (let i=0; i<props.bitsNum; i++){
-            reg.bits[i].txt.text(reg.vals[i].toString());
-            layer.batchDraw();
+            reg.bits[i].text(reg.vals[i]);
         }
-        return;
+        try{ reg.getLayer().batchDraw()}catch{}
+        return true;
     };
 
     // connect from this node to other one
@@ -4728,12 +5515,12 @@ function REGISTER1(props, layer){
     // show register
     reg.show = function (){
         reg.visible(true);
-        layer.batchDraw();
+        try{ reg.getLayer().batchDraw()}catch{}
     };
     // hide register
     reg.hide = function (){
         reg.visible(false);
-        layer.batchDraw();
+        try{ reg.getLayer().batchDraw()}catch{}
     };
 
     // setting the register width and height
@@ -4862,7 +5649,9 @@ hover1 = (obj, group) =>{
         // if(typeof arg !== 'undefined') return;
         if(this.findOne('#bg').fill() === 'red' && typeof arg === 'undefined') return;
         this.visible(false);
+        try{obj.getLayer().batchDraw();} catch{}
     };
+
     group.add(obj.hover);
     //obj.hover = hover;
     return obj;
@@ -4963,7 +5752,8 @@ function Button(props){
     // BIT properties
     props.id = props.id || '';
     props.width = props.width || 20;
-    props.height = props.height || 41.6;
+    // props.height = props.height || 41.6;
+    props.height = props.height || 40;
     props.name = props.name || 'Button';
     props.hoverTxt = props.hoverTxt || '';
     props.fill = props.fill || 'RosyBrown';
@@ -4971,7 +5761,7 @@ function Button(props){
     props.stroke = props.stroke || 'RosyBrown';
     props.strokeWidth = props.strokeWidth || 0;
     props.txtColor = props.txtColor || 'Navy';
-    props.defVal = props.defVal || '';
+    props.defVal = props.defVal || '0';
     props.label = props.label || '';
     props.labelSize = props.labelSize || 16;
     props.txtSize = props.txtSize || 26;
@@ -4995,6 +5785,7 @@ function Button(props){
         fill: props.fill,
         cornerRadius: 2,
     });
+    btn.add(btn.rect);
 
     //btn hover text set
     btn.hoverTxt = props.hoverTxt;
@@ -5014,76 +5805,64 @@ function Button(props){
         };
     };
 
-    // btn's text
-    if(props.defVal.search('_') !== -1 && props.defVal !==''){
-        btn.name('text');
-        btn.txt = SUB(props.defVal);
-        btn.txt.fontSize(props.txtSize);
-        btn.txt.fill(props.txtColor);
-        btn.txt.align('left');
-        btn.txt.verticalAlign('middle');
-        btn.txt.height(btn.rect.height());
-
-        if (btn.txt.width() > btn.rect.width()) {
-            btn.rect.width(btn.txt.width() + 10);
-            btn.txt.width(btn.rect.width());
-        }else
-        {
-            btn.txt.width(btn.rect.width());
-        }
-
-    }
-    else if(props.defVal.search('^') !== -1 && props.defVal.search('^') !== 0 && props.defVal !=='') {
-        console.log('txt as sup',props.defVal.search('^'));
-
-    }else{ // only text
-        btn.txt = new Konva.Text({
-            id: props.id +'-txt',
-            name: 'text',
-            //width : btn.rect.width(),
-            height: btn.rect.height(),
-            text: props.defVal,
-            fontSize: props.txtSize,
-            fontFamily: 'Calibri',
-            align: 'center',
-            verticalAlign: 'middle',
-            fill: props.txtColor
-        });
-
-        if (btn.txt.width() > btn.rect.width()) {
-            btn.rect.width(btn.txt.width() + 10);
-            btn.txt.width(btn.rect.width());
-        }else
-        {
-            btn.txt.width(btn.rect.width());
-        }
+    // put text in the center and middel of the rectangle
+    btn.textCentering = function(){
+        if(btn.rect.width() <= btn.txt.width()) btn.rect.width(btn.txt.width()+6);
+        if(btn.rect.height() <= btn.txt.height()) btn.rect.height(btn.txt.height()+6);
+        btn.txt.x(btn.rect.width()/2 - btn.txt.width()/2);
+        btn.txt.y(btn.rect.height()/2 - btn.txt.height()/2);
+        btn.height(btn.rect.height());
+        btn.width(btn.rect.width());
+        try{btn.getLayer().batchDraw();} catch{}
     }
 
+    // // btn's text
+    btn.name('text');
+    // btn.txt = SUPB(props.defVal);
+    btn.txt = new Konva.Text({name: 'text', text:props.defVal, align: 'center', verticalAlign: 'middle'});
+    btn.add(btn.txt);
+    btn.txt.fontSize(props.txtSize);
+    btn.txt.fill(props.txtColor);
+    //textCentering(); // centering the text
 
-    btn.add(btn.rect, btn.txt);
     // btn's label
     if (typeof props.label !== 'undefined'){
-        let pos = {x:  btn.rect.x(), y: btn.rect.y() + btn.rect.height() + 5};
-        if (props.label.search("_") === -1){
-            btn.label = new Konva.Text({
-                id: props.id +'-lab',
-                name: 'label',
-                position: pos,
-                text: props.label,
-                fontSize: props.labelSize,
-                fontFamily: 'Calibri',
-                align: 'center',
-                verticalAlign: 'middle',
-                fill: props.fill
-            });
-        }
-        else{
-            btn.label = SUB(props.label);
-            btn.name('label');
-            btn.label.position(pos);
-            btn.label.setColor(props.fill);
-            btn.label.setSize(props.labelSize);
-        }
+        let pos = {x: btn.rect.x(), y: btn.rect.y() + btn.rect.height() + 5};
+        // if (props.label.search("_") === -1){
+        //     btn.label = new Konva.Text({
+        //         id: props.id +'-lab',
+        //         name: 'label',
+        //         position: pos,
+        //         text: props.label,
+        //         fontSize: props.labelSize,
+        //         fontFamily: 'Calibri',
+        //         align: 'center',
+        //         verticalAlign: 'middle',
+        //         fill: props.fill
+        //     });
+        // }
+        // else{
+        //     btn.label = SUPB(props.label);
+        //     btn.name('label');
+        //     //btn.label.position(pos);
+        //     btn.label.x(btn.rect.width()/2 - btn.label.width()/2);
+        //     btn.label.y(btn.rect.height() + 5);
+        //     btn.label.fill(props.fill);
+        //     btn.label.fontSize(props.labelSize);
+        //     //btn.label.setColor(props.fill);
+        //     //btn.label.setSize(props.labelSize);
+        // }
+
+        btn.label = SUPB(props.label);
+        btn.name('label');
+        //btn.label.position(pos);
+        btn.label.x(btn.rect.width()/2 - btn.label.width()/2);
+        btn.label.y(btn.rect.height() + 5);
+        btn.label.fill(props.fill);
+        btn.label.fontSize(props.labelSize);
+        //btn.label.setColor(props.fill);
+        //btn.label.setSize(props.labelSize);
+
         btn.label.x(btn.rect.x()+btn.rect.width()/2 - btn.label.width()/2);
         //btn.label = SUB(props.label);
         btn.add(btn.label);
@@ -5092,10 +5871,35 @@ function Button(props){
     btn.activeColor = props.fill;
     btn.passiveColor = props.passivefill;
 
+    // btn size
+    btn.width(btn.rect.width());
+    btn.height(btn.rect.height());
+    btn.size = function(size){
+        if(typeof size === 'undefined') return {width: btn.width(), height: btn.height()};
+        if(typeof size.width !== 'undefined'){
+            if(size.width < btn.txt.width()) return console.log('size.width < btn.txt.width()');
+            btn.rect.width(size.width);
+            // if(props.type === 1){
+            //     btn.rect.width(size.width);
+            // }
+        }
+        else console.log('size.width is undefined');
+        if(typeof size.height !== 'undefined'){
+            //if(size.height < btn.txt.height()) return console.log('size.height < btn.txt.height()');
+            btn.rect.height(size.height);
+        }
+        else console.log('size.height is undefined');
+
+
+        btn.textCentering(); // centering the text
+        //try {btn.getLayer().batchDraw();} catch{};
+    };
+
     //text
     btn.text = function(str){
         if(typeof str === 'undefined') return btn.txt.text();
-        btn.txt.text(str.toString())
+        btn.txt.text(str.toString());
+        btn.textCentering(); // centering the text
     };
 
     //fill
@@ -5113,7 +5917,7 @@ function Button(props){
         return true;
     };
 
-    //stroke
+    //label fill
     btn.labelFill = function(color){
         if(typeof color === 'undefined') return btn.label.fill();
         btn.label.fill(color);
@@ -5159,12 +5963,10 @@ function Button(props){
     btn.update = function(){
         btn.txt.text(btn.inVal.toString());
     };
-
-    btn.width(btn.rect.width());
+    btn.textCentering(); // centering the text
 
     // default btn hover events
     btn.active(props.enabled);
-
     return btn;
 } // enf of button
 
@@ -5235,7 +6037,7 @@ function POLY(str){
 } // end of POLY
 
 ///// SUP OBJECT //////////////////////////////////////////////////////
-function SUP(el){
+function SUP1(el){
     let str = new Konva.Group(); // empty Konva group
     str.txt = new Konva.Text({
         id: 'txt',
@@ -5296,10 +6098,165 @@ function SUP(el){
     return str;
 } // end of SUP
 
+///// SUP OBJECT //////////////////////////////////////////////////////
+function SUPB(el){
+    let str = new Konva.Group(); // empty Konva group
+    let basis, idx;
+    str.type = 'txt';
+    basis = el.toString();
+    // only text
+    if(el.indexOf('^') !== -1){
+        str.type = 'sup';
+        basis = el.split("^")[0];
+        idx = el.split("^")[1]
+    }
+    else if(el.indexOf('_') !== -1){
+        str.type = 'sub';
+        basis = el.split("_")[0];
+        idx = el.split("_")[1];
+    }
+
+    str.str=el.toString();
+
+    str.txt = new Konva.Text({
+        name:'base',
+        text: basis,
+        fontFamily: 'Arial',
+        align: 'left',
+        verticalAlign: 'middle',
+        fill: 'black'
+    });
+    str.add(str.txt);
+
+    if(str.type !== 'txt'){
+        str.supb = new Konva.Text({
+            name:'index',
+            text: idx,
+            fontFamily: str.txt.fontFamily(),
+            align: 'left',
+            verticalAlign: 'middle',
+            fill: str.txt.fill()
+        });
+        str.add(str.supb);
+    }
+
+    // correct the supb position after change
+    str.updatePos = function(){
+        if(str.type === 'sup')
+            str.supb.position({ x: str.txt.width()*1.02 ,
+                y: -str.txt.height()*0.2
+            });
+        else if(str.type === 'sub'){ // for sub
+            str.supb.position({ x: str.txt.width()*1.02,
+                y: str.txt.height()*0.5
+            });
+        }
+        str.updateSize();
+    };
+
+    // set str group size
+    str.updateSize = function(){
+        if(str.type === 'txt'){
+            str.width(str.txt.width());
+            str.height(str.txt.height());
+            return;
+        }
+        str.width(str.supb.x() + str.supb.width());
+        if(str.type === 'sub')
+            str.height(str.supb.y()+str.supb.height());
+        if(str.type === 'sup')
+            //str.height(str.txt.height() - str.supb.y());
+            str.height(str.txt.height());
+    };
+
+    str.updatePos();
+
+    // set font family
+    str.fontFamily = function(font){
+        if(typeof font === 'undefined') return str.txt.fontFamily();
+        str.txt.fontFamily(font);
+        if(str.type !== 'txt')
+            str.supb.fontFamily(font);
+        str.updatePos();
+    };
+
+
+    // set fontfamily
+    str.fill = function(color){
+        if(typeof color === 'undefined') return str.txt.fill();
+        str.txt.fill(color);
+        if(str.type !== 'txt')
+            str.supb.fill(color);
+    };
+
+    // set default fill color
+    str.defaultColor = 'black';
+    str.defaultFill = (color)=>{
+        if(typeof color === 'undefined') return str.defaultColor;
+        str.defaultColor = color;
+        str.fill(color);
+    };
+
+    // set text
+    str.text = function(t){
+        if(typeof t === 'undefined') return str.str;
+        if(str.type !== 'txt'){
+            if (str.type === 'sup'){
+                str.txt.text(t.split("^")[0]);
+                str.supb.text(t.split("^")[1]);
+            }else if(str.type === 'sub'){
+                str.txt.text(t.split("_")[0]);
+                str.supb.text(t.split("_")[1]);
+            }
+        }
+        else{
+            str.txt.text(t);
+        }
+
+        str.str = t.toString();
+        str.updatePos();
+    };
+
+    // setting id
+    str.setID = function(id){
+        str.id(id);
+        str.txt.id(id+'-txt');
+        if(str.type !== 'txt') str.supb.id(id+'-supb');
+    };
+
+    // set font size
+    str.fontSize = function(val){
+        if(typeof val === 'undefined') return str.txt.fontSize();
+        str.txt.fontSize(val);
+        if(str.type !== 'txt'){
+            str.supb.fontSize(str.txt.fontSize() * 0.75);
+        }
+        str.updatePos();
+    };
+
+    //str.setSize(16);
+    str.fontSize(16);
+
+    // setting color method 1
+    str.setColor = function(color){
+        str.txt.fill(color);
+        if(str.type !== 'txt')
+            str.supb.fill(color);
+    };
+    // setting color method 2
+    str.fill = function(color){
+        if(typeof color === 'undefined') return  str.txt.fill();
+        str.txt.fill(color);
+        if(str.type !== 'txt')
+            str.supb.fill(color);
+    };
+    return str;
+} // end of SUPB
+
 ///// SUB OBJECT //////////////////////////////////////////////////////
 function SUB(el){
     // only text
-    if(el.search('_') === -1) {
+    if(el.search('_') === -1 && el.search('_') === -1) {
         let txt = new Konva.Text({
             text: el,
             fontFamily: 'Arial',
@@ -5312,8 +6269,8 @@ function SUB(el){
         return txt;
     }
 
-
     let str = new Konva.Group(); // empty Konva group
+    str.str=el.toString();
 
     str.txt = new Konva.Text({
         name:'base',
@@ -5374,7 +6331,8 @@ function SUB(el){
         if(t.search('_') !== -1){
             str.txt.text(t.split("_")[0]);
             str.sub.text(t.split("_")[1]);
-            str.sub.position({x:str.txt.x() + str.txt.width()*1.0 , y: str.txt.y() + str.sub.height()/2 + 2});
+            // str.sub.position({x:str.txt.x() + str.txt.width()*1.0 , y: str.txt.y() + str.sub.height()/2 + 2});
+            str.updatePos();
         }
         else{
             str.txt.text(t);
@@ -5387,17 +6345,17 @@ function SUB(el){
         if(typeof val === 'undefined') return str.txt.height();
         if(str.height() > val) return console.log('The height is lover than text size!');
         str.txt.y((val - str.txt.height()) / 2);
-        str.sub.position({x:str.txt.x() + str.txt.width()*1.0 , y: str.txt.y() + str.sub.height()/2 + 2});
-
+        // str.sub.position({x:str.txt.x() + str.txt.width()*1.0 , y: str.txt.y() + str.sub.height()/2 + 2});
+        str.updatePos();
     };
     // set width
     str.width = function(val){
         if(typeof val === 'undefined') return str.txt.width() + str.sub.width();
         if(str.txt.width() > val) return console.log('The width is lover than text size!');
         str.txt.x((val - str.txt.width() + str.sub.width()) / 4);
-        str.sub.position({x:str.txt.x() + str.txt.width()*1.0 , y: str.txt.y() + str.sub.height()/2 + 2});
+        // str.sub.position({x:str.txt.x() + str.txt.width()*1.0 , y: str.txt.y() + str.sub.height()/2 + 2});
+        str.updatePos();
     };
-
 
     // setting id
     str.setID = function(id){
@@ -5410,10 +6368,15 @@ function SUB(el){
     str.setSize = function(val){
         str.txt.fontSize(val);
         str.sub.fontSize(str.txt.fontSize() * 0.7);
-        str.sub.position({x:str.txt.x() + str.txt.width()*1.08 , y: str.txt.y() + str.sub.height()/2 + 2});
+        // str.sub.position({x:str.txt.x() + str.txt.width()*1.08 , y: str.txt.y() + str.sub.height()/2 + 2});
+        str.updatePos();
         // recalc the group width end height
         str.width(str.txt.width() + str.sub.width());
         str.height(str.txt.height());
+    };
+
+    str.updatePos = function(){
+        str.sub.position({x:str.txt.x() + str.txt.width()*1.0 , y: str.txt.y() + str.sub.height()/2 + 5});
     };
 
     // set font size
@@ -5421,8 +6384,9 @@ function SUB(el){
         if(typeof val === 'undefined') return str.txt.fontSize();
         str.txt.fontSize(val);
         str.sub.fontSize(str.txt.fontSize() * 0.7);
-        str.sub.x(str.txt.x() + str.txt.width()-5);
-        str.sub.y(str.txt.y() + str.sub.height()/2 + 2);
+        // str.sub.x(str.txt.x() + str.txt.width()-5);
+        // str.sub.y(str.txt.y() + str.sub.height()/2 + 2);
+        str.updatePos();
         // recalc the group width end height
         str.width(str.txt.width() + str.sub.width());
         str.height(str.txt.height());

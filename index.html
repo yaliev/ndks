@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="description" content="">
         <meta name="author" content="">
-
+        <link rel="icon" href="favicon.ico" type="image/x-icon"/>
         <title>НДКС-Виртуална библиотека</title>
 
 
@@ -21,6 +21,7 @@
         <script src="library/js/konva.js"></script>
         <script src="library/js/models/hcMatModel.js"></script>
         <script src="library/js/models/hcModel.js"></script>
+        <script src="library/js/models/ccPolyModel.js"></script>
 
         <link rel="stylesheet" href="library/css/jquery-ui.min.css">
         <link rel="stylesheet" href="library/css/jquery-ui.structure.min.css">
@@ -43,7 +44,7 @@
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ml-auto">
                         <li class="nav-item active">
-                            <a class="nav-link" href="#" id="navHome"> Home
+                            <a class="nav-link" href="#" id="navHome"> Модели
                                 <span class="sr-only">(current)</span>
                             </a>
                         </li>
@@ -66,6 +67,7 @@
 
         <!-- Jquery UI DIALOGS -->
         <div id="msgDialog" title=""></div>
+        <div id="errDialog" title=""></div>
 
         <!-- login-->
         <div id="loginDiv" title="Login">
@@ -91,7 +93,6 @@
                 <fieldset>
                     <legend id="passTxt">Password</legend>
                     <input type="password" name="password" id="password" value="???????" class="text ui-widget-content ui-corner-all">
-                    <!--                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">-->
                 </fieldset>
             </form>
         </div>
@@ -100,9 +101,11 @@
 
 <!--------------------------SCRIPT-------------------------------------->
 <script type="text/javascript">
+    $('input:radio[name=lang]').filter('[value=bg]').prop('checked', true);
     let currlang = document.querySelector('input[name="lang"]:checked').value;
     let lang =  new LangPack(currlang);
-    let userName = '063199';
+    let userName = 'yaliev';
+    //let userName = '';
 
     $("#msgDialog").dialog({
         autoOpen : false, modal : true, show : "blind", hide : "blind",
@@ -181,7 +184,7 @@
     });
 
     $("#loginDiv").dialog({
-        autoOpen : true, modal : true, show : "blind", hide : "blind",
+        autoOpen : false, modal : true, show : "blind", hide : "blind",
         minWidth: 320,
         maxWidth: 320,
         height: 'auto',
@@ -204,7 +207,7 @@
     }
 
     function langChange(){
-        currlang = document.querySelector('input[name="lang"]:checked').value;
+        // currlang = document.querySelector('input[name="lang"]:checked').value;
         lang =  new LangPack(currlang);
         $('#userNameTxt').html(lang.gn.userNameTxt);
         $('#selLang').html(lang.gn.selLang);
@@ -217,6 +220,10 @@
     }
 
     langChange();
+    loadPage('models');
+    //loadPage('cyclic-polynomial');
+    //loadPage('hamming-general');
+    //loadPage('hamming-matrix');
 
 </script>
 

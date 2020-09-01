@@ -89,10 +89,18 @@ function LangPack(thisLang){
     l.bg.gn.decRadio='Декодер';
     l.en.gn.mode='Mode:';
     l.bg.gn.mode='Режим:';
-    l.en.gn.enLabel='Hamming Encoder - Matrix Algorithm';
-    l.bg.gn.enLabel='Хеминг кодер - матричен алгоритъм';
-    l.en.gn.decLabel='Hamming Decoder - General Algorithm';
-    l.bg.gn.decLabel='Хеминг декодер - обикновен алгоритъм';
+    l.en.gn.hammEncGenLabel='Hamming Encoder - General Algorithm';
+    l.bg.gn.hammEncGenLabel='Хеминг кодер - обикновен алгоритъм';
+    l.en.gn.hammEncMatLabel='Hamming Encoder - Matrix Algorithm';
+    l.bg.gn.hammEncMatLabel='Хеминг кодер - матричен алгоритъм';
+    l.en.gn.ccEncLabel='Cyclic Code Encoder - Polynomial Algorithm';
+    l.bg.gn.ccEncLabel='Кодер на цикличен код - полиномен алгоритъм';
+    l.en.gn.ccDecLabel='Cyclic Code Decoder - Polynomial Algorithm';
+    l.bg.gn.ccDecLabel='Декодер на цикличен код - полиномен алгоритъм';
+    l.en.gn.hammDecMatLabel='Hamming Decoder - Matrix Algorithm';
+    l.bg.gn.hammDecMatLabel='Хеминг декодер - матричен алгоритъм';
+    l.en.gn.hammDecGenLabel='Hamming Decoder - General Algorithm';
+    l.bg.gn.hammDecGenLabel='Хеминг декодер - обикновен алгоритъм';
     l.en.gn.irLabel='Information Register';
     l.bg.gn.irLabel='Информационен регистър';
     l.en.gn.crLabel='Codeword Register';
@@ -214,31 +222,91 @@ function LangPack(thisLang){
     l.bg.gn.showEndMsg='Покажи съобщението за край на симулацията';
     l.en.gn.dblclick='Double-click for editing';
     l.bg.gn.dblclick='Двойно кликване за редактиране';
+    l.en.gn.cyclicPolyModelTitle='Interactive Simulation Model of Cyclic Code - Polynomial Algorithm';
+    l.bg.gn.cyclicPolyModelTitle='Интерактивен Симулационен Модел на Цикличен Код - Полинимен Алгоритъм';
+    l.en.gn.genPoly='Generator polynomial';
+    l.bg.gn.genPoly='Генераторен полином';
+    l.en.gn.fbLabel='FB = ';
+    l.bg.gn.fbLabel='ОВ = ';
+    l.en.gn.wrongGenPoly='Wrong generator polynomial';
+    l.bg.gn.wrongGenPoly='Грешен генераторен полином';
+    l.en.gn.wrongMul='Wrong polynomial multiplicator';
+    l.bg.gn.wrongMul='Грешен полиномен множител';
+    l.en.gn.wrongRes='Wrong result';
+    l.bg.gn.wrongRes='Грешен резултат';
+    l.en.gn.wrongRem='Wrong remainder';
+    l.bg.gn.wrongRem='Грешен остатък';
+    l.en.gn.wrongXor='Wrong XOR value!';
+    l.bg.gn.wrongXor='Грешнa XOR стойност!';
+    l.en.gn.wrongSw='Wrong switch position!';
+    l.bg.gn.wrongSw='Грешна позиция на ключовете!';
+    l.en.gn.wrongFb='Wrong Feedback value!';
+    l.bg.gn.wrongFb='Грешна стойност на ОВ!';
+    l.en.gn.sHover='Shift the register';
+    l.bg.gn.sHover='Измести регистъра';
+    l.en.gn.rHover='Revers the register';
+    l.bg.gn.rHover='Обърни регистъра';
+    l.en.gn.swHover='Change position';
+    l.bg.gn.swHover='Промени позицията';
+    l.en.gn.xorHover='Calculate XOR';
+    l.bg.gn.xorHover='Изчисли XOR';
+    l.en.gn.fbHover='Calculate FB';
+    l.bg.gn.fbHover='Изчисли ОВ';
+    l.en.gn.newCycle='New cycle';
+    l.bg.gn.newCycle='Нов цикъл';
+    l.en.gn.lastCyc='Last cycle';
+    l.bg.gn.lastCyc='Последен цикъл';
+    l.en.gn.notComplCycle='Not completed cycle';
+    l.bg.gn.notComplCycle='Не завършен цикъл';
+    l.en.gn.wrongOper='Wrong operation';
+    l.bg.gn.wrongOper='Грешна операция';
 
 
-    // statistics
-    l.en.stat.title='Statistics';
-    l.bg.stat.title='Статистика';
-    l.en.stat.startTimer='Start the Timer';
-    l.bg.stat.startTimer='Стартирай таймера';
-    l.en.stat.stopTimer='Stop the Timer';
-    l.bg.stat.stopTimer='Спри таймера';
-    l.en.stat.time='Time:';
-    l.bg.stat.time='Време:';
-    l.en.stat.min='min';
-    l.bg.stat.min='мин';
-    l.en.stat.sec='sec';
-    l.bg.stat.sec='сек';
-    l.en.stat.maxTime='The maximum time is: ';
-    l.bg.stat.maxTime='Максималното време е: ';
-    l.en.stat.errHistory='Errors History';
-    l.bg.stat.errHistory='История на грешките';
-    l.en.stat.err='Errors: ';
-    l.bg.stat.err='Грешки: ';
-    l.en.stat.showErrors='Show Errors';
-    l.bg.stat.showErrors='Покажи грешките';
-    l.en.stat.hideErrors='Hide Errors';
-    l.bg.stat.hideErrors='Скрий грешките';
+    l.en.gn.infoBitPoly='Polynomial of the Information bits';
+    l.bg.gn.infoBitPoly='Полином на информационните битове';
+    l.en.gn.polyDivision='Polynomial division';
+    l.bg.gn.polyDivision='Деление на полиноми';
+    l.en.gn.cwFormula='Codeword polynomial formula';
+    l.bg.gn.cwFormula='Фромула на кодовата комбинация';
+    l.en.gn.polyDivisible='Polynomial divisible';
+    l.bg.gn.polyDivisible='Полином на делимото';
+    l.en.gn.wrongInfoPoly='Wrong information bit polynomial';
+    l.bg.gn.wrongInfoPoly='Грешен полином на информационните битове';
+    l.en.gn.wrongCWformula='Wrong codeword formula';
+    l.bg.gn.wrongCWformula='Грешна формула на кодовата комбинация';
+    l.en.gn.wrongDivPoly='Wrong polynomial divisible';
+    l.bg.gn.wrongDivPoly='Грешно полиномно делимо';
+
+
+    l.en.alg.prepDiv='Preparation for polynomial division ';
+    l.bg.alg.prepDiv='Подготовка за полиномно деление';
+    l.en.alg.prepDivHelp='Write: '+l.en.gn.infoBitPoly+'; \n'+l.en.gn.cwFormula+'; \n'+l.en.gn.polyDivisible;
+    l.bg.alg.prepDivHelp='Напишете: '+l.bg.gn.infoBitPoly+'; \n'+l.bg.gn.cwFormula+'; \n'+l.bg.gn.polyDivisible;
+    l.en.alg.writeMul='Polynomial quotient determination';
+    l.bg.alg.writeMul='Определяне члена на полиномното частно';
+    l.en.alg.writeMulHelp='Click on "'+l.en.gn.newCycle+'" button after write the next member of polynomial quotient';
+    l.bg.alg.writeMulHelp='Натиснете върху бутона "'+l.bg.gn.newCycle+'" след това напишете поредния член на полиномното частно'
+    l.en.alg.writeRes='Multiplying the quotient by the divisor';
+    l.bg.alg.writeRes='Умножение на члена на частното с делителя';
+    l.en.alg.writeResHelp='Write the result of multiplying the next member of coefficient by the divisor';
+    l.bg.alg.writeResHelp='Напишете резултата от умножението на поредния член на частното с делителя'
+    l.en.alg.writeRem='Calculating the polynomial remainder';
+    l.bg.alg.writeRem='Изчисляване на полиномния остатък';
+    l.en.alg.writeRemHelp='Sum the polynomials from the result of the multiplication and the last remainder';
+    l.bg.alg.writeRemHelp='Сумирайте полинома на получения резултат от умножението и последния остатък'
+    l.en.alg.remPolyBin='Remainder in binary form';
+    l.bg.alg.remPolyBin='Остатък в двоична форма';
+    l.en.alg.remPolyBinHelp='Write the remainder of the division from polynomial in binary form';
+    l.bg.alg.remPolyBinHelp='Запишете остатъка от делението от полиномна в двоична форма'
+    l.en.alg.cwPolyBin='The codeword in binary form';
+    l.bg.alg.cwPolyBin='Кодовата комбинация в двоична форма';
+    l.en.alg.cwPolyBinHelp='Write the codeword from polynomial in binary form';
+    l.bg.alg.cwPolyBinHelp='Запишете кодовата комбинация от полиномна в двоична форма'
+
+    l.en.alg.setpolyDivisible='Polynomial divisible formation';
+    l.bg.alg.setpolyDivisible='Образуване на полиномното делимо';
+    l.en.alg.setpolyDivisibleHelp='';
+    l.bg.alg.setpolyDivisibleHelp='';
 
     // algorithm
     l.en.alg.setBits='Set the Information Bits';
@@ -285,6 +353,30 @@ function LangPack(thisLang){
     l.bg.alg.setParam='Задаване на параметрите на кода';
     l.en.alg.resAnalysis='Analysis of the Result';
     l.bg.alg.resAnalysis='Анализ на резултата';
+    l.en.alg.reverseIR='Revers the Information Register.';
+    l.bg.alg.reverseIR='Обръщане на инф. регистър';
+    l.en.alg.setSW='Set the Switches';
+    l.bg.alg.setSW='Превключване на ключовете';
+    l.en.alg.calcFB='Calculate the Feedback value';
+    l.bg.alg.calcFB='Изчисляване стойн. на ОВ';
+    l.en.alg.calcXOR='Calculate the XORs';
+    l.bg.alg.calcXOR='Изчисляване стойн. на XOR';
+    l.en.alg.calcXOR='Calculate the XORs';
+    l.bg.alg.calcXOR='Изчисляване стойн. на XOR';
+    l.en.alg.shiftEN='Shift the Encoder';
+    l.bg.alg.shiftEN='Изместване на Кодера';
+    l.en.alg.shiftCR='Shift the Codeword Register';
+    l.bg.alg.shiftCR='Изместване рег. на кодовата дума';
+    l.en.alg.shiftIR='Shift the Information Register';
+    l.bg.alg.shiftIR='Изместване рег. на Информ. битове';
+    l.en.alg.shiftParity='Shift Parity Bits from Encoder to Codeword Register';
+    l.bg.alg.shiftParity='Изместване на контр. битове в рег. на КД';
+    l.en.alg.reverseCR='Reverse the Codeword Register';
+    l.bg.alg.reverseCR='Обръщане реги. на кодовата дума';
+    l.en.alg.emptyIR='Is IR empty ?';
+    l.bg.alg.emptyIR='Празен ли е ИР ?';
+    l.en.alg.emptyEN='Is Encoder empty ?';
+    l.bg.alg.emptyEN='Празен ли е кодера ?';
 
     l.en.alg.setParamHelp='Set the value of: m, l, k and n';
     l.bg.alg.setParamHelp='Задайте стойностите на: m, l, k и n';
@@ -317,6 +409,31 @@ function LangPack(thisLang){
     l.bg.alg.writeCbitCheckHelp='Кликнете върху проверявания контролен бит, под уравнението';
     l.en.alg.errAnalysisHelp='Define the syndrome of error. Determine the status of the error. Write the position of the error, if possible.';
     l.bg.alg.errAnalysisHelp='Определете синдрома (коректора) на грешката. Определете статуса на грешката. Запишете позицията на грешката, ако е възможно.';
+
+
+    // statistics
+    l.en.stat.title='Statistics';
+    l.bg.stat.title='Статистика';
+    l.en.stat.startTimer='Start the Timer';
+    l.bg.stat.startTimer='Стартирай таймера';
+    l.en.stat.stopTimer='Stop the Timer';
+    l.bg.stat.stopTimer='Спри таймера';
+    l.en.stat.time='Time:';
+    l.bg.stat.time='Време:';
+    l.en.stat.min='min';
+    l.bg.stat.min='мин';
+    l.en.stat.sec='sec';
+    l.bg.stat.sec='сек';
+    l.en.stat.maxTime='The maximum time is: ';
+    l.bg.stat.maxTime='Максималното време е: ';
+    l.en.stat.errHistory='Errors History';
+    l.bg.stat.errHistory='История на грешките';
+    l.en.stat.err='Errors: ';
+    l.bg.stat.err='Грешки: ';
+    l.en.stat.showErrors='Show Errors';
+    l.bg.stat.showErrors='Покажи грешките';
+    l.en.stat.hideErrors='Hide Errors';
+    l.bg.stat.hideErrors='Скрий грешките';
 
     return (thisLang === 'bg') ? l.bg : l.en
 }

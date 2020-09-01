@@ -8,6 +8,7 @@
         <div class="card-body">
             <a id="hcGenModelBtn" href="#" class="btn btn-primary btn-lg btn-block">Hamming Code - General Algorithm</a>
             <a id="hcMatModelBtn" href="#" class="btn btn-primary btn-lg btn-block">Hamming Code - Matrix Algorithm</a>
+            <a id="cyclicPolyModelBtn" href="#" class="btn btn-primary btn-lg btn-block">Cyclic Code - Polynomial Algorithm</a>
         </div>
     </div>
 </div>
@@ -17,9 +18,11 @@ $(function() {
     $('#modelListTitle').text(lang.gn.models);
     $('#hcGenModelBtn').html(lang.gn.hcGenModelTitle);
     $('#hcMatModelBtn').html(lang.gn.hcMatModelTitle);
+    $('#cyclicPolyModelBtn').html(lang.gn.cyclicPolyModelTitle);
 });
 
-$("#hcMatModelBtn" ).click(function() { loadPage('hamming-matrix');});
-$("#hcGenModelBtn" ).click(function() { loadPage('hamming-general');});
+$("#hcMatModelBtn" ).click(function() {loadPage('hamming-matrix');});
+$("#hcGenModelBtn" ).click(function() {loadPage('hamming-general');});
+$("#cyclicPolyModelBtn" ).click(function() {loadPage('cyclic-polynomial');});
 
 </script>

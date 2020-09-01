@@ -465,7 +465,7 @@ createItem = function(type, text, layer){
             });
             item.txt = new Konva.Text({
                 width: item.shape.width(),
-                height: prop.rectHeight,
+                //height: prop.rectHeight,
                 text: text,
                 fontSize: prop.fontSize,
                 fontFamily: 'Calibri',

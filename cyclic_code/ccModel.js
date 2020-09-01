@@ -1,6 +1,5 @@
 class ccModel{
 	constructor(){
-
 		this.layer={};
 		this.en={};
 		this.ir={};

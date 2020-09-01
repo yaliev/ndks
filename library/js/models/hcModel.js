@@ -125,30 +125,29 @@ class hcModel {
             });
             let str='';
             if(this.process==='enc'){ // encoding
-                str='<p>'+lang.modeEnc+'<\p>';
-                str +='<p>'+lang.codeParam+': m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
+                str='<p><b>'+lang.modeEnc+'</b><\p>';
+                str +='<p><b>'+lang.codeParam+':</b> m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
                 let valStr='';
                 for(let i=0; i<model.ir.vals.length; i++) valStr += model.ir.vals[i].toString();
-                str+='<p>'+lang.infoBits+': X = '+valStr+'<\p>';
+                str+='<p><b>'+lang.infoBits+':</b> X = '+valStr+'<\p>';
                 valStr='';
                 for(let i=0; i<model.en.vals.length; i++) valStr += model.en.vals[i].toString();
-                str+='<p>'+lang.cwBits+': [X] = '+valStr+'<\p>';
+                str+='<p><b>'+lang.cwBits+':</b> [X] = '+valStr+'<\p>';
             }
             else{ // decoding
-                str='<p>'+lang.modeDec+'<\p>';
-                str +='<p>'+lang.codeParam+': m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
+                str='<p><b>'+lang.modeDec+'</b><\p>';
+                str +='<p><b>'+lang.codeParam+':</b> m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
                 let valStr='';
                 for(let i=0; i<model.cr.vals.length; i++) valStr += model.cr.vals[i].toString();
-                str+='<p>'+lang.cwBits+': [X] = '+valStr+'<\p>';
+                str+='<p><b>'+lang.cwBits+':</b> [X] = '+valStr+'<\p>';
                 if(this.dec.errStatus.auto === 'noError') valStr = lang.noErr;
                 else if(this.dec.errStatus.auto === 'singleError') valStr = lang.singleErr + ' ('+this.dec.error.decCode.auto+')';
                 else valStr = lang.doubleErr;
-                str+='<p>'+lang.errStatus+': '+valStr+'<\p>';
-                str+='<p>'+lang.decodedMsg+': X = '+this.dec.decodedMsg.auto+'<\p>';
+                str+='<p><b>'+lang.errStatus+':</b> '+valStr+'<\p>';
+                str+='<p><b>'+lang.decodedMsg+':</b> X = '+this.dec.decodedMsg.auto+'<\p>';
             }
 
             $("#msgDialog").dialog('option','title', lang.finishMsg);
-
             $("#msgDialog").html(str);
             $("#msgDialog" ).dialog('open');
         };
@@ -278,12 +277,12 @@ class hcModel {
             else console.log('componentsPos.cr is undefined');
         });
 
-        // creating the encoder
+        // creating the decoder
         this.dec = new HAMMING_GA({
                 process: this.process,
                 id: 'dec',
                 position: {x: this.cr.x(), y: this.cr.y()+this.cr.height()+10},
-                name: lang.decLabel,
+                name: lang.hammDecGenLabel,
                 pos:{x:this.cr.x(), y: this.cr.y()+this.cr.height()+10},
                 bitsNum: this.n,
                 errDet: this.t,
@@ -445,7 +444,7 @@ class hcModel {
                 process: this.process,
                 id: 'en',
                 position: {x: this.ir.x(), y: this.ir.y()+this.ir.height()+10},
-                name: lang.enLabel,
+                name: lang.hammEncGenLabel,
                 pos:{x:20, y:200},
                 bitsNum: this.n,
                 errDet: this.t,
@@ -599,6 +598,7 @@ class hcModel {
                     this.cr.bits.forEach(bit => {
                         if (bit.txt.text() === '') return check = 'empty';
                     });
+                    if(this.cr.vals.reduce(function(acc, val) { return acc + val; }, 0) === 0) check = 'empty';
                     if (check === 'empty'){
                         this.cr.randGen();
                         console.log(model.algorithm.getCurrStep().description);
@@ -676,6 +676,7 @@ class hcModel {
                     this.ir.bits.forEach(bit => {
                         if (bit.txt.text() === '') return check = 'empty';
                     });
+                    if(this.ir.vals.reduce(function(acc, val) { return acc + val; }, 0) === 0) check = 'empty';
                     if (check === 'empty'){
                         this.ir.randGen();
                         console.log(model.algorithm.getCurrStep().description);
@@ -907,108 +908,3 @@ class hcModel {
     };
 
 }
-
-// // for decoder
-// decoderSteps = function(lang, cycleCount){
-//     let steps=[];
-//     let step;
-//     step = {name:'setParam',
-//         description: lang.setParam,
-//         help:lang.setParamHelp,
-//         sub:[]
-//     };
-//     steps.push(step);
-//     step = {name:'setBits',
-//         description: lang.setBitsCW,
-//         help:lang.setCwBitsHelp,
-//         sub:[]
-//     };
-//     steps.push(step);
-//     step = {name:'markBits',
-//         description: lang.markBitsDEC,
-//         help:lang.markBitsENHelp,
-//         sub:[]
-//     };
-//     steps.push(step);
-//     step = {name: 'load',
-//         description: lang.loadDEC,
-//         help: lang.loadBitsHelp,
-//         sub: []
-//     };
-//     steps.push(step);
-//     step = {name: 'checkCbits',
-//         description: lang.calcParity,
-//         help: 'Executed for each control bits',
-//         cycleCount: cycleCount,
-//         sub:[
-//             {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
-//             {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
-//             {name: 'calcEqu',    description: lang.calcEqu, help: lang.calcCbitHelp},
-//             {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitCheckHelp}
-//         ]
-//     };
-//     steps.push(step);
-//     step = {name: 'analysis',
-//         description: lang.resAnalysis,
-//         help: lang.errAnalysisHelp,
-//         sub: []
-//     };
-//     steps.push(step);
-//
-//     step = {name: 'finish',
-//         description: lang.finish,
-//         help: lang.finishMsg,
-//         sub:[]
-//     };
-//     steps.push(step);
-//     return steps;
-// };
-//
-// // Create steps
-// encoderSteps = function(lang, cycleCount){
-//     let steps=[];
-//     let step;
-//     step = {name:'setParam',
-//         description: lang.setParam,
-//         help:lang.setParamHelp,
-//         sub:[]
-//     };
-//     steps.push(step);
-//     step = {name:'setBits',
-//         description: lang.setBits,
-//         help:lang.setIrBitsHelp,
-//         sub:[]
-//     };
-//     steps.push(step);
-//     step = {name:'msrkBits',
-//         description: lang.markBitsEN,
-//         help:lang.markBitsENHelp,
-//         sub:[]
-//     };
-//     steps.push(step);
-//     step = {name: 'load',
-//         description: lang.loadEN,
-//         help: lang.loadBitsHelp,
-//         sub: []
-//     };
-//     steps.push(step);
-//     step = {name: 'calcCbits',
-//         description: lang.calcParity,
-//         help: 'Executed for each control bits',
-//         cycleCount: cycleCount,
-//         sub:[
-//             {name: 'selectCbit', description: lang.selectCbit,  help: lang.selectCbitHelp},
-//             {name: 'createEqu',  description: lang.createEqu,  help: lang.createEquHelp},
-//             {name: 'calcCbit',   description: lang.calcCbit, help: lang.calcCbitHelp},
-//             {name: 'writeCbit',  description: lang.writeCbit, help: lang.writeCbitHelp}
-//         ]
-//     };
-//     steps.push(step);
-//     step = {name: 'finish',
-//         description: lang.finish,
-//         help: lang.finishMsg,
-//         sub:[]
-//     };
-//     steps.push(step);
-//     return steps;
-// };
