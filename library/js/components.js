@@ -38,14 +38,16 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
     });
     mdl.add(mdl.infoPoly);
     mdl.infoPoly.size({height: 40, width: 460});
-    mdl.infoPoly.text = custText('G(x)=x^9+x^7+x^5+x^3+x^2+x^0');
+    //mdl.infoPoly.text = custText('G(x)=x^9+x^7+x^5+x^3+x^2+x^0');
+    mdl.infoPoly.text = custText('G(x)=?+?+?+?+?+?');
     mdl.infoPoly.text.position({x: 10, y: 15});
     mdl.infoPoly.add(mdl.infoPoly.text);
     mdl.infoPoly.text.fill('red'); // init color
     mdl.infoPoly.text = over(mdl.infoPoly.text);
     mdl.infoPoly.text.hoverTxt = lang.dblclick;
     mdl.infoPoly.text = hover1(mdl.infoPoly.text, mdl.infoPoly);
-    mdl.infoPoly.val = 'G(x)=x^9+x^7+x^5+x^3+x^2+x^0';
+    //mdl.infoPoly.val = 'G(x)=x^9+x^7+x^5+x^3+x^2+x^0';
+    mdl.infoPoly.val = '';
     mdl.infoPoly.text.on('dblclick tap', function() {
         //check for set bits
         if(inReg.vals.includes(undefined) === true)  {
@@ -73,6 +75,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
                     mdl.getLayer().batchDraw();
                     thisObj.hover.hide('r');
                     thisObj.off();
+                    mdl.cwFormula.visible(true);
                 }
                 else {
                     //error
@@ -100,10 +103,12 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         type: 2,
         labelSize: 18
     });
+    mdl.cwFormula.visible(false);
     mdl.cwFormula.size({width:300, height: mdl.infoPoly.height()});
     mdl.cwFormula.position({ x: mdl.width()-mdl.cwFormula.width()-10, y:mdl.infoPoly.y()});
     mdl.add(mdl.cwFormula);
-    mdl.cwFormula.text = custText('F(x)=x^k.G(x)+R(x)');
+    // mdl.cwFormula.text = custText('F(x)=x^k.G(x)+R(x)');
+    mdl.cwFormula.text = custText('F(x)=?+?+?+?+?+?');
     mdl.cwFormula.text.position({x: 10, y: 15});
     mdl.cwFormula.add(mdl.cwFormula.text);
     mdl.cwFormula.text.fill('red'); // init color
@@ -129,6 +134,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
                     mdl.getLayer().batchDraw();
                     thisObj.hover.hide('r');
                     thisObj.off();
+                    mdl.divPoly.visible(true);
                 }
                 else {
                     //error
@@ -152,16 +158,19 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         type: 2,
         labelSize: 18
     });
+    mdl.divPoly.visible(false);
     mdl.add(mdl.divPoly);
     mdl.divPoly.size({width: mdl.infoPoly.width(), height: mdl.infoPoly.height()});
-    mdl.divPoly.text = custText('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
+    // mdl.divPoly.text = custText('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
+    mdl.divPoly.text = custText('x^k.G(x)=?+?+?+?+?+?');
     mdl.divPoly.text.position({x: 10, y: 15});
     mdl.divPoly.add(mdl.divPoly.text);
     mdl.divPoly.text.fill('red'); // init color
     mdl.divPoly.text = over(mdl.divPoly.text);
     mdl.divPoly.text.hoverTxt = lang.dblclick;
     mdl.divPoly.text = hover1(mdl.divPoly.text, mdl.divPoly);
-    mdl.divPoly.val = strToPoly('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
+    // mdl.divPoly.val = strToPoly('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
+    mdl.divPoly.val = strToPoly('');
     mdl.divPoly.text.on('dblclick tap', function() {
         let thisObj =  mdl.divPoly.text;
         thisObj.hover.hide();
@@ -180,6 +189,8 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
                     mdl.getLayer().batchDraw();
                     thisObj.hover.hide('r');
                     thisObj.off();
+                    mdl.genPoly.visible(true);
+                    mdl.div.visible(true);
                 }
                 else {
                     //error
@@ -212,9 +223,15 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         type: 2,
         labelSize: 18
     });
+    mdl.genPoly.visible(false);
     mdl.add(mdl.genPoly);
     mdl.genPoly.size({width: mdl.cwFormula.width(), height: mdl.infoPoly.height()});
-    mdl.genPoly.text = custText('P(x)='+props.genPoly.txt.toLowerCase());
+    let genPoly =props.genPoly.txt.toLowerCase();
+    console.log('genPoly b = '+ genPoly);
+    genPoly = genPoly.replace(/\+ 1/g,'\+x\^0');
+    genPoly = genPoly.replace(/\+ x \+/g,'\+x\^1\+');
+    console.log('genPoly a = '+ genPoly);
+    mdl.genPoly.text = custText('P(x)='+genPoly);
     mdl.genPoly.val =  strToPoly(mdl.genPoly.text.text());
     mdl.genPoly.text.position({x: 10, y: 15});
     mdl.genPoly.add(mdl.genPoly.text);
@@ -228,6 +245,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         type: 2,
         labelSize: 18
     });
+    mdl.div.visible(false);
     mdl.add(mdl.div);
     mdl.div.size({width: mdl.width()-20, height: 400});
 
@@ -400,6 +418,9 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
                 let s = strToPoly(obj.text());
                 if(s === '') return obj.text(oldStr);
                 if(oldStr !== s){
+                    if(s === '+x^') s='+x^1';
+                    if(s === '+1') s='+x^0';
+                    console.log('s = '+s);
                     if('x^'+q.mul.val === s || '+x^'+q.mul.val === s){
                         thisObj.fill(props.txtColor);
                         q.res.text.visible(true);
@@ -439,6 +460,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         q.res.calc = function(){
             for(let i=0; i<mdl.div.divisor.vals.length; i++)
                 q.res.vals.push(q.mul.val + mdl.div.divisor.vals[i]);
+            q.res.vals.sort(function(a, b){return b-a}); // Sort numbers in an array in descending order
         };
         q.res.text.on('dblclick tap', function() {
             let thisObj =  q.res.text;
@@ -454,6 +476,10 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
                 if(s === '') return obj.text(oldStr);
                 if(oldStr !== s){
                     let str = 'x\^'+q.res.vals.toString().replace(/,/g,'+x^');
+                    console.log('str res a = '+str);
+                    s = s.replace(/\+1/g, '\+x\^0');
+                    s = s.replace(/\+x\+/g, '\+x\^1\+');
+                    console.log('str s     = '+s);
                     if(str === s){
                         thisObj.fill(props.txtColor)
                         q.rem.text.visible(true);
@@ -515,6 +541,10 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
                 if(s === '') return obj.text(oldStr);
                 if(oldStr !== s){
                     let str = 'x\^'+q.rem.vals.toString().replace(/,/g,'+x^');
+                    console.log('str rem a = '+str);
+                    s = s.replace(/\+1/g, '\+x\^0');
+                    s = s.replace(/\+x\+/g, '\+x\^1\+');
+                    console.log('str s     = '+s);
                     if(str === s){
                         thisObj.fill(props.txtColor);
                         q.enableHL(true);
@@ -612,14 +642,15 @@ function strToPoly(str,remove){
         str = str.replace('x\^\+', 'x\^1\+');
         str = str.replace(/\+1/g, '\+x\^0');
         str = str.replace(/\|/g, '\(x\)');
-        str = str.replace(/x\^0/g, '1');
+        //str = str.replace(/x\^0/g, '1');
 
         if(str.substr(str.length-4) === '+x^1'){
-            console.log('str.substr(str.length-3) = '+str.substr(str.length-3));
-            str = str.replace(/\+x\^1/g, ' + x');
+             //console.log('str before) = '+str);
+             //str = str.replace(/\+x\^1/g, ' + x');
+             //console.log('str before) = '+str);
         }
 
-        str = str.replace(/x\^1\+/g, 'x+');
+        //str = str.replace(/x\^1\+/g, 'x+');
     }
     return str;
 }
