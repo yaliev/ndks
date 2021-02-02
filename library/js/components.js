@@ -7563,8 +7563,6 @@ function sentData (params){
         }
     }
     $.ajax({
-        //url:'/ndks/log/logToDB.php',
-        
         url:'https://ciot.uni-ruse.bg/ndks/logToDB.php',
         type:'post',
         data:$(form).serialize(),
