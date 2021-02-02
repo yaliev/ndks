@@ -7563,11 +7563,13 @@ function sentData (params){
         }
     }
     $.ajax({
-        url:'/ndks/log/logToDB.php',
+        //url:'/ndks/log/logToDB.php',
+        url:'https://ciot.uni-ruse.bg/ndks/logToDB.php',
         type:'post',
         data:$(form).serialize(),
         success:function(){
             console.log("Data are sent");
+            return true;
         }
     });
 }
@@ -8305,7 +8307,6 @@ function initialOpening(){
     fieldset2.append("<label for='langEN'>English</label>");
     fieldset2.append("<input type='radio' name='lang' id='langEN' value='en'>");
 
-
     // password dialog
     let passDiv = $("<div id='passDiv' title='Set password'></div>").appendTo('body');
     let passForm = $("<form></form>").appendTo(passDiv);
@@ -8462,8 +8463,8 @@ function initialOpening(){
 
     //loadPage('models');
     //loadPage('hamming-general');
-    //loadPage('hamming-matrix');
+    loadPage('hamming-matrix');
     //loadPage('cyclic-polynomial');
-    loadPage('cyclic-lfsr');
+    //loadPage('cyclic-lfsr');
 
 }// end of initialOpening

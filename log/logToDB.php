@@ -7,7 +7,8 @@
 	$errDetails = $_POST['errDetails'];
 	$logDate = date("Y-m-d");
 	
-	$servername = "localhost";
+	//$servername = "localhost";
+	$servername = "172.20.138";
 	$dbUser = "ndks";
 	$dbPass = "ndkspass";
 	$dbName = "ndks";
