@@ -7,6 +7,7 @@ body {
     overflow: auto;
 }
 
+
 .container-fluid{
     padding-top:10px;
 }
@@ -38,7 +39,6 @@ body {
 
 .bordered{
     border: 1px solid SteelBlue;
-    padding: 3px;
 }
 
 .smallMargin{
@@ -47,19 +47,26 @@ body {
     margin-bottom: 0%;
     margin-right: 1%;
 }
+.stat{
+    display: block;}
+
 .cp{
-    height:2.7em;
-    padding-top: 6px;
-    margin: 0px;
-    background-color: LightGray;
-    border: 2px solid LightGray;
-    /*border-radius: 4px;*/
+    /* height:2.7em;*/
+    /*height: 100%;*/
+    position: relative;
+    /* padding-top: 6px;*/
+     margin: 0px;
+     background-color: LightGray;
+     border: 2px solid LightGray;
+     /*border-radius: 4px;*/
     /*box-shadow: 3px 3px 3px grey;*/
 }
 .menuItem {
+    padding: 3px;
     margin-left: 1%;
-    font-size: 15px;
+    /*font-size: 15px;*/
     font-family: Arial, Helvetica, sans-serif;
+    display: inline-block;
 }
 
 .scrollmenu {
@@ -91,4 +98,80 @@ body {
 #msgDialog p {
     margin-bottom: .2em;
     color: DarkSlateGray;
+}
+
+.tabs {
+    /*max-width: auto;*/
+    margin: 0 0;
+    padding: 0 0px;
+}
+#tab-button {
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+#tab-button li {
+    display: table-cell;
+    width: 10%;
+}
+#tab-button li a {
+    display: block;
+    padding: .2em;
+    background: #eee;
+    border: 1px solid LightSlateGrey;
+    text-align: center;
+    color: #000;
+    text-decoration: none;
+}
+#tab-button li:not(:first-child) a {
+    border-left: none;
+}
+#tab-button li a:hover, #tab-button .is-active a {
+    border-bottom-color: transparent;
+    background: Moccasin;
+    font-weight: bold;
+}
+#tab-button li a:hover{
+    background: NavajoWhite;
+}
+
+.tab-contents {
+    padding: 1em 1em 1em 1em;
+    border: 1px solid LightSlateGrey;
+    background: Moccasin
+}
+
+.tab-contents p span {
+    padding: 0em 0em 0em 0em;
+    margin: 5px;
+    font-size: 15px;
+}
+
+.tab-button-outer {
+    display: none;
+}
+.tab-contents {
+    margin-top: 20px;
+}
+@media screen and (min-width: 768px) {
+    .tab-button-outer {
+        position: relative;
+        z-index: 2;
+        display: block;
+    }
+    .tab-select-outer {
+        display: none;
+    }
+    .tab-contents {
+        position: relative;
+        top: -1px;
+        margin-top: 0;
+    }
+}
+
+.tab-contents .hidden {
+    display: none; !important;
 }

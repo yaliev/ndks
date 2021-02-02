@@ -15,7 +15,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
     props.labelPadding = props.labelPadding || 4;
     props.pading = props.pading || 10;
     props.width = props.width || 800;
-    props.height = props.height || 600;
+    props.height = props.height || 200;
     props.errDet = props.errDet || 1;
     props.checkBits = props.checkBits || 4;
     props.bitsNum = props.bitsNum || 11;
@@ -38,7 +38,6 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
     });
     mdl.add(mdl.infoPoly);
     mdl.infoPoly.size({height: 40, width: 460});
-    //mdl.infoPoly.text = custText('G(x)=x^9+x^7+x^5+x^3+x^2+x^0');
     mdl.infoPoly.text = custText('G(x)=?+?+?+?+?+?');
     mdl.infoPoly.text.position({x: 10, y: 15});
     mdl.infoPoly.add(mdl.infoPoly.text);
@@ -53,29 +52,36 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         if(inReg.vals.includes(undefined) === true)  {
             mdl.infoPoly.text.hover.show('e',lang.setAllBit);
             return;
-        };
-        // auto calulatin
-        mdl.setInfoPoly();
-        mdl.setDivPoly();
+        }
+        if(alg.getCurrStep().name === 'setBits') alg.increment();
+        alg.markCurrStep('curr');
+
+        // set the information polynomial if it isn't done yet
+        if(mdl.infoPoly.val === '') setInfoPoly();
 
         let thisObj =  mdl.infoPoly.text;
         thisObj.hover.hide();
-        thisObj.text(strToPoly(thisObj.text(),'remove'));
-        let str =  thisObj.str;
-        let oldStr = str;
+        thisObj.text(strToPoly(thisObj.text(),'remove')); // remove all symbol "^"
+        // let str =  thisObj.str;
+        let oldStr = thisObj.str;
         editable(thisObj, function(obj){
-            // if(alg.getCurrStep().name === 'setBits') alg.increment();
-            // alg.markCurrStep('curr');
             thisObj.text(strToPoly(thisObj.text()));
             let s = strToPoly(obj.text());
             if(s === '') return obj.text(oldStr);
             if(oldStr !== s){
                 if(mdl.infoPoly.val === s){
+                    alg.increment();
                     thisObj.fill(props.txtColor);
                     mdl.getLayer().batchDraw();
                     thisObj.hover.hide('r');
+                    mdl.getStage().container().style.cursor = 'default';
                     thisObj.off();
+                    mdl.infoPoly.autoCorrSize();
+                    mdl.cwFormula.updatePos();
                     mdl.cwFormula.visible(true);
+                    mdl.xk_InfoPoly.updatePos();
+                    mdl.genPoly.updatePos();
+                    inReg.disable();
                 }
                 else {
                     //error
@@ -87,7 +93,25 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
 
         }, mdl.infoPoly.width()-25);
     });
-    mdl.setInfoPoly = function(){
+
+    // show the information polynomial
+    mdl.infoPoly.show = function(){
+        setInfoPoly(); // set the info polynomial value
+        mdl.infoPoly.text.text(mdl.infoPoly.val);
+        mdl.infoPoly.text.fill(props.txtColor);
+        mdl.infoPoly.text.off();
+        inReg.disable();
+        mdl.infoPoly.autoCorrSize();
+        mdl.cwFormula.updatePos();
+        mdl.cwFormula.visible(true);
+        mdl.xk_InfoPoly.updatePos();
+        mdl.genPoly.updatePos();
+        mdl.getLayer().batchDraw();
+        alg.increment();
+    };
+
+    // set the information polynomial
+    setInfoPoly = function(){
         let mems=[];
         inReg.bits.forEach(bit =>{
             if(bit.text() === '1') mems.push('x^'+bit.label.text());
@@ -95,8 +119,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         mdl.infoPoly.val = strToPoly('G(x)='+mems.toString().replace(/,/g,'+'));
     };
 
-
-    // Codeword formula
+    // Codeword formula panel
     mdl.cwFormula = new PANEL({
         id: 'cwFormula',
         name: lang.cwFormula,
@@ -104,10 +127,14 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         labelSize: 18
     });
     mdl.cwFormula.visible(false);
-    mdl.cwFormula.size({width:300, height: mdl.infoPoly.height()});
-    mdl.cwFormula.position({ x: mdl.width()-mdl.cwFormula.width()-10, y:mdl.infoPoly.y()});
+    mdl.cwFormula.updatePos = function(){
+        mdl.cwFormula.size({width:300, height: mdl.infoPoly.height()});
+        mdl.cwFormula.position({ x: mdl.infoPoly.x()+mdl.infoPoly.width()+20, y:mdl.infoPoly.y()});
+        mdl.autoCorrSize();
+    };
+    mdl.cwFormula.updatePos();
     mdl.add(mdl.cwFormula);
-    // mdl.cwFormula.text = custText('F(x)=x^k.G(x)+R(x)');
+    //mdl.cwFormula.text = custText('F(x)=x^k.G(x)+R(x)');
     mdl.cwFormula.text = custText('F(x)=?+?+?+?+?+?');
     mdl.cwFormula.text.position({x: 10, y: 15});
     mdl.cwFormula.add(mdl.cwFormula.text);
@@ -117,24 +144,26 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
     mdl.cwFormula.text = hover1(mdl.cwFormula.text, mdl.cwFormula);
     mdl.cwFormula.val = 'F(x)=x^k.G(x)+R(x)';
     mdl.cwFormula.text.on('dblclick tap', function() {
+        alg.markCurrStep('curr');
         let thisObj =  mdl.cwFormula.text;
         thisObj.hover.hide();
         thisObj.text(strToPoly(thisObj.text(),'remove'));
-        let str =  thisObj.str;
-        let oldStr = str;
+        //// let str =  thisObj.str;
+        let oldStr = thisObj.str;
         editable(thisObj, function(obj){
-            // if(alg.getCurrStep().name === 'setBits') alg.increment();
-            // alg.markCurrStep('curr');
             obj.text(strToPoly(obj.text()));
             let s = obj.text();
             if(s === '') return obj.text(oldStr);
             if(oldStr !== s){
                 if(mdl.cwFormula.val === s){
+                    alg.increment();
                     thisObj.fill(props.txtColor);
                     mdl.getLayer().batchDraw();
                     thisObj.hover.hide('r');
+                    mdl.getStage().container().style.cursor = 'default';
                     thisObj.off();
-                    mdl.divPoly.visible(true);
+                    setXk_InfoPoly(); //set the x^k.G(X)
+                    mdl.xk_InfoPoly.visible(true);
                 }
                 else {
                     //error
@@ -150,111 +179,153 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         }, mdl.cwFormula.width()-25);
     });
 
-    // Polynomial Divisible
-    mdl.divPoly = new PANEL({
-        id: 'divPoly',
+    // show the codeword formula
+    mdl.cwFormula.show = function(){
+        mdl.cwFormula.text.text(mdl.cwFormula.val);
+        mdl.cwFormula.text.fill(props.txtColor);
+        mdl.cwFormula.text.off();
+        setXk_InfoPoly(); //set the x^k.G(X)
+        mdl.xk_InfoPoly.visible(true);
+        mdl.getLayer().batchDraw();
+        alg.increment();
+    };
+
+
+    // Multiplied by x^k polynomial
+    mdl.xk_InfoPoly = new PANEL({
+        id: 'xk_InfoPoly',
         name: lang.polyDivisible,
-        position: { x: mdl.infoPoly.x(), y:mdl.infoPoly.y()+mdl.infoPoly.height()+20},
         type: 2,
         labelSize: 18
     });
-    mdl.divPoly.visible(false);
-    mdl.add(mdl.divPoly);
-    mdl.divPoly.size({width: mdl.infoPoly.width(), height: mdl.infoPoly.height()});
-    // mdl.divPoly.text = custText('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
-    mdl.divPoly.text = custText('x^k.G(x)=?+?+?+?+?+?');
-    mdl.divPoly.text.position({x: 10, y: 15});
-    mdl.divPoly.add(mdl.divPoly.text);
-    mdl.divPoly.text.fill('red'); // init color
-    mdl.divPoly.text = over(mdl.divPoly.text);
-    mdl.divPoly.text.hoverTxt = lang.dblclick;
-    mdl.divPoly.text = hover1(mdl.divPoly.text, mdl.divPoly);
-    // mdl.divPoly.val = strToPoly('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
-    mdl.divPoly.val = strToPoly('');
-    mdl.divPoly.text.on('dblclick tap', function() {
-        let thisObj =  mdl.divPoly.text;
+    mdl.xk_InfoPoly.visible(false);
+    mdl.add(mdl.xk_InfoPoly);
+    mdl.xk_InfoPoly.updatePos = function(){
+        mdl.xk_InfoPoly.size({width: mdl.infoPoly.width(), height: mdl.infoPoly.height()});
+        mdl.xk_InfoPoly.position({ x: mdl.infoPoly.x(), y:mdl.infoPoly.y()+mdl.infoPoly.height()+20});
+    };
+    mdl.xk_InfoPoly.updatePos();
+    //mdl.xk_InfoPoly.text = custText('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
+    mdl.xk_InfoPoly.text = custText('x^k.G(x)=?+?+?+?+?+?');
+    mdl.xk_InfoPoly.text.position({x: mdl.infoPoly.x(), y: 15});
+    mdl.xk_InfoPoly.add(mdl.xk_InfoPoly.text);
+    mdl.xk_InfoPoly.text.fill('red'); // init color
+    mdl.xk_InfoPoly.text = over(mdl.xk_InfoPoly.text);
+    mdl.xk_InfoPoly.text.hoverTxt = lang.dblclick;
+    mdl.xk_InfoPoly.text = hover1(mdl.xk_InfoPoly.text, mdl.xk_InfoPoly);
+    //mdl.xk_InfoPoly.val = strToPoly('x^k.G(x)=x^13+x^11+x^9+x^7+x^6+x^4');
+    mdl.xk_InfoPoly.val = strToPoly('????????');
+    mdl.xk_InfoPoly.text.on('dblclick tap', function() {
+        alg.markCurrStep('curr');
+        let thisObj =  mdl.xk_InfoPoly.text;
         thisObj.hover.hide();
         thisObj.text(strToPoly(thisObj.text(),'remove'));
-        let str =  thisObj.str;
-        let oldStr = str;
+        //// let str =  thisObj.str;
+        let oldStr = thisObj.str;
         editable(thisObj, function(obj){
-            // if(alg.getCurrStep().name === 'setBits') alg.increment();
-            // alg.markCurrStep('curr');
             thisObj.text(strToPoly(thisObj.text()));
             let s = strToPoly(obj.text());
             if(s === '') return obj.text(oldStr);
             if(oldStr !== s){
-                if(mdl.divPoly.val === s){
+                if(mdl.xk_InfoPoly.val === s){
+                    alg.increment();
                     thisObj.fill(props.txtColor);
                     mdl.getLayer().batchDraw();
                     thisObj.hover.hide('r');
+                    mdl.getStage().container().style.cursor = 'default';
                     thisObj.off();
+                    setDivident(); // set the polynomial dividend text and values
+                    mdl.div.autoCalc(); // auto calculate the polynomial division
                     mdl.genPoly.visible(true);
                     mdl.div.visible(true);
                 }
                 else {
                     //error
                     thisObj.fill('red');
-                    stat.error.add(lang.wrongDivPoly);
-                    return thisObj.hover.show('e', lang.wrongDivPoly);
+                    stat.error.add(lang.wrongXk_InfoPoly);
+                    return thisObj.hover.show('e', lang.wrongXk_InfoPoly);
                 }
             }
-        }, mdl.divPoly.width()-25);
+        }, mdl.xk_InfoPoly.width()-25);
     });
 
     // calculating polynomial divisible
-    mdl.setDivPoly = function(){
+    setXk_InfoPoly = function(){
         let mems=[];
         inReg.bits.forEach(bit =>{
             if(bit.text() === '1') mems.push('x^'+(Number(bit.label.text())+Number(props.checkBits)));
         });
-        mdl.divPoly.val = strToPoly('x^k.G(x)='+mems.toString().replace(/,/g,'+'));
+        mdl.xk_InfoPoly.val = strToPoly('x^k.G(x)='+mems.toString().replace(/,/g,'+'));
     };
 
-    // for test
-    mdl.setInfoPoly();
-    mdl.setDivPoly();
+    // show the multiplied by x^k polynomial
+    mdl.xk_InfoPoly.show = function(){
+        mdl.xk_InfoPoly.text.text(mdl.xk_InfoPoly.val);
+        mdl.xk_InfoPoly.text.fill(props.txtColor);
+        mdl.xk_InfoPoly.text.off();
+        setDivident(); // set the polynomial dividend text and vals
+        mdl.div.visible(true);
+        mdl.genPoly.visible(true);
+        mdl.div.visible(true);
+        mdl.getLayer().batchDraw();
+        // auto calculate the polynomial devition
+        mdl.div.autoCalc();
+        alg.increment();
+    };
 
     // Generator polynomial
     mdl.genPoly = new PANEL({
         id: 'genPoly',
         name: lang.genPoly,
-        position: { x: mdl.cwFormula.x(), y:mdl.divPoly.y()},
         type: 2,
         labelSize: 18
     });
     mdl.genPoly.visible(false);
     mdl.add(mdl.genPoly);
-    mdl.genPoly.size({width: mdl.cwFormula.width(), height: mdl.infoPoly.height()});
-    let genPoly =props.genPoly.txt.toLowerCase();
-    console.log('genPoly b = '+ genPoly);
+
+    mdl.genPoly.updatePos = function(){
+        mdl.genPoly.size({width: mdl.cwFormula.width(), height: mdl.infoPoly.height()});
+        mdl.genPoly.position({ x: mdl.cwFormula.x(), y:mdl.xk_InfoPoly.y()});
+    };
+    mdl.genPoly.updatePos();
+    let genPoly = props.genPoly.txt.toLowerCase();
+    //console.log('genPoly b = '+ genPoly);
     genPoly = genPoly.replace(/\+ 1/g,'\+x\^0');
     genPoly = genPoly.replace(/\+ x \+/g,'\+x\^1\+');
-    console.log('genPoly a = '+ genPoly);
+    //console.log('genPoly a = '+ genPoly);
     mdl.genPoly.text = custText('P(x)='+genPoly);
     mdl.genPoly.val =  strToPoly(mdl.genPoly.text.text());
     mdl.genPoly.text.position({x: 10, y: 15});
     mdl.genPoly.add(mdl.genPoly.text);
     mdl.genPoly.text.fill(props.txtColor); // init color
 
-    // POLYNOMIAL DIVISION
+    //////////// POLYNOMIAL DIVISION PANEL///////////////////////////////
     mdl.div = new PANEL({
         id: 'divPan',
         name: lang.polyDivision,
-        position: { x: mdl.infoPoly.x(), y:mdl.divPoly.y()+mdl.divPoly.height()+20},
+        position: { x: mdl.infoPoly.x(), y:mdl.xk_InfoPoly.y()+mdl.xk_InfoPoly.height()+20},
         type: 2,
         labelSize: 18
     });
     mdl.div.visible(false);
     mdl.add(mdl.div);
-    mdl.div.size({width: mdl.width()-20, height: 400});
+    mdl.div.size({width: mdl.width()-20, height: 200});
+
+    // current cycle index
+    mdl.div.currCycle = 0;
 
     //dividend
-    mdl.div.dividend = custText(mdl.divPoly.val.split('=')[1]);
-    mdl.div.dividend.vals = mdl.divPoly.val.split('=')[1].replace(/x/g,'').replace(/\^/g,'').split('+').map(Number);
+    mdl.div.dividend = custText('??????');
+    mdl.div.dividend.vals = '';
     mdl.div.dividend.position({x: 20, y: 15});
     mdl.div.add(mdl.div.dividend);
     mdl.div.dividend.fill(props.txtColor); // init color
+
+    // set the text and values of polynomial dividend
+    setDivident = function(){
+        mdl.div.dividend.text(mdl.xk_InfoPoly.val.split('=')[1]);
+        mdl.div.dividend.vals = mdl.xk_InfoPoly.val.split('=')[1].replace(/x/g,'').replace(/\^/g,'').split('+').map(Number);
+    };
 
     //divisor
     mdl.div.divisor = custText(mdl.genPoly.text.text().split('=')[1]);
@@ -277,73 +348,79 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
     //new cycle button
     mdl.div.newCycBtn = new Button({id: 'newCycBtn',  defVal: lang.newCycle, txtSize:12});
     mdl.div.add(mdl.div.newCycBtn);
+    mdl.div.newCycBtn.visible(false);
     mdl.div.newCycBtn.size({height: mdl.div.divisor.height()-5});
     mdl.div.newCycBtn.fill('Linen');
     mdl.div.newCycBtn.txt.fill('DimGrey');
     mdl.div.newCycBtn.x(mdl.div.divisor.x());
     mdl.div.newCycBtn.y(mdl.div.divisor.y()+mdl.div.divisor.y() + 10);
     mdl.div.newCycBtn.on('click touchstart', function(){
-        if(mdl.div.quotients.length !== 0){
-            if(mdl.div.quotients[mdl.div.quotients.length-1].rem.text.fill() === 'red') {
-                //error
-
-                return this.hover.show('e',lang.notComplCycle);
-            }
-            if(mdl.div.quotients[mdl.div.quotients.length-1].isLast === true) {
-                //error
-
-                return this.hover.show('e',lang.wrongOper);
-            }
+        if(mdl.div.quotients[mdl.div.currCycle].isLast === true && mdl.div.quotients[mdl.div.currCycle].completed === true) {
+            //error
+            stat.error.add(lang.wrongOper+'=>'+lang.newCycle);
+            return this.hover.show('e',lang.wrongOper);
         }
+
         mdl.div.lastCycBtn.visible(false);
-        mdl.div.newQuotient();
+        mdl.div.quotients[mdl.div.currCycle].mul.text.visible(true);
+        mdl.div.newCycBtn.updatePos();
+        mdl.div.newCycBtn.visible(false);
+        alg.resetCycle();
+        mdl.getLayer().batchDraw();
     });
+    // new cycle button position update
+    mdl.div.newCycBtn.updatePos = function(){
+        let q = mdl.div.quotients[mdl.div.currCycle];
+        mdl.div.newCycBtn.x(q.mul.text.x() + q.mul.text.width()+5);
+    }
 
     //last cycle button
-    mdl.div.lastCycBtn = new Button({id: 'lastCycBtn',  defVal: lang.lastCyc, txtSize:12});
+    mdl.div.lastCycBtn = new Button({id: 'lastCycBtn',  defVal: lang.lastCycle, txtSize:12});
     mdl.div.lastCycBtn.visible(false);
     mdl.div.add(mdl.div.lastCycBtn);
     mdl.div.lastCycBtn.size({height: mdl.div.divisor.height()-5});
     mdl.div.lastCycBtn.fill('Linen');
     mdl.div.lastCycBtn.txt.fill('DimGrey');
     mdl.div.lastCycBtn.on('click touchstart', function(){
-
-        if(mdl.div.quotients[mdl.div.quotients.length-1].isLast !== true) {
+        if(mdl.div.quotients[mdl.div.currCycle].isLast !== true) {
             //error
-
+            stat.error.add(lang.wrongOper+' => '+lang.lastCycle);
             return this.hover.show('e',lang.wrongOper);
         }
         mdl.div.lastCycBtn.visible(false);
         mdl.div.newCycBtn.visible(false);
-        mdl.div.quotients[mdl.div.quotients.length-1].rem.text.fill('ForestGreen');
+        mdl.div.quotients[mdl.div.currCycle].rem.text.fill('ForestGreen');
+
+        //set the codeword polynomial value
+        setCwPoly();
+        // set the position of polynomial codeword panel and show it
+        mdl.cwPoly.position({x: mdl.div.x(), y: mdl.div.y() + mdl.div.height() + 20});
+        //mdl.div.autoCorrSize();
+        mdl.cwPoly.visible(true);
     });
+    // last cycle button position update
+    mdl.div.lastCycBtn.updatePos = function(){
+        let q = mdl.div.quotients[mdl.div.currCycle];
+        mdl.div.lastCycBtn.x(q.rem.text.x() + q.rem.text.width()+10);
+        mdl.div.lastCycBtn.y(q.rem.text.y());
+    };
 
-    // show current cycle items for auto calculation
-    mdl.div.showCycle = function(){
-        if(mdl.div.quotients.length === 0) {
-            mdl.div.newQuotient();
-            mdl.div.quotients[mdl.div.quotients.length -1].show();
-            return;
+    // show the current component
+    mdl.div.show = function(component){
+        if(typeof component === 'undefined') return console.log('The component is undefined!');
+        let q = mdl.div.quotients[mdl.div.currCycle];
+        switch (component){
+            case 'mul':
+               q.mul.show();
+            break;
+            case 'res':
+                q.res.show();
+            break;
+            case 'rem':
+                q.rem.show();
+            break;
         }
-
-        if(mdl.div.quotients[mdl.div.quotients.length-1].isLast === true){
-            return console.log('The cycles are completed!');
-        }
-
-            let lastQ = mdl.div.quotients[mdl.div.quotients.length -1];
-        if(lastQ.completed === false) lastQ.show();
-        else{
-            mdl.div.newQuotient();
-            mdl.div.quotients[mdl.div.quotients.length -1].show();
-        }
-
-        //check for last cycle
-        if(mdl.div.quotients[mdl.div.quotients.length-1].isLast === true){
-            mdl.div.lastCycBtn.visible(false);
-            mdl.div.newCycBtn.visible(false);
-            mdl.div.quotients[mdl.div.quotients.length-1].rem.text.fill('ForestGreen');
-        }
-    }
+    };
 
     //quotients
     mdl.div.quotients = [];
@@ -352,33 +429,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
     mdl.div.newQuotient = function(){
         let vOffset = 10;
         let currIdx = mdl.div.quotients.length;
-        // let q = {mul:{},res:{},rem:{},line:{}};
-        let q = new Konva.Group();
-        q.highLight = new Konva.Rect({
-            fill: 'Cornsilk',
-            shadowBlur: 3,
-            cornerRadius: 3,
-            opacity: 0.5,
-            visible:false
-        });
-        q.add(q.highLight);
-        q.enableHL = function(flag){
-            if(flag === true){
-                q.on('mouseover touchstart', function(){
-                    q.highLight.visible(true);
-
-                    stage.container().style.cursor = 'pointer';
-
-                    mdl.getLayer().batchDraw();
-                });
-                q.on('mouseout touchend', function(){
-                    q.highLight.visible(false);
-                    stage.container().style.cursor = 'default';
-                    mdl.getLayer().batchDraw();
-                });
-            }
-            else q.off();
-        }
+        let q = new Konva.Group({id: 'q-'+currIdx});
 
         mdl.div.add(q);
         q.completed = false;
@@ -389,46 +440,53 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
 
         //multiplicator
         q.mul.text = custText(currIdx === 0 ? strToPoly('x?'): strToPoly('+x?'));
-        if(currIdx === 0)
+        q.mul.text.id(q.id()+'-mul');
+        if(currIdx === 0){
+            q.mul.text.visible(true);
             q.mul.text.position({x: mdl.div.divisor.x(), y: mdl.div.divisor.y()+ mdl.div.divisor.height()+vOffset});
+        }
         else {
+            q.mul.text.visible(false);
             let last = mdl.div.quotients[currIdx-1].mul.text;
             q.mul.text.position({x: last.x()+last.width(), y: last.y()});
             if(mdl.div.divisor.line.points()[4]< q.mul.text.x()+q.mul.text.width())
                 mdl.div.divisor.line.points()[4] = q.mul.text.x()+q.mul.text.width();
         }
         q.add(q.mul.text);
+        //mdl.div.autoCorrSize();
         q.mul.text.fill('red'); // init color
         q.mul.text = over(q.mul.text);
         q.mul.text.hoverTxt = lang.dblclick;
         q.mul.text = hover1(q.mul.text, mdl.div);
         //q.mul.val = '';
-        q.mul.val = currIdx === 0 ? q.mul.val = mdl.div.dividend.vals[0] - mdl.div.divisor.vals[0] :
-                                    q.mul.val = mdl.div.quotients[currIdx-1].rem.vals[0] - mdl.div.divisor.vals[0];
+        // calculating mul
+        q.mul.val = currIdx === 0 ? mdl.div.dividend.vals[0] - mdl.div.divisor.vals[0] :
+                                    mdl.div.quotients[currIdx-1].rem.vals[0] - mdl.div.divisor.vals[0];
         q.mul.text.on('dblclick tap', function(){
+            alg.markCurrStep('curr');
             let thisObj =  q.mul.text;
             thisObj.hover.hide();
             thisObj.text(strToPoly(thisObj.text(),'remove'));
-            let str =  thisObj.str;
-            let oldStr = str;
+            //// let str =  thisObj.str;
+            let oldStr = thisObj.str;
             editable(thisObj, function(obj){
-                // if(alg.getCurrStep().name === 'setBits') alg.increment();
-                // alg.markCurrStep('curr');
                 thisObj.text(strToPoly(thisObj.text()));
                 let s = strToPoly(obj.text());
                 if(s === '') return obj.text(oldStr);
                 if(oldStr !== s){
                     if(s === '+x^') s='+x^1';
                     if(s === '+1') s='+x^0';
-                    console.log('s = '+s);
+                    //console.log('s = '+s);
                     if('x^'+q.mul.val === s || '+x^'+q.mul.val === s){
+                        alg.increment();
                         thisObj.fill(props.txtColor);
                         q.res.text.visible(true);
                         q.plus.visible(true);
-                        q.line.visible(true);
                         mdl.getLayer().batchDraw();
                         q.mul.text.hover.hide('r');
                         q.mul.text.off();
+                        mdl.getStage().container().style.cursor = 'default';
+                        thisObj.off();
                     }
                     else {
                         //error
@@ -439,10 +497,10 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
                 }
             });
         });
-        mdl.div.newCycBtn.x(q.mul.text.x() + q.mul.text.width()+5);
 
         // Result
         q.res.text = custText(strToPoly('x?+x?+x?+x?+x?+x?'));
+        q.res.text.id(q.id()+'-res');
         if(currIdx === 0)
             q.res.text.position({x: mdl.div.dividend.x(), y: mdl.div.dividend.y()+ mdl.div.dividend.height()+vOffset});
         else {
@@ -450,6 +508,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
             q.res.text.position({x: last.x(), y: last.y()+last.height()+vOffset});
         }
         q.add(q.res.text);
+        //mdl.div.autoCorrSize();
         q.res.text.visible(false);
         q.res.text.fill('red'); // init color
         q.res.text = over(q.res.text);
@@ -463,29 +522,32 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
             q.res.vals.sort(function(a, b){return b-a}); // Sort numbers in an array in descending order
         };
         q.res.text.on('dblclick tap', function() {
+            alg.markCurrStep('curr');
             let thisObj =  q.res.text;
             thisObj.hover.hide();
             thisObj.text(strToPoly(thisObj.text(),'remove'));
-            let str =  thisObj.str;
-            let oldStr = str;
+            // let str =  thisObj.str;
+            let oldStr =thisObj.str;
             editable(thisObj, function(obj){
-                // if(alg.getCurrStep().name === 'setBits') alg.increment();
-                // alg.markCurrStep('curr');
                 thisObj.text(strToPoly(thisObj.text()));
                 let s = strToPoly(obj.text());
                 if(s === '') return obj.text(oldStr);
                 if(oldStr !== s){
                     let str = 'x\^'+q.res.vals.toString().replace(/,/g,'+x^');
-                    console.log('str res a = '+str);
+                    //console.log('str res a = '+str);
                     s = s.replace(/\+1/g, '\+x\^0');
                     s = s.replace(/\+x\+/g, '\+x\^1\+');
-                    console.log('str s     = '+s);
+                    //console.log('str s     = '+s);
                     if(str === s){
+                        alg.increment();
                         thisObj.fill(props.txtColor)
                         q.rem.text.visible(true);
                         mdl.getLayer().batchDraw();
                         q.res.text.hover.hide('r');
                         q.res.text.off();
+                        q.line.visible(true);
+                        mdl.getStage().container().style.cursor = 'default';
+                        thisObj.off();
                     }
                     else {
                         //error
@@ -499,10 +561,10 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
 
         // Remainder
         q.rem.text = custText(strToPoly('x?+x?+x?+x?+x?+x?'));
+        q.rem.text.id(q.id()+'-rem');
         q.rem.text.position({x: q.res.text.x()+10, y: q.res.text.y()+ q.res.text.height()+vOffset});
-        if(q.rem.text.y()+q.rem.text.height()+10 > mdl.div.height())
-            mdl.div.size({height:q.rem.text.y()+q.rem.text.height()+20});
         q.add(q.rem.text);
+        //mdl.div.autoCorrSize();
         q.rem.text.visible(false);
         q.rem.text.fill('red'); // init color
         q.rem.text = over(q.rem.text);
@@ -525,36 +587,43 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
             });
             q.rem.vals.sort(function(a, b){return b-a});
         }
-        mdl.div.lastCycBtn.x(q.rem.text.x() + q.rem.text.width()+10);
-        mdl.div.lastCycBtn.y(q.rem.text.y());
         q.rem.text.on('dblclick tap', function() {
+            alg.markCurrStep('curr');
             let thisObj =  q.rem.text;
             thisObj.hover.hide();
             thisObj.text(strToPoly(thisObj.text(),'remove'));
-            let str =  thisObj.str;
-            let oldStr = str;
+            // let str =  thisObj.str;
+            let oldStr =thisObj.str;
             editable(thisObj, function(obj){
-                // if(alg.getCurrStep().name === 'setBits') alg.increment();
-                // alg.markCurrStep('curr');
                 thisObj.text(strToPoly(thisObj.text()));
                 let s = strToPoly(obj.text());
                 if(s === '') return obj.text(oldStr);
                 if(oldStr !== s){
                     let str = 'x\^'+q.rem.vals.toString().replace(/,/g,'+x^');
-                    console.log('str rem a = '+str);
+                    //console.log('str rem a = '+str);
                     s = s.replace(/\+1/g, '\+x\^0');
                     s = s.replace(/\+x\+/g, '\+x\^1\+');
-                    console.log('str s     = '+s);
+                    //console.log('str s     = '+s);
                     if(str === s){
+                        alg.increment();
                         thisObj.fill(props.txtColor);
-                        q.enableHL(true);
+                        //q.enableHL(true);
                         mdl.getLayer().batchDraw();
                         q.rem.text.hover.hide('r');
                         q.rem.text.off();
+                        // show last cycle button
+                        mdl.div.lastCycBtn.updatePos(); // update position first
                         mdl.div.lastCycBtn.visible(true);
+                        // show new cycle button
+                        mdl.div.newCycBtn.updatePos();// update position first
+                        mdl.div.newCycBtn.visible(true);
                         q.completed = true;
-                        if(q.rem.vals[0] < mdl.div.divisor.vals[0])
-                            q.isLast = true;
+                        mdl.getStage().container().style.cursor = 'default';
+                        thisObj.off();
+
+                        //check for last cycle
+                        if(q.rem.vals[0] < mdl.div.divisor.vals[0]) q.isLast = true;
+                        else mdl.div.currCycle++;
                     }
                     else {
                         //error
@@ -562,7 +631,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
                         stat.error.add(lang.wrongRem);
                         return thisObj.hover.show('e', lang.wrongRem);
                     }
-                    // repositioning button X cordinate according to the field width
+                    // repositioning button X coordinate according to the field width
                     mdl.div.lastCycBtn.x(q.rem.text.x() + q.rem.text.width()+10);
                 }
             });
@@ -570,6 +639,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
 
         // line
         q.line = new Konva.Line({
+            id: q.id()+'-line',
             points: [q.res.text.x(),                    q.res.text.y()+q.res.text.height()+vOffset-8,
                      q.rem.text.x()+q.rem.text.width(), q.res.text.y()+q.res.text.height()+vOffset-8
             ],
@@ -583,6 +653,7 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
 
         // plus "+" sign
         q.plus = new Konva.Text({
+            id: q.id()+'-plus',
             text: '+',
             fill: props.txtColor,
             fontSize: props.txtSize,
@@ -592,38 +663,311 @@ function CYCLIC_POLY(props, alg, stat, inReg) {
         q.add(q.plus);
         q.plus.y(q.res.text.y() - q.plus.height()+3);
 
-        //auto calcualting
+        //auto calcualting res and rem
         q.res.calc();
         q.rem.calc();
 
-        // calc the highLight's position and size
-        q.highLight.x(q.res.text.x()-5);
-        q.highLight.y(q.res.text.y()-7);
-        q.highLight.width(q.rem.text.x()+q.rem.text.width()-q.res.text.x() + 5);
-        q.highLight.height(q.rem.text.y()+q.rem.text.height()-q.res.text.y() + 7);
-        q.highLight.moveToBottom();
-
-        q.show = function(){
+        // show mul
+        q.mul.show = function(){
             q.mul.text.text(strToPoly(currIdx === 0 ? 'x^'+q.mul.val : '+x^'+q.mul.val));
-            q.res.text.text(strToPoly('x\^'+q.res.vals.toString().replace(/,/g,'+x^')));
-            q.rem.text.text(strToPoly('x\^'+q.rem.vals.toString().replace(/,/g,'+x^')));
+            q.mul.text.off();
             q.mul.text.fill(props.txtColor);
-            q.res.text.fill(props.txtColor);
-            q.rem.text.fill(props.txtColor);
+            mdl.div.lastCycBtn.visible(false);
             q.mul.text.visible(true);
             q.res.text.visible(true);
-            q.rem.text.visible(true);
             q.plus.visible(true);
-            q.line.visible(true);
-            q.completed = true;
-            if(q.rem.vals[0] < mdl.div.divisor.vals[0])
-                q.isLast = true;
+            mdl.div.newCycBtn.updatePos();
+            mdl.div.newCycBtn.visible(false);
+            alg.increment();
         };
+        // show res
+        q.res.show = function(){
+            q.res.text.text(strToPoly('x\^'+q.res.vals.toString().replace(/,/g,'+x^')));
+            q.res.text.off();
+            q.res.text.fill(props.txtColor);
+            q.res.text.visible(true);
+            q.line.visible(true);
+            q.rem.text.visible(true);
+            alg.increment();
+        }
+        // show rem
+        q.rem.show = function(){
+            q.rem.text.text(strToPoly('x\^'+q.rem.vals.toString().replace(/,/g,'+x^')));
+            q.rem.text.off();
+            q.rem.text.fill(props.txtColor);
+            q.rem.text.visible(true);
+            alg.increment();
+            q.completed = true;
+            mdl.div.lastCycBtn.updatePos(); // last cycle bu position update
+            mdl.div.lastCycBtn.visible(true);
+            mdl.div.newCycBtn.visible(true);
 
-        mdl.getLayer().batchDraw();
+            if(q.isLast){
+                mdl.div.lastCycBtn.visible(false);
+                mdl.div.newCycBtn.visible(false);
+                mdl.div.quotients[mdl.div.currCycle].rem.text.fill('ForestGreen');
+                setCwPoly(); //set the codeword polynomial value
+                // set the position of polynomial codeword panel and show it
+                mdl.cwPoly.position({x: mdl.div.x(), y: mdl.div.y() + mdl.div.height() + 20});
+                mdl.autoCorrSize();
+                mdl.cwPoly.visible(true);
+            }
+            else mdl.div.currCycle++; // increment the cycle
+        }
+
+        //check for last cycle
+        if(q.rem.vals[0] < mdl.div.divisor.vals[0]) q.isLast = true;
+
+        // set the q size
+        q.height(q.mul.text.y() + q.rem.text.y() + q.rem.text.height());
+        q.width(q.res.text.x() + q.mul.text.x() + q.mul.text.width());
+
+        //mdl.getLayer().batchDraw();
         mdl.div.quotients.push(q);
+        mdl.div.lastCycBtn.updatePos(); // last cycle button init position
+
+        mdl.div.autoCorrSize(); // correct panel size if it is need
         return true;
     };
+
+
+    //auto calculate all cyclic
+    mdl.div.autoCalc = function(){
+        let count = 0;
+        do {
+            mdl.div.newQuotient();
+            //console.log(count +' is last = '+mdl.div.quotients[mdl.div.quotients.length-1].isLast)
+            if (mdl.div.quotients[mdl.div.quotients.length-1].isLast === true) return false;
+            count++;
+            alg.incrmtCycle();
+        }
+        while (true);
+    }
+
+    // CodeWord in polynomial form
+    mdl.cwPoly = new PANEL({
+        id: 'cwPoly',
+        name: lang.cwPoly,
+        type: 2,
+        labelSize: 18
+    });
+    mdl.cwPoly.visible(false);
+    mdl.add(mdl.cwPoly);
+    mdl.cwPoly.size({width: mdl.div.width(), height: mdl.cwFormula.height()});
+    mdl.cwPoly.text = custText('F(x) = ???????');
+    mdl.cwPoly.text = over(mdl.cwPoly.text);
+    mdl.cwPoly.text.hoverTxt = lang.dblclick;
+    mdl.cwPoly.text = hover1(mdl.cwPoly.text, mdl.div);
+    mdl.cwPoly.vals =  '';
+    mdl.cwPoly.text.position({x: 10, y: 15});
+    mdl.cwPoly.add(mdl.cwPoly.text);
+    mdl.cwPoly.text.fill('red'); // init color
+    mdl.cwPoly.text.on('dblclick tap', function() {
+        alg.markCurrStep('curr');
+        let thisObj =  mdl.cwPoly.text;
+        thisObj.hover.hide();
+        thisObj.text(strToPoly(thisObj.text(),'remove'));
+        // let str =  thisObj.str;
+        let oldStr =thisObj.str;
+        editable(thisObj, function(obj){
+            thisObj.text(strToPoly(thisObj.text()));
+            let s = strToPoly(obj.text());
+            if(s === '') return obj.text(oldStr);
+            if(oldStr !== s){
+                if(mdl.cwPoly.val === s){
+                    alg.increment();
+                    thisObj.fill(props.txtColor);
+                    mdl.getLayer().batchDraw();
+                    thisObj.hover.hide('r');
+                    mdl.getStage().container().style.cursor = 'default';
+                    thisObj.off();
+                    // set the remainder binary values
+                    setRemBin();
+                    // set position of binary reminder panel
+                    mdl.remBin.position({x: mdl.cwPoly.x(), y: mdl.cwPoly.y() + mdl.cwPoly.height() + 20});
+                    // show the remainder binary panel
+                    mdl.remBin.visible(true);
+                    // check parent panel size
+                    mdl.autoCorrSize();
+                }
+                else {
+                    //error
+                    thisObj.fill('red');
+                    stat.error.add(lang.wrongCwPoly);
+                    return thisObj.hover.show('e', lang.wrongCwPoly);
+                }
+            }
+        }, mdl.cwPoly.width()-20);
+    });
+
+    // Show Codeword polynomial
+    mdl.cwPoly.show = function(){
+        mdl.cwPoly.text.text(mdl.cwPoly.val);
+        mdl.cwPoly.text.fill(props.txtColor);
+        mdl.cwPoly.text.off();
+        // set the remainder binary values
+        setRemBin();
+        // set position of binary reminder panel
+        mdl.remBin.position({x: mdl.cwPoly.x(), y: mdl.cwPoly.y() + mdl.cwPoly.height() + 20});
+        // show the remainder binary panel
+        mdl.remBin.visible(true);
+        // check parent panel size
+        mdl.autoCorrSize();
+        mdl.getLayer().batchDraw();
+        alg.increment();
+    }
+
+    // set the codeword polynomial value
+    setCwPoly = function(){
+        mdl.cwPoly.val = 'F(x)='+mdl.div.dividend.text() +'+'+
+                          mdl.div.quotients[mdl.div.quotients.length-1].rem.text.text();
+    }
+
+    // Reminder to binary form
+    mdl.remBin = new PANEL({
+        id: 'remBin',
+        name: lang.remBin,
+        type: 2,
+        labelSize: 18
+    });
+    mdl.remBin.visible(false);
+    mdl.add(mdl.remBin);
+    mdl.remBin.size({width: mdl.cwFormula.width()-48, height: mdl.cwFormula.height()});
+    mdl.remBin.text = custText('???????');
+    mdl.remBin.text = over(mdl.remBin.text);
+    mdl.remBin.text.hoverTxt = lang.dblclick;
+    mdl.remBin.text = hover1(mdl.remBin.text, mdl.div);
+    mdl.remBin.val =  '';
+    mdl.remBin.text.position({x: 10, y: 15});
+    mdl.remBin.add(mdl.remBin.text);
+    mdl.remBin.text.fill('red'); // init color
+    mdl.remBin.text.on('dblclick tap', function() {
+        alg.markCurrStep('curr');
+        let thisObj =  mdl.remBin.text;
+        thisObj.hover.hide();
+        thisObj.text(strToPoly(thisObj.text(),'remove'));
+        // let str =  thisObj.str;
+        let oldStr =thisObj.str;
+        editable(thisObj, function(obj){
+            thisObj.text(strToPoly(thisObj.text()));
+            let s = strToPoly(obj.text());
+            if(s === '') return obj.text(oldStr);
+            if(oldStr !== s){
+                if(mdl.remBin.val === s){
+                    alg.increment();
+                    thisObj.fill(props.txtColor);
+                    mdl.getLayer().batchDraw();
+                    thisObj.hover.hide('r');
+                    mdl.getStage().container().style.cursor = 'default';
+                    thisObj.off();
+
+                    //set the codeword binary value
+                    setCwBin();
+                    // set the position of polynomial codeword panel and show it
+                    mdl.cwBin.position({x: mdl.remBin.x() + mdl.remBin.width() + 20, y: mdl.remBin.y()});
+                    mdl.cwBin.visible(true);
+                }
+                else {
+                    //error
+                    thisObj.fill('red');
+                    stat.error.add(lang.wrongRemBin);
+                    return thisObj.hover.show('e', lang.wrongRemBin);
+                }
+            }
+        }, mdl.remBin.width()-20);
+    });
+
+    // show the reminder in binary format
+    mdl.remBin.show = function(){
+        mdl.remBin.text.text(mdl.remBin.val);
+        mdl.remBin.text.fill(props.txtColor);
+        mdl.remBin.text.off();
+        //set the codeword binary value
+        setCwBin();
+        // set the position of polynomial codeword panel and show it
+        mdl.cwBin.position({x: mdl.remBin.x() + mdl.remBin.width() + 20, y: mdl.remBin.y()});
+        mdl.cwBin.visible(true);
+        mdl.getLayer().batchDraw();
+        alg.increment();
+    }
+
+    // set the binary remainder
+    setRemBin = function(){
+        let bin='';
+        let k = props.checkBits;
+        let arr = mdl.div.quotients[mdl.div.quotients.length-1].rem.vals;
+
+        for(let i=k-1; i>=0; i--){
+            if(arr.indexOf(i) !== -1) bin +='1';
+            else bin +='0';
+        }
+        mdl.remBin.val = bin;
+    };
+
+    // CodeWord in binary form
+    mdl.cwBin = new PANEL({
+        id: 'cwBin',
+        name: lang.cwBin,
+        type: 2,
+        labelSize: 18
+    });
+    mdl.cwBin.visible(false);
+    mdl.add(mdl.cwBin);
+    mdl.cwBin.size({width: mdl.div.width() - (mdl.remBin.x() + mdl.remBin.width() + 20),
+                    height: mdl.cwFormula.height()});
+    mdl.cwBin.text = custText('??????????????????');
+    mdl.cwBin.text = over(mdl.cwBin.text);
+    mdl.cwBin.text.hoverTxt = lang.dblclick;
+    mdl.cwBin.text = hover1(mdl.cwBin.text, mdl.div);
+    mdl.cwBin.vals =  '';
+    mdl.cwBin.text.position({x: 10, y: 15});
+    mdl.cwBin.add(mdl.cwBin.text);
+    mdl.cwBin.text.fill('red'); // init color
+    mdl.cwBin.text.on('dblclick tap', function() {
+        alg.markCurrStep('curr');
+        let thisObj =  mdl.cwBin.text;
+        thisObj.hover.hide();
+        thisObj.text(strToPoly(thisObj.text(),'remove'));
+        // let str =  thisObj.str;
+        let oldStr =thisObj.str;
+        editable(thisObj, function(obj){
+            thisObj.text(strToPoly(thisObj.text()));
+            let s = strToPoly(obj.text());
+            if(s === '') return obj.text(oldStr);
+            if(oldStr !== s){
+                if(mdl.cwBin.val === s){
+                    thisObj.fill(props.txtColor);
+                    mdl.getLayer().batchDraw();
+                    thisObj.hover.hide('r');
+                    mdl.getStage().container().style.cursor = 'default';
+                    thisObj.off();
+                    alg.increment(); // pass current step
+                    alg.increment(); // for finish step
+                }
+                else {
+                    //error
+                    thisObj.fill('red');
+                    stat.error.add(lang.wrongCwBin);
+                    return thisObj.hover.show('e', lang.wrongCwBin);
+                }
+            }
+        }, mdl.cwBin.width()-20);
+    });
+
+    // Show Codeword polynomial
+    mdl.cwBin.show = function(){
+        mdl.cwBin.text.text(mdl.cwBin.val);
+        mdl.cwBin.text.fill(props.txtColor);
+        mdl.cwBin.text.off();
+        mdl.getLayer().batchDraw();
+        alg.increment(); // pass current step
+        alg.increment(); // for finish step
+    }
+
+    // set codeword binary values
+    setCwBin = function(){
+        mdl.cwBin.val = inReg.vals.toString().replace(/,/g,'') + mdl.remBin.val;
+    }
 
     return mdl;
 }// END of CYCLIC_POLY
@@ -659,9 +1003,10 @@ function strToPoly(str,remove){
 ///// CUSTOM TEXT OBJECT //////////////////////////////////////////////////////
 function custText(string) {
     //example str =>  x^k+G(x)+x^n+1
-    if (typeof (string) === 'undefined') console.error('Incorrect argument for custText(str)');
+    if (typeof (string) === 'undefined') console.error('Undefined string =>', string);
     let gr = new Konva.Group();
-    gr.mems;
+    gr.mems = [];
+    gr.str='';
 
     // forming the new string members
     gr.forming = function(str){
@@ -676,7 +1021,6 @@ function custText(string) {
             elms = str1.split('|');
         }
         else elms = str.split('|');
-
         
         let nextX = 0;
         for (let i = 0; i < elms.length; i++) {
@@ -686,15 +1030,21 @@ function custText(string) {
             nextX += mem.width() + 3;
             mems.push(mem);
         }
+
+        // ste the group size
+        //console.log('width before = '+gr.width());
+        gr.width(nextX-3);
+        gr.height(mems[0].height());
+        //console.log('width after = '+gr.width());
+
+        gr.str = str.replace(/\s/g, '');
         return mems;
-    }
+    };
     gr.mems = gr.forming(string);
-    gr.str = string.replace(/\s/g, '');
     gr.mems.forEach(mem =>{gr.add(mem);});
 
-
     // update group size
-    updateSize = function(){
+    gr.updateSize = function(){
         if(gr.mems.length === 1){
             gr.width(gr.mems[0].width());
             gr.height(gr.mems[0].height());
@@ -703,9 +1053,11 @@ function custText(string) {
             gr.width(gr.mems[gr.mems.length - 1].x() + gr.mems[gr.mems.length - 1].width());
             gr.height(gr.mems[0].height());
         }
+        console.log({str: gr.str, w: gr.width(), h: gr.height()});
+        return ;
 
     };
-    updateSize();
+    //updateSize();
 
     // fill
     gr.fill = function (color) {
@@ -722,12 +1074,12 @@ function custText(string) {
     // fontSize
     gr.fontSize = function (size) {
         if (typeof size === 'undefined') return gr.mems[0].fontSize();
-        gr.mems.forEach(mem => {
-            mem.fontSize(size)
-        });
-        updateSize();
-        try {gr.getLayer().batchDraw();}
-        catch (e) {}
+        for(let i=0; i<gr.mems.length ;i++){
+            gr.mems[i].fontSize(size);
+            if(i>0) gr.mems[i].x(gr.mems[i-1].x() + gr.mems[i-1].width() + 3);
+        }
+        //console.log(updateSize());
+        try {gr.getLayer().batchDraw();} catch (e) {}
         return true;
     };
     gr.fontSize(16); //default font size
@@ -741,15 +1093,14 @@ function custText(string) {
         gr.removeChildren();
         let currSize = gr.fontSize();
         let currFill = gr.fill();
+        gr.mems = [];
         gr.mems = gr.forming(newStr);
-        gr.str = newStr.replace(/\s/g, '');
+        //gr.str = newStr.replace(/\s/g, '');
         gr.mems.forEach(mem =>{gr.add(mem);});
         gr.fontSize(currSize);
         gr.fill(currFill);
-        updateSize();
         try {gr.getLayer().batchDraw();} catch{}
-    }
-
+    };
     return gr;
 } // End of custText
 
@@ -781,7 +1132,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
     props.labelBgColor = props.labelBgColor || 'RoyalBlue';
     props.labelPadding = props.labelPadding || 4;
     props.pading = props.pading || 10;
-    props.width = props.width || 1000;
+    props.width = props.width || 600;
     props.height = props.height || 550;
     props.errDet = props.errDet || 1;
     props.checkBits = props.checkBits || 4;
@@ -811,7 +1162,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
 
     // Hmat label
     mdl.HmatSize.label = new Konva.Text({   id: 'HmatSizeLabel',
-                                         x: 20, y: 70,
+                                         x: 10, y: 15,
                                          text: lang.matSize+': ',
                                          fill: props.txtColor,
                                          fontSize: props.txtSize,
@@ -839,7 +1190,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
 
         let thisObj =  mdl.HmatSize.valTxt;
         let str =  thisObj.text();
-        let oldStr = str;
+        let oldStr =thisObj.str;
         editable(thisObj, function(obj){
             if(alg.getCurrStep().name === 'setBits') alg.increment();
                 alg.markCurrStep('curr');
@@ -853,8 +1204,8 @@ function HAMMING_MA(props, alg, stat, inReg) {
                     thisObj.fill(props.txtColor);
                     mdl.checkBtn.visible(true);
                     mdl.Hmat.visible(true);
-                    mdl.HmatSize.visible(false);
-                    //thisObj.off();
+                    thisObj.off();
+                    alg.increment();
                 }
                 else {
                     thisObj.fill('red');
@@ -911,7 +1262,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
     mdl.mat.add(mdl.Hmat);
     // update matrices panel's height
     mdl.mat.size({height: mdl.Hmat.height()+60});
-    mdl.Hmat.position({x: 10, y: mdl.mat.height()/2 - mdl.Hmat.height()/2 + 20});
+    mdl.Hmat.position({x: 10, y: mdl.mat.height()/2 - mdl.Hmat.height()/2 + mdl.HmatSize.label.height()+25});
 
     // get Hmat size
     mdl.HmatSize.val = mdl.Hmat.size().r+'x'+mdl.Hmat.size().c;
@@ -931,7 +1282,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
             let str =  thisObj.text();
             if(thisObj.sub.text() !== '') str += thisObj.sub.text();
             thisObj.text(str);
-            let oldStr = str;
+            let oldStr =thisObj.str;
             editable(thisObj, function(obj){
                 let s = obj.text().toUpperCase();
                 if(s === '') return obj.text(oldStr);
@@ -1042,12 +1393,14 @@ function HAMMING_MA(props, alg, stat, inReg) {
     //correcting model width according to the H' matrix width
     {
         let matsWidth = mdl.Hmat.width() + mdl.H_mat.width() + 90;
-        let minWidth = 645;
+        //let minWidth = 645;
+        let minWidth = 700;
         //console.log('matsWidth = '+matsWidth, '; minWidth = '+minWidth);
         if(matsWidth > minWidth){
-            mdl.size({width: matsWidth});
+            //mdl.size({width: matsWidth});
             // update matrices panel's width
             mdl.mat.size({width: matsWidth-40});
+            mdl.size({width: mdl.mat.size().width +40});
         }
         else {
             mdl.size({width: minWidth});
@@ -1055,7 +1408,6 @@ function HAMMING_MA(props, alg, stat, inReg) {
             mdl.mat.size({width: minWidth-40});
         }
     }
-
     // set H' matrix temp values
     mdl.H_mat.setVals(H_valsTemp);
 
@@ -1072,7 +1424,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
             let str = thisObj.text();
             if (thisObj.sub.text() !== '') str += thisObj.sub.text();
             thisObj.text(str);
-            let oldStr = str;
+            let oldStr =thisObj.str;
             editable(thisObj, function (obj) {
                 let s = obj.text().toUpperCase();
                 if (s === '') return obj.text(oldStr);
@@ -1141,16 +1493,16 @@ function HAMMING_MA(props, alg, stat, inReg) {
     });
     mdl.mat.add(mdl.checkBtn);
     mdl.checkBtn.normPos = {x: mdl.Hmat.x() + mdl.Hmat.width()/2 - mdl.checkBtn.width()/2,
-                            y: mdl.mat.height() - mdl.checkBtn.height() - 5};
+                            y: mdl.mat.height() - mdl.checkBtn.height() + 5};
     mdl.checkBtn.position(mdl.checkBtn.normPos);
     mdl.checkBtn.visible(false);
 
     // check button click event
     mdl.checkBtn.on('click touchstart', function(){
-        if(inReg.vals.includes(undefined) === true)  {
+        if(inReg.vals.includes(undefined) === true)  { // check for all info bits
             this.hover.show('e',lang.setAllBit);
             return;
-        };
+        }
         // change check button text and show H matrix
         if(this.txt.text() === lang.showHmat){
             this.txt.text(lang.checkMat);
@@ -1172,6 +1524,9 @@ function HAMMING_MA(props, alg, stat, inReg) {
         // increment step
         if(alg.getCurrStep().name === 'setHmat' || alg.getCurrStep().name === 'setH_mat')  alg.increment();
     });
+
+    // auto correct matix panel sizes
+    mdl.mat.autoCorrSize();
 
     // current matrix's id for check
     mdl.checkMatrixId = 'Hmat';
@@ -1215,6 +1570,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
         return true;
     };
 
+
     //input bits panel
     mdl.bitsPan = new PANEL({
         id: 'inputBits',
@@ -1249,7 +1605,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
         else mdl.loadCW(inReg);
     });
 
-    // requared vals for bits objects and values
+    // required vals for bits objects and values
     mdl.selCbitId = '';
     mdl.bits = [];
     mdl.vals = [];
@@ -1370,6 +1726,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
         mdl.err.setErrPos(mdl.Hmat);
 
         mdl.getLayer().batchDraw();
+        reg.disable(); // disable the register
     };
 
     // load information bits (encoding)
@@ -1491,6 +1848,8 @@ function HAMMING_MA(props, alg, stat, inReg) {
             mdl.bits.push(cloneObj);
         }
 
+        reg.disable(); // disable the register
+
         // creting equations for auto mode
         mdl.equ.autoCreate();
         return true;
@@ -1576,9 +1935,10 @@ function HAMMING_MA(props, alg, stat, inReg) {
         }
         let width = bit.formula.width();
         bit.formula.on('dblclick tap', function(){
+            let thisObj =  bit.formula.text;
             alg.markCurrStep('curr');
             let str =  this.text();
-            let oldStr = str;
+            let oldStr = thisObj.str;
             str = str.replace(/\u2295/g, '+');
             this.text(str);
 
@@ -1610,8 +1970,10 @@ function HAMMING_MA(props, alg, stat, inReg) {
         });
 
         //bin
-        if(props.process === 'enc')
+        if(props.process === 'enc'){
             text = 'C'+n+' = ?\u2295?\u2295?\u2295?\u2295?\u2295?\u2295? = ?';
+        }
+
         else
             text = '?\u2295?\u2295?\u2295?\u2295?\u2295?\u2295?\u2295? = ?';
         bit.bin = new Konva.Text({
@@ -1647,7 +2009,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
                 visible: false
             });
             mdl.equ.add(bit.check);
-            bit.check.position({x: mdl.equ.width()*3/4 + 20, y: bit.formula.y()});
+            bit.check.position({x: mdl.equ.width() - 70, y: bit.formula.y()});
             bit.check.hoverTxt = lang.writeCbitCheck;
             bit.check = over(bit.check);
             bit.check = hover1(bit.check, mdl.equ);
@@ -1692,9 +2054,6 @@ function HAMMING_MA(props, alg, stat, inReg) {
         let thisKonvaObj = mdl.equ.konvaObjs.find(elm => elm.id === cbitId);
         let thisCbit = mdl.equ.cbits.find(elm => elm.id === cbitId);
         let formula = thisKonvaObj.formula.text().toString().replace(/\+/g,',');
-        let rightFormula;
-        // console.log('formula', formula);
-        // console.log('thisCbit.formula', thisCbit.formula);
         if(formula === thisCbit.formula)  return true;
         return false;
     };
@@ -1705,6 +2064,22 @@ function HAMMING_MA(props, alg, stat, inReg) {
         let res = Number(thisKonvaObj.bin.text().substr(thisKonvaObj.bin.text().length-1,1));
         if(res !== thisCbit.res) return false;
         return true;
+    };
+
+    mdl.equ.binsInsert = function(){
+        let str='';
+        let cbit = mdl.equ.cbits.find(elm => elm.id === mdl.selCbitId);
+        str = cbit.bins.toString();
+        str = str.replace(/,/g,'\u2295');
+        str += ' = ?';
+        let thisKonvaObj = mdl.equ.konvaObjs.find(elm => elm.id === mdl.selCbitId);
+        if(props.process === 'enc')
+            thisKonvaObj.bin.text('\u21D2   '+mdl.selCbitId+' = '+str); // for encoding process
+        else{
+            thisKonvaObj.bin.text('\u21D2   '+str);  // for decoding process
+            thisKonvaObj.check.visible(true);
+        }
+        thisKonvaObj.bin.visible(true);
     };
 
     // display control bit formula
@@ -1721,21 +2096,14 @@ function HAMMING_MA(props, alg, stat, inReg) {
             txtColor = props.txtColor;
         }
 
-        cbit = mdl.equ.cbits.find(elm => elm.id === cbitId);
-        if(str === ''){
-            str = cbit.bins.toString();
-            str = str.replace(/,/g,'\u2295');
-            str += ' = ?';
-        }
-
         let thisKonvaObj = mdl.equ.konvaObjs.find(elm => elm.id === cbitId);
         // for auto mode
         if(props.process === 'enc'){
-            //thisKonvaObj.arrow.visible(true);
+
             thisKonvaObj.bin.text('\u21D2   '+cbitId+' = '+str);
         }
         else{ // for decoding
-            thisKonvaObj.bin.text(str);
+            thisKonvaObj.bin.text('\u21D2   '+ str);
             //thisKonvaObj.bin.x(thisKonvaObj.formula.x() + thisKonvaObj.formula.width());
             thisKonvaObj.check.visible(true);
         }
@@ -1746,13 +2114,11 @@ function HAMMING_MA(props, alg, stat, inReg) {
         //for auto mode
         if(str.substr(str.length-1, 1) !== '?')  thisKonvaObj.bin.off();
 
-        // increment step
-        alg.increment();
-
+        alg.increment(); // increment step
         mdl.getLayer().batchDraw();
     };
 
-    // display control bit bins
+    // display control bit formula
     mdl.equ.showFormula = function(cbitId){
         let str = '', txtColor = '';
         // for auto mode
@@ -1763,6 +2129,8 @@ function HAMMING_MA(props, alg, stat, inReg) {
             // str = str.replace(/,/g,'\u2295');
             str = cbit.formula;
             txtColor = props.txtColor;
+            //mdl.equ.showBins(mdl.selCbitId);
+            mdl.equ.binsInsert();
         }
 
         let thisKonvaObj = mdl.equ.konvaObjs.find(elm => elm.id === cbitId);
@@ -1775,7 +2143,9 @@ function HAMMING_MA(props, alg, stat, inReg) {
         thisKonvaObj.formula.visible(true);
         if(txtColor !== '') thisKonvaObj.formula.fill(txtColor);
 
-        if(str.substr(str.length-1, 1) !== '?')  alg.increment();  // increment step for auto mode
+        if(str.substr(str.length-1, 1) !== '?') {
+            alg.increment();  // increment step for auto mode
+        }
 
         mdl.getLayer().batchDraw();
     };
@@ -1797,10 +2167,9 @@ function HAMMING_MA(props, alg, stat, inReg) {
 
         mdl.bits.find(bit => bit.id() === cbitId).rect.stroke('red');
 
-        //display formula for writing
-        mdl.equ.showFormula(cbitId);
-        // set this cbit as selected
-        mdl.selCbitId = cbitId;
+        mdl.equ.showFormula(cbitId); //display formula for writing
+        mdl.selCbitId = cbitId; // set this cbit as selected
+
         // change hover text only for encoding
         if(props.process === 'enc')mdl.bits.find(e => e.id() === cbitId).hoverTxt = lang.writeCbitVal;
         //step incremented in showFormula()
@@ -1891,19 +2260,31 @@ function HAMMING_MA(props, alg, stat, inReg) {
     };
 
     // show Hmat
+    mdl.HmatSize.show = function(){
+        mdl.HmatSize.valTxt.text(props.checkBits+' x '+props.bitsNum);
+        mdl.HmatSize.valTxt.fill(props.txtColor);
+        mdl.HmatSize.valTxt.off();
+        alg.increment();
+        mdl.Hmat.visible(true);
+        mdl.checkBtn.visible(true);
+        mdl.getLayer().batchDraw();
+    };
+
+
+    // show Hmat
     mdl.Hmat.show = function(){
         // increment step
         alg.increment();
+        //mdl.HmatSize.visible(false);
         mdl.showHcolumns();
-        mdl.HmatSize.visible(false);
         mdl.Hmat.enable(false);
         mdl.Hmat.setVals(Hvals);
         mdl.Hmat.update();
         mdl.Hmat.visible(true);
-        //mdl.checkBtn.position(mdl.checkBtn.normPos);
         mdl.checkBtn.visible(false);
         mdl.checkBtn.txt.text(lang.checkMat);
-        //mdl.putLabels();
+        // show H' matrix
+        mdl.H_mat.visible(true);
         mdl.getLayer().batchDraw();
     };
 
@@ -1933,7 +2314,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
         mdl.err.synd.title = new Konva.Text({
             id: 'sindTitle',
             fontSize: props.txtSize - 2,
-            text: lang.errSyndromе+' \u21D2 ',
+            text: lang.errSyndrome+' \u21D2 ',
             fill: props.txtColor,
             visible: true
         });
@@ -2114,7 +2495,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
         mdl.err.pos.txt.on('dblclick tap', function(){
             let thisObj =  this;
             let str = this.text();
-            let oldStr = str;
+            let oldStr =thisObj.str;
             editable(thisObj, function(obj){
                 let s = obj.text().toUpperCase();
                 if(s === '') return obj.text(oldStr);
@@ -2168,7 +2549,7 @@ function HAMMING_MA(props, alg, stat, inReg) {
         mdl.err.decMessage.txt.on('dblclick tap', function(){
             let thisObj =  this;
             let str =  this.text();
-            let oldStr = str;
+            let oldStr =thisObj.str;
             editable(thisObj, function(obj){
                 let s = obj.text().toUpperCase();
                 if(s === '') return obj.text(oldStr);
@@ -2451,8 +2832,6 @@ function MATRIX(props){
             this.visible(false);
             mat.getLayer().batchDraw();
         });
-
-
     };
 
     // update matrix size
@@ -2557,7 +2936,7 @@ function MATRIX(props){
             mat.colLabels.forEach(label =>{
                 label.visible(flag);
             });
-            if(typeof props.layer !== 'undefined') props.layer.batchDraw();
+            if(typeof props.layer !== 'undefined') mat.getLayer().batchDraw();
         }
     }
 
@@ -2617,14 +2996,14 @@ function HAMMING_GA(props, layer, alg, stat) {
     props.name = props.name || 'Encoder';
     props.position = props.position || {x: 0, y: 0};
     props.fill = props.fill || 'FloralWhite';
-    props.labelSize = props.labelSize || 16;
+    props.labelSize = props.labelSize || 20;
     props.labelDistance = props.labelDistance || 5;
     props.labelColor = props.labelColor || 'white';
     props.labelBgColor = props.labelBgColor || 'RoyalBlue';
     props.labelPadding = props.labelPadding || 4;
     props.pading = props.pading || 10;
     props.width = props.width || 550;
-    props.height = props.height || 350;
+    props.height = props.height || 370;
     props.bitsNum = props.bitsNum || 12;
     props.errDet = props.errDet || 1;
     props.checkBits = props.checkBits || 4;
@@ -2636,15 +3015,15 @@ function HAMMING_GA(props, layer, alg, stat) {
     props.bit.width = w;
     props.bit.height = h;
     let addDist = props.bit.width + props.pading * 1.0;
-    let height = props.bit.height + 2 * props.pading + 280;
+    let height = props.bit.height + 2 * props.pading + 300;
     let width = addDist * (props.bitsNum) + addDist / 1.4;
-    //let infoBitsIdx = [3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20]; // for t=2
     let checkBitsIdx = [0, 1, 2, 4, 8, 16]; // for t=2
     let infoBitsIdx = [];
     for (let i = 0; i <= (props.bitsNum - props.errDet + 1); i++) {
         if (typeof checkBitsIdx.find(el => el === i) === 'undefined')
             infoBitsIdx.push(i);
     }
+
     let first = 0, ln = 0;
     if (props.errDet === 1) { // for t=1
         for (let i = 0; i < infoBitsIdx.length; i++) infoBitsIdx[i] -= 1;
@@ -2652,23 +3031,23 @@ function HAMMING_GA(props, layer, alg, stat) {
         first = 1;
         ln = 1;
     }
+
     let bitsIdx = []; // indexes of the all bits
     for (let i = first; i < (props.checkBits + ln); i++) {
         bitsIdx.push({bit: 'C' + i, idx: checkBitsIdx[i]});
     }
+
     for (let i = 0; i < (props.bitsNum - props.checkBits); i++) {
         bitsIdx.push({bit: 'S' + (i + 1), idx: infoBitsIdx[i]});
     }
 
+    let lang = props.lang;
+
     // CREATING REGISTER'S PANEL /////////////////////////////////////////////////////////////////
-    let en = new Konva.Group({
-        id: props.id,
-        name: props.name,
-        position: props.position,
-        width: width,
-        height: height,
-        draggable: props.draggable,
-    });
+    let en = new PANEL(props);
+    en.size({width: width, height: height});
+    en.dragmove(true);
+
     // empty array for values
     en.process = props.process;
     en.vals = [];
@@ -2677,59 +3056,6 @@ function HAMMING_GA(props, layer, alg, stat) {
     en.bitsIdx = bitsIdx;
     // encoder language
     en.lang = props.lang;
-
-    // Encoder's background rectangle
-    en.rect = new Konva.Rect({
-        id: en.id() + '-rect',
-        width: width,
-        height: height,
-        fill: props.fill,
-        shadowColor: 'black',
-        shadowBlur: 10,
-        shadowOpacity: 0.5,
-        cornerRadius: 4
-    });
-
-    // Encoder's label
-    en.label = new Konva.Text({
-        id: en.id() + '-lab',
-        width: en.rect.width(),
-        text: props.name,
-        fontSize: props.labelSize +4,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'center',
-        verticalAlign: 'middle',
-        fill: props.labelColor,
-        visible: true
-    });
-    // label's background rectangle
-    en.labelRect = new Konva.Rect({
-        id: en.id() + '-labRect',
-        width: en.rect.width(),
-        height: en.label.height() + 2*props.labelPadding,
-        fill: props.labelBgColor,
-        cornerRadius: 4,
-        opacity: 1.0,
-        draggable: false
-    });
-    en.label.height(en.labelRect.height());
-
-    // mouse hover info
-    //en.info = new INFO(layer, en);
-    // add components to mein group
-    en.add(en.rect, en.labelRect, en.label);
-
-    // enable dragable property
-    en.label.on('mouseover touchstart', function () {
-        en.draggable(true);
-        stage.container().style.cursor = 'move';
-    });
-    // enable dragable property
-    en.label.on('mouseout touchend', function () {
-        en.draggable(false);
-        stage.container().style.cursor = 'default';
-    });
 
     // CREATING BIT GROUPS
     // CREATING ENCODER'S BITS /////////////////////////////////////////////////////////////////
@@ -2786,7 +3112,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             y: bit.label.y() - bit.label.height() - 3,
             width: bit.label.width(),
             text: num.toString(),
-            fontSize: props.labelSize,
+            fontSize: props.labelSize - 4,
             fontFamily: 'Calibri',
             padding: 0,
             align: 'center',
@@ -2794,7 +3120,6 @@ function HAMMING_GA(props, layer, alg, stat) {
             fill: 'DimGray',
         });
         num++;
-
         pos.x += addDist; //  change position for the next bit
         bit.add(bit.num);
         en.add(bit);
@@ -2869,7 +3194,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             label.move({x: pos.x, y: pos.y});
             label.onPlace = true;
         });
-        layer.batchDraw();
+        en.getLayer().batchDraw();
         return true;
     };
 
@@ -2905,11 +3230,10 @@ function HAMMING_GA(props, layer, alg, stat) {
             });
             en.checkLabelBtn.visible(false);
             en.loadBtn.visible(true);
-            layer.batchDraw();
+            en.getLayer().batchDraw();
         }
         return check;
     };
-
 
     // coloring  and enabling encoder's bits
     en.enableBits = () => {
@@ -2919,7 +3243,8 @@ function HAMMING_GA(props, layer, alg, stat) {
     };
 
     // loading bits in encoder/decoder
-    en.loadBits = (vals, bits) => {
+    en.loadBits = (reg) => {
+        let vals = reg.vals, bits = reg.bits;
         // check for bit moving animation
         if (typeof bits !== 'undefined'){
             for (let i = 0; i < bits.length; i++) {
@@ -2928,7 +3253,7 @@ function HAMMING_GA(props, layer, alg, stat) {
                 layer.add(cloneObj);
                 cloneObj.position(bits[i].getAbsolutePosition());
                 cloneObj.moveToTop();
-                layer.batchDraw();
+                en.getLayer().batchDraw();
                 // moving animation
                 let movement = {};
                 if(en.process === 'enc')
@@ -2939,7 +3264,7 @@ function HAMMING_GA(props, layer, alg, stat) {
                     60,
                     function (pos) { // update function
                         cloneObj.position(pos);
-                        layer.batchDraw();
+                        en.getLayer().batchDraw();
                     },
                     function () { // closure function
                         if(en.process === 'enc'){
@@ -2952,17 +3277,19 @@ function HAMMING_GA(props, layer, alg, stat) {
                         }
 
                         cloneObj.destroy();
-                        if (i === bits.length - 1) { // run its if it is last bit
+                        if (i === bits.length - 1) { // run its if is last bit
                             en.enableBits();
                             en.loadBtn.visible(false);
                             en.equBtn.visible(true);
                             en.createCbits();
                             if(en.process === 'dec') en.createCBitCheck();
-                            layer.batchDraw();
+                            else en.equs.visible(true);
+                            en.getLayer().batchDraw();
                         }
                     }
                 );
             }
+            reg.disable(); // disable the register's nodes
         }
         return true;
     };
@@ -2983,7 +3310,7 @@ function HAMMING_GA(props, layer, alg, stat) {
 
     // equation field/button
     en.equBtn = new Button({
-        id: 'loadBtn',
+        id: 'equBtn',
         height: 40,
         width: en.bits[en.bits.length - 1].x() + en.bits[0].width() - en.bits[0].x(),
         defVal: en.lang.equBtnTxt,
@@ -3001,30 +3328,39 @@ function HAMMING_GA(props, layer, alg, stat) {
     en.equBtn.enable(true);
     en.currCbit = '';
 
-    // Cbits check texts (for decoding)
-    if(en.process === 'dec'){
-        en.CbitCheck = new Konva.Group({id: 'CbitCheck', draggable: true, visible: true,
-            position:{x: en.equBtn.x(), y: en.equBtn.y()+en.equBtn.height()+10}
-        });
-        en.add(en.CbitCheck);
-    }
     // create error analysis (for decoding)
     if(en.process === 'dec') {
+        // Cbits check panel
+        en.CbitCheck = new PANEL({
+            id: 'CbitCheck',
+            name: en.lang.checkRes,
+            position: {x: en.equBtn.x(), y: en.equBtn.y()+en.equBtn.height()+20},
+            type: 2
+        });
+        en.CbitCheck.size({width: 65});
+        en.CbitCheck.visible(false);
+        en.CbitCheck.dragmove(false);
+
+        en.add(en.CbitCheck);
+
+        // error analysis panel
         en.error = new PANEL({
             id: 'resAnalysis',
             name: en.lang.resultAnalysis,
-            position: {x: 90, y:  en.equBtn.y()+ en.equBtn.height()+10}
+            position: {x: en.CbitCheck.x() + en.CbitCheck.width() + 10, y: en.CbitCheck.y()},
+            type: 2
         });
         en.error.moveToTop();
         en.error.visible(false);
-        en.error.size({width: 380, height: 120});
+        en.error.size({width: 360, height: en.CbitCheck.height()});
         en.add(en.error);
+        en.autoCorrSize();
 
         // binary code
         en.error.binCode = SUB('(?????)_2');
         en.error.binCode.id('binCode');
         en.error.binCode.defaultFill(en.equBtn.txt.fill());
-        en.error.binCode.position({x: en.error.label.x() + 15, y: en.error.label.height() + 12});
+        en.error.binCode.position({x: 10, y: 20});
         en.error.binCode.fontSize(18);
         en.error.binCode.auto = null;
         en.error.binCode.man = null;
@@ -3048,7 +3384,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             let str =  thisObj.text();
             str = str.replace('(','');
             str = str.replace(')','');
-            let oldStr = str;
+            let oldStr =thisObj.str;
             thisObj.text(str);
             editable(thisObj, function(obj){
                 let s = obj.text();
@@ -3093,7 +3429,7 @@ function HAMMING_GA(props, layer, alg, stat) {
                 let str = thisObj.text();
                 str = str.replace('(','');
                 str = str.replace(')','');
-                let oldStr = str;
+                let oldStr =thisObj.str;
                 thisObj.text(str);
                 editable(thisObj, function(obj){
                     let s = obj.text();
@@ -3137,7 +3473,7 @@ function HAMMING_GA(props, layer, alg, stat) {
         en.error.sErrTxt =  en.error.noErrTxt.clone();
         en.error.sErrTxt.text(en.lang.singleErr);
         en.error.sErrTxt.id('sErrTxt');
-        en.error.sErrTxt.position({x:en.error.noErrTxt.x()+en.error.noErrTxt.width()+20, y:en.error.noErrTxt.y()});
+        en.error.sErrTxt.position({x:en.error.noErrTxt.x()+en.error.noErrTxt.width()+15, y:en.error.noErrTxt.y()});
         en.error.sErrTxt.off();
         en.error.sErrTxt = over(en.error.sErrTxt);
         en.error.sErrTxt.hoverTxt = en.lang.selectErr;
@@ -3148,7 +3484,7 @@ function HAMMING_GA(props, layer, alg, stat) {
         en.error.dErrTxt =  en.error.noErrTxt.clone();
         en.error.dErrTxt.text(en.lang.doubleErr);
         en.error.dErrTxt.id('dErrTxt');
-        en.error.dErrTxt.position({x:en.error.sErrTxt.x()+en.error.sErrTxt.width()+20, y:en.error.sErrTxt.y()});
+        en.error.dErrTxt.position({x:en.error.sErrTxt.x()+en.error.sErrTxt.width()+15, y:en.error.sErrTxt.y()});
         en.error.dErrTxt.off();
         en.error.dErrTxt=over(en.error.dErrTxt);
         en.error.dErrTxt.hoverTxt = en.lang.selectErr;
@@ -3276,6 +3612,8 @@ function HAMMING_GA(props, layer, alg, stat) {
             en.error.decMsg.fill(color);
             en.error.decMsg.text(en.decodedMsg.auto);
             en.error.decMsg.visible(true);
+
+            en.error.autoCorrSize();
             en.error.getLayer().batchDraw();
         };
 
@@ -3289,7 +3627,6 @@ function HAMMING_GA(props, layer, alg, stat) {
                 return false;
             }
             else{
-                //console.log('correct error position');
                 thisObj.fill(thisObj.defaultFill());
                 if(thisObj.id() === 'binCode') {
                     en.error.equal.visible(true);
@@ -3328,7 +3665,7 @@ function HAMMING_GA(props, layer, alg, stat) {
         en.equBtn.text(Cbit.man.str + val.toString());
         if(en.equBtn.txt.width() > currWidth) en.equBtn.txt.width(currWidth);
 
-        layer.batchDraw();
+        en.getLayer().batchDraw();
         return true;
     };
 
@@ -3384,14 +3721,14 @@ function HAMMING_GA(props, layer, alg, stat) {
                 break;
             }
         }
-        layer.batchDraw();
+        en.getLayer().batchDraw();
     };
 
     // method for creating parity equations for Cbits
     en.createCbits = () => {
         en.Cbits = [];
         let bitId = '';
-        let obj = {equ: [], bins: [], res: ''}; // temp object
+        //let obj = {equ: [], bins: [], res: ''}; // temp object
         let ln = en.bits.length;
         for (let i = 0; i < ln; i++) {
             let bit = en.bits[i];
@@ -3539,10 +3876,12 @@ function HAMMING_GA(props, layer, alg, stat) {
                 txt = new Konva.Text({
                     id: thisCbitId,
                     text: thisCbitId + ' => ',
-                    fontSize: props.labelSize,
+                    fontSize: props.labelSize-2,
                     fontFamily: 'Calibri',
                     align: 'left',
-                    fill: en.equBtn.txt.fill()
+                    fill: en.equBtn.txt.fill(),
+                    x: 5,
+                    y: 10
                 });
             }
             else{
@@ -3558,6 +3897,8 @@ function HAMMING_GA(props, layer, alg, stat) {
             en.CbitCheck.add(txt);
             en.CbitCheck.Cbits.push(txt);
         }
+        en.CbitCheck.autoCorrSize();
+
         // events
         en.CbitCheck.Cbits.forEach(Cbit =>{
             Cbit = hover1(Cbit, en.CbitCheck);
@@ -3582,10 +3923,10 @@ function HAMMING_GA(props, layer, alg, stat) {
         //check for selected control bit
         if (typeof en.Cbits === 'undefined' || en.currCbit === '') return en.lang.noSelectedBit;
         let thisCbit = en.Cbits.find(Cbit => Cbit.id === en.currCbit);
-        if (bit.id().substr(0, 1) === 'C') bit.arrow.reverse(true);
+        if (bit.id().substr(0, 1) === 'C') bit.arrow.flip(true);
 
         if (!bit.arrow.visible()) { // add
-            if (bit.id().substr(0, 1) === 'C') bit.arrow.reverse(true);
+            if (bit.id().substr(0, 1) === 'C') bit.arrow.flip(true);
             alg.markCurrStep('curr');
             bit.arrow.visible(true);
             thisCbit.man.equ.push({
@@ -3608,7 +3949,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             en.equBtn.txt.width(currWidth);
             en.equBtn.rect.width(currWidth);
         }
-        layer.batchDraw();
+        en.getLayer().batchDraw();
         return true;
     };
 
@@ -3648,7 +3989,7 @@ function HAMMING_GA(props, layer, alg, stat) {
                 } else { // add to the equation of current control bit
                     en.addToEqu(this);
                 }
-                layer.batchDraw();
+                en.getLayer().batchDraw();
             });
         });
     };
@@ -3680,9 +4021,9 @@ function HAMMING_GA(props, layer, alg, stat) {
 
             if (en.process === 'enc'){
                 en.bits.find(b => b.id() === en.currCbit).arrow.enableHover(true);
-                en.bits.find(bit => bit.id() === Cbit.id).arrow.reverse(false); // set arrow direction to up
+                en.bits.find(bit => bit.id() === Cbit.id).arrow.flip(false); // set arrow direction to up
             }
-            else en.bits.find(bit => bit.id() === Cbit.id).arrow.reverse(true); // set arrow direction to down for decoding
+            else en.bits.find(bit => bit.id() === Cbit.id).arrow.flip(true); // set arrow direction to down for decoding
             en.bits.forEach(b => { // hide all visible arrows
                 if (b.arrow.visible() === true) b.arrow.visible(false);
                 if (b.id().substr(0, 1) === 'C') b.hoverTxt = en.lang.insertToEqu;
@@ -3695,7 +4036,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             }
             else en.equBtn.text('');
             thisBit.arrow.visible(true); // show/hide arrow
-            layer.batchDraw();
+            en.getLayer().batchDraw();
         } else console.log('Non-existent control bit =>', CbitId);
         return true;
     };
@@ -3712,10 +4053,10 @@ function HAMMING_GA(props, layer, alg, stat) {
                 }
                 Cbit.auto.equ.forEach(el => {
                     let thisBit = en.bits.find(bit => bit.id() === el.bitId);
-                    if (thisBit.id().substr(0, 1) === 'C') thisBit.arrow.reverse(true);
+                    if (thisBit.id().substr(0, 1) === 'C') thisBit.arrow.flip(true);
                     thisBit.arrow.visible(true);
                 });
-                layer.batchDraw();
+                en.getLayer().batchDraw();
             }
         });
         return true;
@@ -3726,7 +4067,7 @@ function HAMMING_GA(props, layer, alg, stat) {
         en.Cbits.forEach(Cbit => {
             if (Cbit.id === en.currCbit) {
                 en.equBtn.text(Cbit.auto.str + Cbit.auto.res);
-                layer.batchDraw();
+                en.getLayer().batchDraw();
             }
         });
         return true;
@@ -3846,8 +4187,7 @@ function HAMMING_GA(props, layer, alg, stat) {
             }
         }
         alg.increment(); // enable next step
-       // if(mode === 'auto') alg.increment(); // enable next step
-        layer.batchDraw();
+        en.getLayer().batchDraw();
         return true;
     };
 
@@ -3861,13 +4201,28 @@ function HAMMING_GA(props, layer, alg, stat) {
         return check;
     };
 
-    // create equation history
-    en.equs = {poss: []};
+    // Control bit equations
+    en.equs = new PANEL({
+        id: 'cbitEqu',
+        name: en.lang.equBtnTxt,
+        position: { x: en.equBtn.x(), y: (en.equBtn.y() + en.equBtn.height() + 20)},
+        type: 2,
+        labelSize: 16
+    });
+    en.add(en.equs);
+    en.autoCorrSize();
+    en.equs.size({width: en.equBtn.width(), height:130});
+    en.equs.visible(false);
+    en.equs.dragmove(false);
+    en.equs.poss=[];
+    en.equs.objs=[];
+
     en.equs.add = (obj) => {
         if (typeof obj === 'undefined') return console.error('Non-existing object!');
-        let newPos = {}, dist = 3;
+        let newPos = {}, dist = 5;
         let cloneObj = obj.clone();
-        if (typeof obj.getParent() !== 'undefined') cloneObj.position(obj.getParent().position());
+        cloneObj.position(en.equBtn.position());
+        en.add(cloneObj);
         cloneObj.id(obj.id + '-clone');
 
         // for C0 - only equation and result
@@ -3876,29 +4231,30 @@ function HAMMING_GA(props, layer, alg, stat) {
             cloneObj.text(str.split('=>')[0] + ' = ' + str.split('=>')[1].split('=')[1]);
         }
         // calculating the new position
-        //cloneObj.height(cloneObj.height() - 20);
         if (en.equs.poss.length === 0) {
-            newPos = {x: en.bits[0].x(), y: en.rect.height() - cloneObj.height() - dist};
+            newPos = {x: en.equs.x() +10, y: en.equs.y() + en.equs.height() - cloneObj.height() - dist};
         } else {
-            newPos.x = en.equs.poss[en.equs.poss.length - 1].x;
+            newPos.x = en.equs.x() + 10;
             newPos.y = en.equs.poss[en.equs.poss.length - 1].y - cloneObj.height() - dist;
         }
-        //console.log('cloneObj.height() ='+cloneObj.height());
-        //cloneObj.align('left');
-        en.add(cloneObj);
+
         // moving animation
         let movement = new SmoothMovement(cloneObj.position(), newPos);
         movement.animate(
             60,
             function (currPos) { // update function
                 cloneObj.position(currPos);
-                layer.batchDraw();
+                en.getLayer().batchDraw();
             },
             function () { // closure function
                 cloneObj.align('left');
-                cloneObj.fontSize(cloneObj.fontSize());
+                //cloneObj.fontSize(cloneObj.fontSize());
+                //cloneObj.position(getRelativePosition(en.equs, cloneObj.getAbsolutePosition()));
+
+                //cloneObj.destroy();
             }
         );
+        en.equs.objs.push(cloneObj);
         en.equs.poss.push(newPos);
     };
 
@@ -3923,6 +4279,21 @@ function HAMMING_GA(props, layer, alg, stat) {
     return en;
 }
 
+// absolute to relative position
+function getRelativePosition(node, absPos) {
+    let nodeAbsPos = node.getAbsolutePosition();
+    let relPos = {x:0, y:0};
+    relPos.x = Math.abs(absPos.x - nodeAbsPos.x);
+    relPos.y = Math.abs(absPos.y - nodeAbsPos.y);
+    return relPos;
+}
+
+////// return array values sum ///////////////////////////////////////////////////////
+function arrSum(array){
+    return array.reduce(function(a, b){
+        return a + b;
+    }, 0);
+}
 
 /////////////////////////////////////////////////////////////////////////////
 editable = (textNode, closeFunc, width) => {
@@ -3932,12 +4303,13 @@ editable = (textNode, closeFunc, width) => {
     textPosition.y += window.scrollY;
 
     // then lets find position of stage container on the page:
-    let stageBox = stage.container().getBoundingClientRect();
+    //let stageBox = stage.container().getBoundingClientRect();
+    let stageBox = textNode.getStage().container().getBoundingClientRect();
 
     // so position of textarea will be the sum of positions above:
     let areaPosition = {
         x: stageBox.left + textPosition.x,
-        y: stageBox.top + textPosition.y
+        y: stageBox.top + textPosition.y - 10
     };
 
     // create textarea and style it
@@ -3956,21 +4328,25 @@ editable = (textNode, closeFunc, width) => {
     textarea.addEventListener('keydown', function(e){
         // hide on enter
         if (e.key === 'Enter') confirm(textarea.value);
-        else if(e.key === 'Escape') document.body.removeChild(textarea);
+        else if(e.key === 'Escape') removeTextarea();
     });
     //textarea.addEventListener("focusout",function(){confirm();});
-    textarea.addEventListener("focusout",function(){document.body.removeChild(textarea)});
+    textarea.addEventListener("focusout",function(){removeTextarea();});
     confirm = function (str){
         if(str !== ''){
             textNode.text(str);
-            document.body.removeChild(textarea);
+            removeTextarea();
             textNode.getLayer().batchDraw();
             closeFunc(textNode); // close function
         }else{
-            document.body.removeChild(textarea);
+            removeTextarea();
             textNode.getLayer().batchDraw();
             closeFunc(textNode); // close function
         }
+    }
+    removeTextarea = function(){
+        try {document.body.removeChild(textarea);}
+        catch (e) {}
     }
 };
 
@@ -3995,7 +4371,7 @@ over = (obj, cursorStyle) =>{
             shape.shadowOpacity(1.0);
         });
 
-        stage.container().style.cursor = cursorStyle;
+        obj.getStage().container().style.cursor = cursorStyle;
         if(typeof this.hover !== 'undefined'){
             if(this.hover.visible() === true) this.hover.hide('f');
             if(this.hoverTxt !== '') this.hover.show('i',this.hoverTxt);
@@ -4013,7 +4389,7 @@ over = (obj, cursorStyle) =>{
             shape.shadowBlur(0);
             shape.shadowOpacity(0);
         });
-        stage.container().style.cursor = 'default';
+        obj.getStage().container().style.cursor = 'default';
         if(typeof this.hover !== 'undefined') this.hover.hide();
         obj.getLayer().batchDraw();
     });
@@ -4030,7 +4406,7 @@ enableOver = (obj, layer, cursorStyle) =>{
             obj.shadowColor('red');
             obj.shadowBlur(10);
             obj.shadowOpacity(1.0);
-            stage.container().style.cursor = cursorStyle;
+            obj.getStage().container().style.cursor = cursorStyle;
             //if(typeof parent.hoverTxt !== 'undefined' && parent.hoverTxt !== '' && typeof parent.hover !== 'undefined')
             if(typeof parent.hover !== 'undefined')
                 if(typeof obj.hoverTxt !== 'undefined' && parent.hoverTxt !== '')
@@ -4045,7 +4421,7 @@ enableOver = (obj, layer, cursorStyle) =>{
             obj.shadowColor('');
             obj.shadowBlur(0);
             obj.shadowOpacity(0);
-            stage.container().style.cursor = 'default';
+            obj.getStage().container().style.cursor = 'default';
             if(typeof this.hover !== 'undefined') this.hover.hide();
             layer.batchDraw();
         });
@@ -4055,7 +4431,7 @@ enableOver = (obj, layer, cursorStyle) =>{
             this.shadowColor('red');
             this.shadowBlur(10);
             this.shadowOpacity(1.0);
-            stage.container().style.cursor = cursorStyle;
+            obj.getStage().container().style.cursor = cursorStyle;
             if(typeof this.hoverTxt !== 'undefined') this.hover.show('i',this.hoverTxt);
             layer.batchDraw();
         });
@@ -4064,7 +4440,7 @@ enableOver = (obj, layer, cursorStyle) =>{
             this.shadowColor('');
             this.shadowBlur(0);
             this.shadowOpacity(0);
-            stage.container().style.cursor = 'default';
+            obj.getStage().container().style.cursor = 'default';
             if(typeof this.hover !== 'undefined') this.hover.hide();
             layer.batchDraw();
         });
@@ -4168,7 +4544,7 @@ function PANEL(props){
     pan.size = function(size){
         if(typeof size === 'undefined') return {width: pan.width(), height: pan.height()};
         if(typeof size.width !== 'undefined'){
-            if(size.width < pan.labelRect.width()) return console.log('The size.width  is < label.width()');
+            //if(size.width < pan.label.width()) return console.log('The size.width  is < label.width()');
             pan.width(size.width);
             pan.rect.width(size.width);
             if(props.type === 1){
@@ -4177,15 +4553,16 @@ function PANEL(props){
             }
         }
         if(typeof size.height !== 'undefined'){
-            if(size.height < pan.labelRect.height()) return console.log('The size.height  is < label.height()');
+            if(size.height < pan.labelRect.height()) return;
             //pan.height(size.height);
             pan.rect.height(size.height);
         }
         pan.width(pan.rect.width());
         pan.height(pan.rect.height());
-        try {pan.getLayer().batchDraw();} catch{};
+        try {pan.getLayer().batchDraw();} catch{}
         try{
             let parent = pan.getParent();
+            //resize the parrent height if it necessary
             if(pan.y()+pan.height()+10 > parent.height())
                 parent.size({height: pan.y()+pan.height()+10});
         } catch{ }
@@ -4200,12 +4577,14 @@ function PANEL(props){
         if(typeof arg === 'undefined') return pan.draggable();
         if(arg !== true &&  arg !== false) return console.log('Incorrect argument for dragmove function!')
         if(arg === true){
-            pan.label.on('mouseover touchstart', function(){
-                stage.container().style.cursor = 'move';
+            pan.label.on('mouseover touchstart click', function(){
+                pan.moveToTop();
+                pan.getLayer().moveToTop();
+                pan.getStage().container().style.cursor = 'move';
                 pan.draggable(true);
             });
             pan.label.on('mouseout touchend', function(){
-                stage.container().style.cursor = 'default';
+                pan.getStage().container().style.cursor = 'default';
                 pan.draggable(false);
             });
         }
@@ -4215,11 +4594,47 @@ function PANEL(props){
         // pan.draggable(arg);
     };
 
+    // Auto orrect the panel size if requared
+    pan.autoCorrSize = function (){
+        let corr = {h:false, w:false};
+        let objs  =  pan.getChildren();
+        for (let i = 3; i<= objs.length-1; i++){
+            if(objs[i].id().search('toolTip') !== -1) continue; // skipping tooltips objects
+            //console.log(objs[i].id(), ' h = '+objs[i].height(), ' w = '+objs[i].width());
+            // check for height, objs[0] is the panel's rectangle object
+            let diff = objs[0].height() - (objs[i].y() + objs[i].height() + 10);
+            if(diff < 0)  {
+                corr.h = true;
+                pan.size({height: pan.height() + Math.abs(diff)});
+            }
+
+            // check for width
+            diff = objs[0].width() - (objs[i].x() + objs[i].width() + 10);
+            if(diff < 0)  {
+                corr.w = true;
+                pan.size({width: pan.width() + Math.abs(diff)});
+            }
+        }
+        //console.log('pan id = '+pan.id(), corr);
+        // correct object's parent size if it's need
+        if(corr.h || corr.w){
+            let parent = pan.getParent();
+            if(parent === null) return;
+            if(parent.getType() === 'Group'){
+                parent.autoCorrSize();
+            }
+            try {pan.getLayer.batchDraw();} catch (e) {}
+            return corr;
+        }
+        else return false;
+    };
+
     return pan;
 }
 
 //LFSR///////////////////////////////////////////////////////////////////////////
-function LFSR(props, layer){
+function LFSR(props, ir, cr, alg, stat){
+
     // CONFIG DEFAULT PROPERTIES
     if (typeof props.sw    === 'undefined') props.sw = {};
     if (typeof props.arrow === 'undefined') props.arrow = {};
@@ -4242,257 +4657,221 @@ function LFSR(props, layer){
     props.sHover = props.sHover || 'Shift the register';
     props.fHover = props.fHover || 'Reverse the register';
 
+    let lang = new LangPack($('input[name="lang"]:checked').val()).gn;
+
+
     // CREATING REGISTER'S PANEL /////////////////////////////////////////////////////////////////
-    let en = new Konva.Group ({
-        id: props.id,
-        name: props.name,
-        x: props.pos.x,
-        y: props.pos.y,
-        width : props.width,
-        height: props.height,
-        draggable:false,
-    });
+    let en = new PANEL(props);
+    en.size({width: props.width, height: props.height});
+    en.label.fontSize(18);
+    en.dragmove(false);
+
     // empty array for values
     en.vals = [];
     en.vals.length = props.bitsNum;
     en.vals.fill(0);
 
-    // Encoder's background rectangle
-    en.rect = new Konva.Rect({
-        id: en.id()+'-rect',
-        width : props.width,
-        height: props.height,
-        fill: props.fill,
-        shadowColor: 'black',
-        shadowBlur: 10,
-        shadowOpacity: 0.5,
-        cornerRadius: 4
-    });
-
-    // Encoder's label
-    en.label = new Konva.Text({
-        id: en.id()+'-lab',
-        width: en.rect.width(),
-        text: props.name,
-        fontSize: props.labelSize + 4,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'center',
-        verticalAlign: 'middle',
-        fill: props.labelColor,
-        visible:true
-    });
-    // label's background rectangle
-    en.labelRect = new Konva.Rect({
-        id: en.id()+'-labRect',
-        width : en.rect.width(),
-        height: en.label.height() + 2*props.labelPadding,
-        fill: props.labelBgColor,
-        cornerRadius: 4,
-        opacity: 1.0,
-        draggable: false
-    });
-    en.label.height(en.labelRect.height());
-
-    en.setW = (val)=>{
-        en.width(val);
-        en.rect.width(val);
-        en.label.width(val);
-        en.labelRect.width(val);
-    };
-
     // create encoder's polynomial label
-    en.poly = POLY(props.poly);
+    en.poly = custText(props.poly);
     en.poly.setSize(14);
-    en.poly.setColor('white');
-    en.poly.position({x: en.rect.x() + 5, y: en.rect.y()+en.poly.height()-5});
+    en.poly.fill('white');
+    en.poly.position({x: en.label.x() + 5, y: en.label.y()+6});
+    en.add(en.poly);
 
-    // mouse hover info
-    en.info = new INFO(layer, en);
 
-    // add components to mein group
-    en.add(en.rect, en.labelRect, en.label, en.poly, en.info);
-
-    // ENCODER'S FEADBACK
-    en.fb = new Konva.Group ({id: 'fb'});
-    en.fb.val = 0;	// default value
 
     // CREATING LFSR'S BITS /////////////////////////////////////////////////////////////////
-    // BIT properties
-    if (typeof props.bit  === 'undefined') props.bit = {};
-    props.bit.hoverTxt = props.bit.hoverTxt || 'Load Bit';
-    props.bit.width = props.bit.width || 40;
-    props.bit.height = props.bit.height || 50;
-    props.bit.name = props.bit.name || 'LFSR Bit';
-    props.bit.fill = props.bit.fill || 'Teal';
-    props.bit.stroke = props.bit.stroke || 'Teal';
-    props.bit.txtColor = props.bit.txtColor || 'darkBlue';
-    props.bit.defVal = '0';
-    props.bit.clickable = false;
+    createBits = function(){
+        // BIT properties
+        if (typeof props.bit  === 'undefined') props.bit = {};
+        props.bit.hoverTxt = props.bit.hoverTxt || 'Load Bit';
+        props.bit.width = props.bit.width || 40;
+        props.bit.height = props.bit.height || 50;
+        props.bit.name = props.bit.name || 'bit';
+        props.bit.fill = props.bit.fill || 'Teal';
+        props.bit.stroke = props.bit.stroke || 'Teal';
+        props.bit.txtColor = props.bit.txtColor || 'darkBlue';
+        props.bit.defVal = '0';
+        props.bit.clickable = false;
 
-    en.bits=[]; // empty array for register's bits
-    let zIndex = null;
-    let addDist =  props.bit.width + props.pading*7;
-    // first bit position
-    let pos = {	x: en.rect.x() + addDist/2.5,
-                y: en.rect.y() + en.rect.height() - props.bit.height - props.pading*5};
-    for (let i=0; i<props.bitsNum; i++){
-        props.bit.id ='d'+i;
-        props.bit.label = 'D'+(i);
-        let bit = new Button(props.bit,layer); // creating the current bit
-        bit.position(pos); // bit positioning
-        pos.x += addDist; // position change for the next bit
+        en.bits=[]; // empty array for register's bits
+        let zIndex = null;
+        let addDist =  props.bit.width + props.pading*7;
+        // first bit position
+        let pos = {	x: en.rect.x() + addDist/2.5,
+            y: en.rect.y() + en.rect.height() - props.bit.height - props.pading*5};
+        for (let i=0; i<props.bitsNum; i++){
+            props.bit.id ='d'+i;
+            props.bit.label = 'D'+(i);
+            let bit = new Button(props.bit); // creating the current bit
+            bit.name(props.bit.name);
+            bit.enable(false);
+            bit.position(pos); // bit positioning
+            pos.x += addDist; // position change for the next bit
 
-        en.bits[i] = bit;
-        en.add(en.bits[i]);
-        if (i === 0) zIndex = bit.getZIndex();
-        else bit.setZIndex(zIndex);
+            en.bits[i] = bit;
+            en.add(en.bits[i]);
+            if (i === 0) zIndex = bit.getZIndex();
+            else bit.setZIndex(zIndex);
+        }
     }
+    createBits();
 
     // CREATING XORs /////////////////////////////////////////////////////////////////
-    if (typeof props.xor   === 'undefined') props.xor = {};
-    let dist = en.bits[1].x() - (en.bits[0].x() + en.bits[0].width());
-    en.xors=[];
-    en.xorIds=props.xorIds;
-    en.xorIds.forEach(xorId =>{
-        let bit = en.bits[Number(xorId.substr(3))];
-        pos.x = bit.x() + bit.width() + dist/2;
-        pos.y = bit.y() + bit.height()/2;
-        if (xorId === en.xorIds[en.xorIds.length -1]){
-            pos.x += props.pading*3; // last xor's X cordinate correction
-        }
-        let xor = new XOR({	id: xorId,
-            label: 'XOR' + en.xors.length,
-            hover: props.xor.hoverTxt,
-            fbHover: props.xor.fbHover
-        },layer);
-        xor.position(pos); // xor positioning
-        if (xorId === en.xorIds[en.xorIds.length -1]){
-            xor.label.x(xor.label.x() - 30); // last xor's Label x cordinate correction
-            xor.markAsFB(true); // mark as feedback's XOR
-        }
+    createXORs = function(){
+        if (typeof props.xor   === 'undefined') props.xor = {};
+        let dist = en.bits[1].x() - (en.bits[0].x() + en.bits[0].width());
+        let pos={x:0, y:0};
+        en.xors=[];
+        en.xorIds=props.xorIds;
+        en.xorIds.forEach(xorId =>{
+            let bit = en.bits[Number(xorId.substr(3))];
+            pos.x = bit.x() + bit.width() + dist/2;
+            pos.y = bit.y() + bit.height()/2;
+            if (xorId === en.xorIds[en.xorIds.length -1]){
+                pos.x += props.pading*3; // last xor's X cordinate correction
+            }
+            let xor = new XOR({	id: xorId,
+                label: 'XOR' + en.xors.length,
+                hover: props.xor.hoverTxt,
+                fbHover: props.xor.fbHover
+            });
+            en.add(xor);
+            xor = over(xor);
+            xor.hoverTxt = props.xor.hoverTxt;
+            xor = hover1(xor, en);
 
-        // reset the input value of next LSFR's bit
-        if (xor.isFB === false) en.bits[Number(xor.id().substring(3))+1].inVal = xor.res;
+            xor.position(pos); // xor positioning
+            if (xorId === en.xorIds[en.xorIds.length -1]){
+                xor.label.x(xor.label.x() - 30); // last xor's Label x cordinate correction
+                xor.markAsFB(true); // mark as feedback's XOR
+            }
 
-        xor.on('mouseover touchstart', function(){
-            en.info.show('i',xor.hoverTxt);
-            xor.hoverOn();
+            // reset the input value of next LSFR's bit
+            if (xor.isFB === false) en.bits[Number(xor.id().substring(3))+1].inVal = xor.res;
+
+            en.xors.push(xor);
         });
-        // mоuse hover out event
-        xor.on('mouseout touchend', function(){
-            en.info.hide();
-            xor.hoverOff();
+        en.updateXors = function(){
+            en.xors.forEach(xor => {
+                let in1, in2;
+                if (xor.isFB === true){ // for XOR of the feedback
+                    in1 = en.vals[en.vals.length-1];
+                    in2 = ir.vals[ir.vals.length-1];
+                }
+                else {// for others XOR
+                    in1 = en.fb.val;
+                    in2 = en.vals[Number(xor.id().substr(3))];
+                }
+                //console.log(xor.id()+' => in1 = '+in1+', in2 = '+in2);
+
+                xor.setInputs(in1, in2);
+            });
+        }
+    }
+    createXORs();
+
+    // Creating switches
+    createSwitches = function(){
+        // CREATING SWITCHES /////////////////////////////////////////////////////////////////
+        // SWITCH 1
+        let pos={x:0, y:0};
+        pos.x = en.bits[en.bits.length-1].x()+4;
+        en.sw1 = new SWITCH({type:	'pos2', // switch with 2 position
+            id: 'sw1',
+            name: 'SW1',
+            hover: props.sw.hoverTxt
         });
+        en.add(en.sw1);
+        en.sw1.position(pos);
+        en.sw1.y(en.bits[0].y() - en.sw1.rect.height()*2.3);
+        en.sw1 = over(en.sw1);
+        en.sw1.hoverTxt = props.sw.hoverTxt;
+        en.sw1 = hover1(en.sw1, en);
 
-        layer.batchDraw();
-        en.xors.push(xor);
-        en.add(en.xors[en.xors.length-1]);
-    });
+        // SWITCH 2
+        pos.x = en.xors[en.xors.length-1].x() + 30;
+        en.sw2 = new SWITCH({type:	'pos3',
+            id: 'sw2',
+            name: 'SW2',
+            //pos: {x: pos.x},
+            hover: props.sw.hoverTxt
+        });
+        en.add(en.sw2);
+        en.sw2.position(pos);
+        en.sw2.y(en.xors[en.xors.length-1].y() - en.sw2.rect.height()/2);
+        en.sw2.lab.x(en.sw2.lab.x()+5);
+        en.sw2 = over(en.sw2);
+        en.sw2.hoverTxt = props.sw.hoverTxt;
+        en.sw2 = hover1(en.sw2, en);
+    }
+    createSwitches();
 
-    // CREATING SWITCHES /////////////////////////////////////////////////////////////////
-    // SWITCH 1
-    pos.x = en.bits[en.bits.length-1].x()+4;
-    en.sw1 = new SWITCH({type:	'pos2', // switch with 2 position
-        id: 'sw1',
-        name: 'SW1',
-        hover: props.sw.hoverTxt
-    }, layer);
-    en.sw1.position(pos);
-    en.sw1.y(en.bits[0].y() - en.sw1.rect.height()*2.3);
-    // mоuse hover event
-    en.sw1.on('mouseover touchstart', function(){
-        en.info.show('i', en.sw1.hoverTxt);
-        en.sw1.hoverOn();
-    });
-    // mоuse hover leave event
-    en.sw1.on('mouseout touchend', function(){
-        en.info.hide();
-        en.sw1.hoverOff();
-    });
-
-    en.add(en.sw1);
-
-    // SWITCH 2
-    pos.x = en.xors[en.xors.length-1].x() + 30;
-    en.sw2 = new SWITCH({type:	'pos3',
-        id: 'sw2',
-        name: 'SW2',
-        //pos: {x: pos.x},
-        hover: props.sw.hoverTxt
-    }, layer);
-    en.sw2.position(pos);
-    en.sw2.y(en.xors[en.xors.length-1].y() - en.sw2.rect.height()/2);
-    en.sw2.lab.x(en.sw2.lab.x()+5);
-    // mоuse hover event
-    en.sw2.on('mouseover touchstart', function(){
-        en.info.show('i', en.sw2.hoverTxt);
-        en.sw2.hoverOn();
-    });
-    // mоuse hover leave event
-    en.sw2.on('mouseout touchend', function(){
-        en.info.hide();
-        en.sw2.hoverOff();
-    });
-    en.add(en.sw2);
-
-    // register's rectangle and label width correcting
-    //en.rect.width((en.sw2.x() + en.sw2.rect.width()) - en.x() + props.pading*6);
-    //en.label.width(en.rect.width());
-    en.setW((en.sw2.x() + en.sw2.rect.width()) - en.x() + props.pading*6);
-
+    //en.setW((en.sw2.x() + en.sw2.rect.width()) - en.x() + props.pading*6);
+    en.size({width: (en.sw2.x() + en.sw2.rect.width()) + 20});
 
     // ENCODER IN/OUT SOKET
-    en.soket = (str='') => {
-        let p = str === 'abs' ? en.position():{x:0,y:0};
-        return{
-            connI: {x: en.xors[en.xors.length-1].soket().connD.x + p.x,
-                y: en.xors[en.xors.length-1].soket().connD.y + p.y + 40
-            },
-            connO: {x: en.sw2.soket().connR.x + p.x,
-                y: en.sw2.soket().connR.y + p.y
+    createSokets = function(){
+        en.soket = (str='') => {
+            let p = str === 'abs' ? en.position(): {x:0,y:0};
+            return{
+                connI: {x: en.xors[en.xors.length-1].soket().connD.x + p.x,
+                        y: en.height() + p.y
+                },
+                connO: {x: en.sw2.soket().connR.x + (en.width() - en.sw2.soket().connR.x) + p.x,
+                        y: en.sw2.soket().connR.y + p.y
+                }
             }
-        }
-    };
+        };
+    }
+    createSokets();
 
     // ENCODER'S FEEDBACK set
-    pos = {x: en.xors[en.xors.length-1].x() + 6,
-        y: en.xors[en.xors.length-1].y() - 90};
-    //en.fb = new Konva.Group ({id: 'fb'});
-    en.fb.position(pos);
-    en.fb.txtFb = new Konva.Text({
-        id: en.fb + '-txt',
-        text: 'FB = ',
-        fontSize: 18,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'left',
-        verticalAlign: 'middle',
-        fill: 'black'
-    });
-    en.fb.txtVal = new Konva.Text({
-        id: en.fb + '-val',
-        x: en.fb.txtFb.x() + en.fb.txtFb.width(),
-        y: en.fb.txtFb.y(),
-        text: '?',
-        fontSize: 18,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'left',
-        verticalAlign: 'middle',
-        fill: 'black'
-    });
-    en.fb.reset = function(){
-        en.fb.txtVal.fill('grey');
-        en.fb.txtVal.text('?');
-    };
-    en.fb.setVal = function (val){
-        en.fb.val = val;
-        en.fb.txtVal.text(en.fb.val.toString());
-        en.fb.txtVal.fill('black');
-        layer.batchDraw();
-    };
-    en.add(en.fb.add(en.fb.txtFb, en.fb.txtVal));
+    createFeedBack = function(){
+        // ENCODER'S FEADBACK
+        en.fb = new Konva.Group ({id: 'fb'});
+        en.add(en.fb);
+        en.fb.val = 0;	// default value
+        let pos = {x: en.xors[en.xors.length-1].x() + 6,
+            y: en.xors[en.xors.length-1].y() - 90};
+        //en.fb = new Konva.Group ({id: 'fb'});
+        en.fb.position(pos);
+        en.fb.txtFb = new Konva.Text({
+            id: en.fb + '-txt',
+            text: 'FB = ',
+            fontSize: 18,
+            fontFamily: 'Calibri',
+            padding: 0,
+            align: 'left',
+            verticalAlign: 'middle',
+            fill: 'black'
+        });
+        en.fb.txtVal = new Konva.Text({
+            id: en.fb + '-val',
+            x: en.fb.txtFb.x() + en.fb.txtFb.width(),
+            y: en.fb.txtFb.y(),
+            text: '?',
+            fontSize: 18,
+            fontFamily: 'Calibri',
+            padding: 0,
+            align: 'left',
+            verticalAlign: 'middle',
+            fill: 'black'
+        });
+        en.fb.reset = function(){
+            en.fb.txtVal.fill('grey');
+            en.fb.txtVal.text('?');
+        };
+        en.fb.setVal = function (val){
+            en.fb.val = val;
+            en.fb.txtVal.text(en.fb.val.toString());
+            en.fb.txtVal.fill('black');
+            en.getLayer().batchDraw();
+        };
+        en.fb.add(en.fb.txtFb, en.fb.txtVal);
+    }
+    createFeedBack();
+
 
     // Encoder's >>> button
     en.S = new Konva.Text({
@@ -4509,196 +4888,199 @@ function LFSR(props, layer){
     en.S.y(en.rect.y()  + en.rect.height()- en.S.height() - props.labelDistance);
     en.S.hoverTxt = props.sHover;
     en.add(en.S);
+    en.S = over(en.S);
+    en.S.hoverTxt =  props.shiftHoverTxt;
+    en.S = hover1(en.S, en);
 
-
-
-    // Shifth (>>>) Button events
-    // mоuse hover event
-    en.S.on('mouseover touchstart', function(){
-        en.S.shadowColor('red'),
-            en.S.shadowBlur(10),
-            en.S.shadowOpacity(1.0),
-            stage.container().style.cursor = 'pointer';
-        en.info.show('i',this.hoverTxt);
-        layer.batchDraw();
-    });
-    // mоuse hover out event
-    en.S.on('mouseout touchend', function(){
-        en.S.shadowColor('');
-        en.S.shadowBlur(0);
-        en.S.shadowOpacity(0);
-        stage.container().style.cursor = 'default';
-        en.info.hide();
-        layer.batchDraw();
-    });
 
     // DRAWING OF ARROWS /////////////////////////////////////////////////////////////////
-    // lfsrBit to lfsrBit/xor
-    let b, e;
-    en.connects=[];
-    let conn ={};
-    for (let i=0; i<props.bitsNum; i++){
-        let xor=en.xors.find(xor => xor.id() === 'xor'+i);
-        if(typeof xor === 'undefined'){ // there isn't xor element
-            b = en.bits[i].soket().connR; // connection's begin position
-            e = en.bits[i+1].soket().connL; // connection's end position
-            props.arrow.dir='r';
-            props.arrow.id='conn-d'+i+'-d'+(i+1);
-        }
+    drawArrows = function(){
+        // lfsrBit to lfsrBit/xor
+        let b, e;
+        en.connects=[];
+        let conn ={};
+        for (let i=0; i<props.bitsNum; i++){
+            let xor=en.xors.find(xor => xor.id() === 'xor'+i);
+            if(typeof xor === 'undefined'){ // there isn't xor element
+                b = en.bits[i].soket().connR; // connection's begin position
+                e = en.bits[i+1].soket().connL; // connection's end position
+                props.arrow.dir='r';
+                props.arrow.id='conn-d'+i+'-d'+(i+1);
+            }
 
-        else{ // there is xor element
-            // connection befor xor
-            b = en.bits[i].soket().connR; // connection's begin position
-            e = xor.soket().connL; // connection's end position
-            props.arrow.dir='r';
-            props.arrow.id='conn-d'+(i)+'-xor'+(i-1);
+            else{ // there is xor element
+                // connection befor xor
+                b = en.bits[i].soket().connR; // connection's begin position
+                e = xor.soket().connL; // connection's end position
+                props.arrow.dir='r';
+                props.arrow.id='conn-d'+(i)+'-xor'+(i-1);
+                conn = (new Connection(props.arrow));
+                conn.setP([b.x,b.y,e.x,e.y]);
+                en.add(conn);
+                en.connects.push(conn);
+                // connection after xor
+                if (i < props.bitsNum-1)
+                {
+                    b = xor.soket().connR; // connection's begin position
+                    e = en.bits[i+1].soket().connL; // connection's end position
+                    props.arrow.dir='r';
+                }
+            }
             conn = (new Connection(props.arrow));
             conn.setP([b.x,b.y,e.x,e.y]);
             en.add(conn);
             en.connects.push(conn);
-            // connection after xor
-            if (i < props.bitsNum-1)
-            {
-                b = xor.soket().connR; // connection's begin position
-                e = en.bits[i+1].soket().connL; // connection's end position
-                props.arrow.dir='r';
-            }
         }
+        // last XOR to SW1
+        b = en.xors[en.xors.length -1].soket().connU; // connection's begin position
+        e = en.sw1.soket().connR; // connection's end position
+        props.arrow.dir='l';
+        props.arrow.id = 'conn-xor'+en.xors[en.xors.length -1].id()+'-sw1';
         conn = (new Connection(props.arrow));
-        conn.setP([b.x,b.y,e.x,e.y]);
+        conn.setP([b.x, b.y, b.x, e.y, e.x, e.y]);
         en.add(conn);
         en.connects.push(conn);
-    }
-    // last XOR to SW1
-    b = en.xors[en.xors.length -1].soket().connU; // connection's begin position
-    e = en.sw1.soket().connR; // connection's end position
-    props.arrow.dir='l';
-    props.arrow.id = 'conn-xor'+en.xors[en.xors.length -1].id()+'-sw1';
-    conn = (new Connection(props.arrow));
-    conn.setP([b.x, b.y, b.x, e.y, e.x, e.y]);
-    en.add(conn);
-    en.connects.push(conn);
 
-    // SW1 to lsfrBit[0]
-    b = en.sw1.soket().connL; // connection's end position
-    e = en.bits[0].soket().connL; // connection's end position
-    props.arrow.dir='r';
-    props.arrow.id = 'conn-sw1'+'-d0';
-    conn = (new Connection(props.arrow));
-    conn.setP([b.x, b.y, e.x-(props.pading*3), b.y, e.x-(props.pading*3), e.y, e.x, e.y]);
-    en.add(conn);
-    en.connects.push(conn);
+        // SW1 to lsfrBit[0]
+        b = en.sw1.soket().connL; // connection's end position
+        e = en.bits[0].soket().connL; // connection's end position
+        props.arrow.dir='r';
+        props.arrow.id = 'conn-sw1'+'-d0';
+        conn = (new Connection(props.arrow));
+        conn.setP([b.x, b.y, e.x-(props.pading*3), b.y, e.x-(props.pading*3), e.y, e.x, e.y]);
+        en.add(conn);
+        en.connects.push(conn);
 
-    // SW1 to XORs
-    b = en.sw1.soket().connL; // connection's begin position
-    for (let i=0; i<en.xors.length-1; i++){
-        e = en.xors[i].soket().connU; // connection's end position
+        // SW1 to XORs
+        b = en.sw1.soket().connL; // connection's begin position
+        for (let i=0; i<en.xors.length-1; i++){
+            e = en.xors[i].soket().connU; // connection's end position
+            props.arrow.dir='d';
+            props.arrow.id = 'conn-sw1-'+en.xors[i].id();
+            conn = (new Connection(props.arrow));
+            conn.setP([e.x, b.y, e.x, e.y]);
+            en.add(conn);
+            en.connects.push(conn);
+        }
+
+        // last regBits to SW2
+        b = en.bits[en.bits.length-1].soket().connR; // connection's begin position
+        b.x = b.x + ((en.xors[en.xors.length-1].soket().connL.x - b.x) / 2); // begin's X cord. correction
+        e = en.sw2.soket().connU; // connection's end position
         props.arrow.dir='d';
-        props.arrow.id = 'conn-sw1-'+en.xors[i].id();
+        props.arrow.id = 'conn-'+en.bits[en.bits.length-1].id()+'-sw2';
+        let distV = 55;
         conn = (new Connection(props.arrow));
-        conn.setP([e.x, b.y, e.x, e.y]);
+        conn.setP([b.x, b.y, b.x, b.y-distV, e.x, b.y-distV, e.x, e.y]);
+        en.add(conn);
+        en.connects.push(conn);
+
+        // connI to the last XOR
+        b = en.soket().connI; // connection's begin position
+        e = en.xors[en.xors.length-1].soket().connD; // connection's end position
+        props.arrow.dir='u';
+        props.arrow.id = 'conn-in-'+en.xors[en.xors.length-1].id();
+        conn = new Connection(props.arrow);
+        conn.setP([b.x, b.y, e.x, e.y]);
+        en.add(conn);
+        en.connects.push(conn);
+
+        // Creating dots of lines
+        en.dots=[];
+        let dotProps = {id: '', pos:{}, fill: props.arrow.fill};
+        // XORs' dot
+        let idx=0;
+        en.connects.find(conn =>{
+            if(conn.id() === 'conn-sw1-'+props.xorIds[idx]){
+                //console.log(conn.id());
+                dotProps.id = 'dot-'+props.xorIds[idx];
+                idx++;
+                dotProps.pos.x = conn.points()[0];
+                dotProps.pos.y = conn.points()[1];
+                en.dots.push(new Dot(dotProps));
+                en.add(en.dots[en.dots.length-1]);
+            }
+        });
+
+        // in dot
+        en.connects.find(conn =>{
+            if(conn.id() === 'conn-in-'+props.xorIds[props.xorIds.length-1]){
+                //console.log(conn.id());
+                dotProps.id = 'dot-'+props.xorIds[idx];
+                idx++;
+                dotProps.pos.x = conn.points()[0];
+                dotProps.pos.y = conn.points()[1]-20;
+                en.dots.push(new Dot(dotProps));
+                en.add(en.dots[en.dots.length-1]);
+            }
+        });
+
+        // connI to SW2
+        b = en.soket().connI; // connection's begin position
+        b.y -= 20;
+        e = en.sw2.soket().connD; // connection's end position
+        props.arrow.dir='u';
+        props.arrow.id = 'conn-in-sw2';
+        conn = new Connection(props.arrow);
+        conn.setP([b.x, b.y, e.x, b.y, e.x, e.y]);
+        en.add(conn);
+        en.connects.push(conn);
+
+        // last regBit to sw2 dot
+        en.connects.find(conn =>{
+            if(conn.id() === 'conn-'+en.bits[en.bits.length-1].id()+'-sw2'){
+                dotProps.id = 'dot-sw2';
+                idx++;
+                dotProps.pos.x = conn.points()[0];
+                dotProps.pos.y = conn.points()[1];
+                en.dots.push(new Dot(dotProps));
+                en.add(en.dots[en.dots.length-1]);
+            }
+        });
+
+        // SW2 to ConnO
+        b = en.sw2.soket().connR; // connection's begin position
+        e = en.soket().connO; // connection's end position
+        props.arrow.dir='r';
+        props.arrow.id = 'conn-sw2-connO';
+        props.arrow.type='line';
+        conn = new Connection(props.arrow);
+        conn.setP([b.x, b.y, e.x, b.y, e.x, e.y]);
         en.add(conn);
         en.connects.push(conn);
     }
-
-    // last regBits to SW2
-    b = en.bits[en.bits.length-1].soket().connR; // connection's begin position
-    b.x = b.x + ((en.xors[en.xors.length-1].soket().connL.x - b.x) / 2); // begin's X cord. correction
-    e = en.sw2.soket().connU; // connection's end position
-    props.arrow.dir='d';
-    props.arrow.id = 'conn-'+en.bits[en.bits.length-1].id()+'-sw2';
-    let distV = 55;
-    conn = (new Connection(props.arrow));
-    conn.setP([b.x, b.y, b.x, b.y-distV, e.x, b.y-distV, e.x, e.y]);
-    en.add(conn);
-    en.connects.push(conn);
-
-    // connI to the last XOR
-    b = en.soket().connI; // connection's begin position
-    e = en.xors[en.xors.length-1].soket().connD; // connection's end position
-    props.arrow.dir='u';
-    props.arrow.id = 'conn-in-'+en.xors[en.xors.length-1].id();
-    conn = new Connection(props.arrow);
-    conn.setP([b.x, b.y, e.x, e.y]);
-    en.add(conn);
-    en.connects.push(conn);
-
-    // connI to SW2
-    b = en.soket().connI; // connection's begin position
-    e = en.sw2.soket().connD; // connection's end position
-    props.arrow.dir='u';
-    props.arrow.id = 'conn-in-sw2';
-    conn = new Connection(props.arrow);
-    conn.setP([b.x, b.y, e.x, b.y, e.x, e.y]);
-    en.add(conn);
-    en.connects.push(conn);
-
-    // Creating dots of lines
-    en.dots=[];
-    let dotProps = {id: '', pos:{}, fill: props.arrow.fill};
-    // XORs' dot
-    let idx=0;
-    en.connects.find(conn =>{
-        if(conn.id() === 'conn-sw1-'+props.xorIds[idx]){
-            //console.log(conn.id());
-            dotProps.id = 'dot-'+props.xorIds[idx];
-            idx++;
-            dotProps.pos.x = conn.points()[0];
-            dotProps.pos.y = conn.points()[1];
-            en.dots.push(new Dot(dotProps));
-            en.add(en.dots[en.dots.length-1]);
-        }
-    });
-
-    // in dot
-    en.connects.find(conn =>{
-        if(conn.id() === 'conn-in-'+props.xorIds[props.xorIds.length-1]){
-            //console.log(conn.id());
-            dotProps.id = 'dot-'+props.xorIds[idx];
-            idx++;
-            dotProps.pos.x = conn.points()[0];
-            dotProps.pos.y = conn.points()[1];
-            en.dots.push(new Dot(dotProps));
-            en.add(en.dots[en.dots.length-1]);
-        }
-    });
-    // last regBit to sw2 dot
-    en.connects.find(conn =>{
-        if(conn.id() === 'conn-'+en.bits[en.bits.length-1].id()+'-sw2'){
-            dotProps.id = 'dot-sw2';
-            idx++;
-            dotProps.pos.x = conn.points()[0];
-            dotProps.pos.y = conn.points()[1];
-            en.dots.push(new Dot(dotProps));
-            en.add(en.dots[en.dots.length-1]);
-        }
-    });
+    drawArrows();
 
     // CREATING X-LABELS //////////////////////////////////////////////
-    en.labels=[];
-    let labNum = en.bits.length + 1;
-    let rMidDist = (en.bits[1].soket().connL.x - en.bits[0].soket().connR.x) / 2;
-    for (let i=0; i<labNum; i++){
-        let xLab = new SUP('X^'+i);
-        if (i === 0){ // first X-label
-            pos.x = en.connects.find(conn =>{
-                if(conn.id() === 'conn-sw1-'+en.bits[0].id()){ return conn;}
-            }).points()[2]-7;
+    createXlabels = function(){
+        let pos={x:0, y:0};
+        en.labels=[];
+        let labNum = en.bits.length + 1;
+        let rMidDist = (en.bits[1].soket().connL.x - en.bits[0].soket().connR.x) / 2;
+        for (let i=0; i<labNum; i++){
+            //let xLab = new SUP('X^'+i);
+            let xLab = custText('X^'+i);
+            if (i === 0){ // first X-label
+                pos.x = en.connects.find(conn =>{
+                    if(conn.id() === 'conn-sw1-'+en.bits[0].id()){ return conn;}
+                }).points()[2]-7;
+            }
+            else if(i === labNum-1){ // last X-label
+                pos.x = en.connects.find(conn =>{
+                    if(conn.id() === 'conn-xor'+en.xors[en.xors.length -1].id()+'-sw1'){ return conn;}
+                }).points()[0]-7;
+            }
+            else{ // oters X-label
+                pos.x = en.bits[i-1].soket().connR.x + rMidDist -7;
+            }
+            xLab.id('xLabel'+i);
+            xLab.position({x: pos.x, y: en.sw1.soket().connL.y - xLab.height() - 10});
+            xLab.setSize(20);
+            en.labels.push(xLab);
+            en.add(en.labels[en.labels.length-1]);
         }
-        else if(i === labNum-1){ // last X-label
-            pos.x = en.connects.find(conn =>{
-                if(conn.id() === 'conn-xor'+en.xors[en.xors.length -1].id()+'-sw1'){ return conn;}
-            }).points()[0]-7;
-        }
-        else{ // oters X-label
-            pos.x = en.bits[i-1].soket().connR.x + rMidDist -7;
-        }
-        xLab.setID('xLabel'+i);
-        xLab.position({x: pos.x, y: en.sw1.soket().connL.y - xLab.height() - 10});
-        xLab.setSize(20);
-        en.labels.push(xLab);
-        en.add(en.labels[en.labels.length-1]);
     }
+    createXlabels();
 
     // calculate feadback value
     en.calcFB = function(){
@@ -4708,12 +5090,12 @@ function LFSR(props, layer){
                 xor.showRes();
                 en.fb.setVal(xor.res);
             }
-            layer.batchDraw();
+            en.getLayer().batchDraw();
         });
 
         en.xors[en.xors.length-1].calc();
         en.fb.setVal(en.xors[en.xors.length-1].res);
-        layer.batchDraw();
+        en.getLayer().batchDraw();
     };
 
     // check feadback value
@@ -4745,7 +5127,7 @@ function LFSR(props, layer){
                 xor.res = xor.calc();
                 xor.showRes();
             }
-            layer.batchDraw();
+            en.getLayer().batchDraw();
         });
     };
 
@@ -4757,120 +5139,309 @@ function LFSR(props, layer){
     };
 
     // shift encoder's bits to right
-    en.shiftR = function(animation){
-        animation = animation || false;
-        let ln = en.bits.length-1;
-        if (en.sw1.pos === 1){	// when the sw1 is closed
-            for (let i=ln; i>=0; i--){
-                let xor = en.xors.find(xor => xor.id() === 'xor'+(i-1)); // check for XOR element
-                if (typeof xor !== 'undefined') { // there is XOR element
-                    en.vals[i] = xor.res;
-                    if (!animation) {
-                        en.bits[i].txt.text(en.vals[i].toString());
-                        xor.reset();
+    createShift = function(){
+        en.chain = [];
+        en.moving = false; // moving flag
+        en.shiftR = function(speedFactor){
+            if(en.moving) return;
+            en.moving = true; // enable moving flag
+            let chain=[], vals=[], xorIdx = [];
+            // create the chain
+            for(let i=0; i<=(en.bits.length-1); i++){
+                chain.push(en.bits[i]);
+                vals.push(en.vals[i]);
+                let xor = en.xors.find(x => x.id() === 'xor'+i);
+                if(typeof xor !== 'undefined') {
+                    if (en.sw1.pos === 1){ // the sw1 is closed
+                        chain.push(xor);
+                        let val;
+                        if (xor.txt.text() !== '0' && xor.txt.text() !== '1') val = 0;
+                        else val = Number(xor.txt.text());
+                        vals.push(val);
+                        xorIdx.push(vals.length-1);
+                    }
+                    else // the sw1 is open
+                        xor.disable();
+                }
+            }
+
+            // update te LFSR values
+            if (en.sw1.pos === 1) { // the sw1 is closed
+                vals.unshift(vals[vals.length-1]); // insert the last value in the beginig
+            }
+            else vals.unshift(''); // insert the last value in the beginig
+
+            vals.pop(); // remove the last value;
+            let newVals=[];
+            for(let i=0; i<vals.length; i++) if(xorIdx.findIndex(idx => idx === i) === -1) newVals.push(vals[i]); // get only bit's values
+            en.vals = [...newVals];
+
+            let loopFirst
+            let loopLast;
+            if(en.sw1.pos === 1) {
+                loopFirst = chain.length - 2;
+                loopLast = -1;
+            }else{
+                loopFirst = chain.length - 1;
+                loopLast = 0;
+            }
+
+            en.chain = [...chain];
+            for(let i=loopFirst; i>=loopLast; i--){
+                if(i === loopFirst){
+                    if(en.sw1.pos === 1) {
+                        chain[i].txt.visible(false);
                         continue;
                     }
-                    // moving animation
-                    let movement = new SmoothMovement(xor.txt.position(), {x: en.bits[i].rect.x(), y:xor.txt.y()});
-                    //en.bits[i].txt.visible(false);
-                    movement.animate(
-                        75,
-                        function(pos){
-                            xor.txt.position(pos);
-                            layer.batchDraw();
-                        },
-                        function(){
-                            xor.txt.position(xor.txtPos()); // set back xor's position
-                            en.bits[i].txt.text(en.vals[i].toString());
-                            xor.reset();
-                            layer.batchDraw();
-                        }
-                    );
-                    // xor.reset();
+                    else continue;
                 }
-                else{ // there isn't XOR element
-                    if (i === 0){
-                        let xor =en.xors[en.xors.length-1];
-                        en.vals[i] = en.fb.val;
-                        en.bits[i].txt.text(en.vals[i].toString());
-                        xor.reset();
-                    }
-                    else {
-                        en.vals[i] = en.vals[i-1];
-                        if (!animation) {
-                            en.bits[i].txt.text(en.vals[i].toString());
-                            continue;
-                        }
-                        // moving animation
-                        let movement1 = new SmoothMovement(en.bits[i-1].txt.position(), en.bits[i].rect.position());
-                        en.bits[i].txt.visible(false);
-                        movement1.animate(
-                            50,
-                            function(pos){
-                                en.bits[i-1].txt.position(pos);
-                                layer.batchDraw();
-                            },
-                            function(){
-                                en.bits[i-1].txt.position( en.bits[i-1].rect.position());
-                                en.bits[i].txt.text(en.vals[i].toString());
-                                en.bits[i].txt.visible(true);
-                                layer.batchDraw();
-                            }
-                        );
-                    }
 
+                let movement;
+                let cloneObj;
+                let targetPos = {x:0, y:0};
+                let moveObj;
+
+                if(i>loopLast){ // for all bits without the first one
+                    moveObj = chain[i];
+                    cloneObj = chain[i].txt.clone();
+                    chain[i].txt.visible(false);
+                    cloneObj.position(chain[i].txt.getAbsolutePosition());
+                    if(chain[i+1].id().substr(0,1) === 'x') // check for next element is XOR
+                        targetPos = {x: cloneObj.x() + 20, y: cloneObj.y()} // next element is XOR
+                    else
+                        targetPos = chain[i+1].txt.absolutePosition(); // next element is D
                 }
+                else { // for the first D element
+                    moveObj = chain[chain.length - 1];
+                    cloneObj = chain[chain.length - 1].txt.clone();
+                    chain[chain.length - 1].txt.visible(false);
+                    cloneObj.position(chain[chain.length - 1].txt.getAbsolutePosition());
+                    cloneObj.y(cloneObj.y()-40);
+                    targetPos = chain[0].txt.absolutePosition();
+                    targetPos.y -= 40;
+                }
+                cloneObj.off();
+                en.getLayer().add(cloneObj);
+                cloneObj.moveToTop();
+                en.getLayer().batchDraw();
+                let moveTime = function(){
+                    if(typeof speedFactor === 'undefined') speedFactor = 1;
+                    let time;
+                    time =  speedFactor === 0 ? 90 :
+                            speedFactor === 1 ? 70 :
+                            speedFactor === 2 ? 60 :
+                            speedFactor === 3 ? 20 : 1;
+
+                    let dist = getPointDist(cloneObj.position(), targetPos);
+                    time =  dist > 30 && dist <= 120 ? Math.round(time * 0.5) : 0.01;
+                    return time;
+                };
+                //console.log('moveTime = '+moveTime());
+                movement = new SmoothMovement(cloneObj.position(), targetPos);
+                movement.animate(
+                    moveTime(),
+                    function(pos){
+                        cloneObj.position(pos);
+                        en.getLayer().batchDraw();
+                    },
+                    function(){
+                        cloneObj.destroy();
+
+                        if(moveObj.id().substr(0,1) === 'x'){ // current element is XOR
+                            moveObj.reset();
+                            moveObj.txt.visible(true);
+                        }
+                        if(chain[i+1].id().substr(0,1) === 'd'){
+                            chain[i+1].txt.text(en.vals[Number(chain[i+1].id().substr(1))].toString());
+                            chain[i+1].txt.visible(true);
+                        }
+
+                        if(i === loopLast){
+                            chain[0].txt.text(en.vals[0].toString());
+                            chain[0].txt.visible(true);
+
+                            en.moving = false; // disable moving flag
+                        }
+                        en.getLayer().batchDraw();
+                    }
+                );
+            }
+            return true;
+        };
+    }
+    createShift();
+
+    // EVENTS ---------------------------------------------------------------------------------------------------------
+    // Encoder '>>>' click event
+    en.S.on('click touchstart', function(){
+        let currStep = alg.getCurrStep();
+        if (currStep.name === 'calcXOR'){ // check for correct XOR results
+            if (en.checkXOR()) alg.increment(); // enable shiftEN
+            else {
+                //en.info.show('e', lang.wrongXor);
+                this.hover.show('e', lang.wrongXor);
+                stat.error.add(lang.wrongXor);
+                return;
             }
         }
-        else if (en.sw1.pos === 0){ // when the sw1 is open
-            for (let i=ln; i>=0; i--){
-                if(i === 0){
-                    en.vals[i] = -1;
+
+        let check = alg.validStep('shiftEN');
+        if (check === true) {
+            en.shiftR(1);
+            en.fb.reset();
+            alg.increment(); // enable shiftCR
+            console.log(alg.getCurrStep().description);
+        }
+        else {
+            //en.info.show('e', check);
+            this.hover.show('e', check);
+            stat.error.add(check);
+            return;
+        }
+    });
+
+    // update xors' input values
+    en.updateXORs = function(){
+        en.xors.forEach(xor => {
+            let in1, in2;
+            if (xor.isFB === true){ // for XOR of the feedback
+                in1 = en.vals[en.vals.length-1];
+                in2 = ir.vals[ir.vals.length-1];
+            }
+            else {// for others XOR
+                in1 = en.fb.val;
+                in2 = en.vals[Number(xor.id().substr(3))];
+            }
+            //console.log(xor.id()+' => in1 = '+in1+', in2 = '+in2);
+
+            xor.setInputs(in1, in2);
+        });
+    }
+
+    // Encoder 'XOR' click event
+    en.xors.forEach(xor => {
+        xor.on('click touchstart', function(){
+            let currStep =  alg.getCurrStep().name;
+            // check for correct SW position
+            if (currStep === 'set1SW'){
+                if (en.sw1.pos !== 1){
+                    //en.info.show('e', lang.wrongSw);
+                    this.hover.show('e', lang.wrongSw);
+                    stat.error.add(lang.wrongSw);
+                    return;
+                };
+                if (en.sw2.pos !== 1){
+                    //en.info.show('e',  lang.wrongSw);
+                    this.hover.show('e', lang.wrongSw);
+                    stat.error.add(lang.wrongSw);
+                    return;
                 }
-                else{
-                    en.vals[i] = en.vals[i-1];
+                // enable  calcFB (calcParity)
+                alg.increment();
+            }
+
+            // check for correct operation
+            let check;
+            if (xor.isFB === true){ // for FB's XOR
+                check = alg.validStep('calcFB');
+                if (check === true){
+                    alg.markCurrStep('curr');
+                    xor.invertRes();
+                    console.log(alg.getCurrStep().description);
                 }
-                if (!animation) { // without moving animation
-                    if (en.vals[i] < 0) en.bits[i].txt.text('');
-                    else en.bits[i].txt.text(en.vals[i].toString());
-                    layer.batchDraw();
+                else {
+                    this.hover.show('e', check);
+                    stat.error.add(check);
+                    return;
                 }
-                else{ // with moving animation
-                    if (en.vals[i] < 0) {
-                        en.bits[i].txt.text('');
-                        layer.batchDraw();
+            }
+            else { // for other XORs
+                if (alg.getCurrStep().name === 'calcFB'){
+                    en.updateXORs(); // update XORs inputs for FB's XOR
+                    if(en.checkFB()) {  // FB's value validating
+                        en.fb.setVal(en.xors[en.xors.length-1].res);
+                        en.updateXORs(); // update XORs inputs for othet XORs
+                        console.log(alg.getCurrStep().description);
+                        alg.increment(); // enable calcXOR
                     }
                     else{
-                        let movement2 = new SmoothMovement(en.bits[i-1].txt.position(), en.bits[i].rect.position());
-                        movement2.animate(
-                            100,
-                            function(pos){
-                                en.bits[i-1].txt.position(pos);
-                                layer.batchDraw();
-                            },
-                            function(){
-                                en.bits[i-1].txt.position(en.bits[i-1].rect.position());
-                                en.bits[i].txt.text(en.vals[i].toString());
-                                layer.batchDraw();
-                            }
-                        );
+                        //en.info.show('e', lang.wrongFb);
+                        this.hover.show('e', lang.wrongFb);
+                        stat.error.add(lang.wrongFb);
+                        return;
                     }
                 }
+
+                check = alg.validStep('calcXOR');
+                if (check === true)  {
+                    alg.markCurrStep('curr');
+                    xor.invertRes();
+                    console.log(alg.getCurrStep().description);
+                }
+                else {
+                    //en.info.show('e', check);
+                    this.hover.show('e', check);
+                    stat.error.add(check);
+                    return;
+                }
             }
+        });
+    });
+    // Encoder 'SW1' click event
+    en.sw1.on('click touchstart', function(){
+        let check = alg.validStep('set1SW');
+        if (check === true){
+            model.algorithm.markCurrStep('curr');
+            en.sw1.changePos();
+            console.log(alg.getCurrStep().description+' SW1 => '+en.sw1.pos);
+            return;
         }
-        return true;
-    };
 
-    // setting the LFSR's size
-    en.width(en.rect.width());
-    en.height(en.rect.height());
-
+        check = alg.validStep('set2SW');
+        if (check === true){
+            model.algorithm.markCurrStep('curr');
+            en.sw1.changePos();
+            console.log(alg.getCurrStep().description +' SW1 => '+en.sw1.pos);
+        }
+        else {
+            //en.info.show('e', check);
+            this.hover.show('e', check);
+            stat.error.add(check);
+            return;
+        }
+    });
+    // Encoder 'SW2' click event
+    en.sw2.on('click touchstart', function(){
+        let check = alg.validStep('set1SW');
+        if (check === true){
+            model.algorithm.markCurrStep('curr');
+            en.sw2.changePos();
+            // set CR's input bit according to SW2 position
+            if (en.sw2.pos === 1) cr.inBit = ir.vals[ir.vals.length - 1];
+            else if(en.sw2.pos === 2) cr.inBit = ir.vals[en.vals.length - 1];
+            console.log(alg.getCurrStep().description +' SW2 => '+en.sw2.pos);
+            return;
+        }
+        // for second situation
+        check = alg.validStep('set2SW');
+        if (check === true){
+            model.algorithm.markCurrStep('curr');
+            en.sw2.changePos();
+            console.log(alg.getCurrStep().description +' SW2 => '+en.sw2.pos);
+        }
+        else {
+            //en.info.show('e', check);
+            this.hover.show('e', check);
+            stat.error.add(check);
+            return;
+        }
+    });
     return en;
 } //end of LFSR object
 
 
 // REGISTER OBJECT //////////////////////////////////////////////////////////////
-function REGISTER(props, layer){
+function REGISTER(props){
     // DEFAULT REGISTER properties
     props.id = props.id || 'reg';
     props.pos = props.pos || {x: 0, y: 0};
@@ -4888,11 +5459,14 @@ function REGISTER(props, layer){
     props.labelSize = props.labelSize || 16;
     props.labelPadding = props.labelPadding || 2;
     props.labelDistance = props.labelDistance || 5;
-    props.sHover = props.sHover || 'Shift the register';
-    props.rHover = props.rHover || 'Reverse the register';
-    props.randHover = props.randHover || 'Generate random information bits';
+    props.shiftHoverTxt = props.shiftHoverTxt || 'Shift the register';
+    props.flipHoverTxt = props.flipHoverTxt || 'Reverse the register';
+    props.randHoverTxt = props.randHoverTxt || 'Generate random information bits';
+    props.flipBtnLabel = props.flipBtnLabel || 'Generate random information bits';
+    props.randBtnLabel = props.randBtnLabel || 'Generate random information bits';
     //props.bit.enabled = props.bit.enabled || true;
 
+    let lang = model.lang.gn;
 
     // BIT properties
     if (typeof props.bit === 'undefined') props.bit = {};
@@ -4903,380 +5477,391 @@ function REGISTER(props, layer){
     let addDist = props.bit.width + props.pading*0.5;
     let height = props.bit.height+2*props.pading + 40;
     let width = addDist*(props.bitsNum)+addDist/1.4;
-    // creating the general register group
-    let reg = new Konva.Group ({
-        id: props.id,
-        name: props.name,
-        x: props.pos.x,
-        y: props.pos.y,
-        width : width,
-        height: height,
-        draggable:false
-    });
 
-    // input bit, required for shift operation
-    reg.inBit = '';
+    // Create Register's panel
+    let reg = new PANEL(props);
+    reg.label.fontSize(reg.label.fontSize() + 2);
+    reg.size({width: width, height: height});
+    reg.dragmove(true);
 
-    // adding register's value property to reg
-    reg.vals = [];
+    reg.inBit=''; // get in bit function
+    reg.vals = []; // adding register's value property to reg
     reg.vals.length = props.bitsNum;
-    //emtyArray.fill(0);
-    // register's background rectangle
-    reg.rect = new Konva.Rect({
-        id: reg.id()+'-rect',
-        width : width,
-        height: height,
-        fill: props.fill,
-        //stroke: props.fill,
-        shadowColor: 'black',
-        shadowBlur: 10,
-        shadowOpacity: 0.5,
-        cornerRadius: 4,
-        draggable: false
-    });
-    // register's label
-    reg.label = new Konva.Text({
-        id: reg.id()+'-lab',
-        text: props.name,
-        fontSize: props.labelSize + 4,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'center',
-        verticalAlign: 'middle',
-        fill: props.labelColor
-    });
-    reg.label.width(reg.label.width() + 10 * props.labelPadding);
-    // correct the rectangle width if it is smaller from label width
-    if (reg.rect.width() < reg.label.width()) 	reg.rect.width(reg.label.width());
-    else 										reg.label.width(reg.rect.width());
+    reg.vals.fill(0);
 
-    reg.labelRect = new Konva.Rect({
-        id: reg.id()+'-labRect',
-        width : reg.rect.width(),
-        height: reg.label.height() + 2*props.labelPadding,
-        fill: props.labelBgColor,
-        cornerRadius: 4,
-        draggable: false
-    });
-    reg.label.height(reg.labelRect.height());
-
-    // register's Reverse button
-    reg.R = new Konva.Text({
-        id: reg.id()+'-d',
-        name: 'Reverse button',
-        x: reg.rect.x() + props.labelDistance + 1,
-        text: 'Rreverse',
-        fontSize: props.labelSize,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'center',
-        verticalAlign: 'middle',
-        fill: 'grey'
-    });
-    reg.R.y(reg.rect.y() + reg.rect.height() - reg.R.height() - props.labelDistance);
-    reg.R.hoverTxt = props.rHover;
-
-    // register's Shift button
-    reg.S = new Konva.Text({
-        id: reg.id()+'-d',
-        name: 'Shift button',
-        x: reg.rect.x() + reg.rect.width() - props.labelDistance*8,
-        text: '>>>',
-        fontSize: props.labelSize + 5,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'center',
-        verticalAlign: 'middle',
-        fill: 'grey'
-    });
-    reg.S.y(reg.rect.y() + reg.rect.height() - reg.S.height() - props.labelDistance);
-    reg.S.hoverTxt = props.sHover;
-
-    // register's Random button
-    reg.rand = new Konva.Text({
-        id: reg.id()+'-rand',
-        name: 'Random bits',
-        x: reg.rect.x() + reg.rect.width()/2,
-        text: 'Random',
-        fontSize: props.labelSize,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'center',
-        verticalAlign: 'middle',
-        fill: 'grey'
-    });
-    reg.rand.position({
-        x: reg.rand.x() - reg.rand.width()/2,
-        y: reg.R.y()
-    });
-    reg.rand.hoverTxt = props.randHover;
-    reg.rand.visible(props.bit.enabled);
-
-    // info group
-    reg.info = new INFO(layer, reg);
-
-    reg.add(reg.rect, reg.labelRect,reg.label, reg.R, reg.rand, reg.S, reg.info);
-
-    // Random Button events
-    reg.rand.on('mouseover touchstart', function(){
-        this.shadowColor('red');
-        this.shadowBlur(10);
-        this.shadowOpacity(1.0);
-        this.scale({x: 1.2, y:1.2});
-        stage.container().style.cursor = 'pointer';
-        reg.info.show('i', this.hoverTxt);
-        layer.batchDraw();
-    });
-    reg.rand.on('mouseout touchend', function(){
-        this.shadowColor('');
-        this.shadowBlur(0);
-        this.shadowOpacity(1.0);
-        this.scale({x: 1.0, y:1.0});
-        stage.container().style.cursor = 'default';
-        reg.info.hide();
-        //layer.batchDraw();
-    });
-
-    // revers button events
-    // mоuse hover event
-    reg.R.on('mouseover touchstart', function(){
-        reg.R.shadowColor('red');
-        reg.R.shadowBlur(10);
-        reg.R.shadowOpacity(1.0);
-        stage.container().style.cursor = 'pointer';
-        reg.info.show('i', this.hoverTxt);
-        layer.batchDraw();
-    });
-    // mоuse hover out event
-    reg.R.on('mouseout touchend', function(){
-        reg.R.shadowColor('');
-        reg.R.shadowBlur(0);
-        reg.R.shadowOpacity(0);
-        stage.container().style.cursor = 'default';
-        reg.info.hide();
-        //layer.batchDraw();
-    });
-
-    // >>> Button events
-    // mоuse hover event
-    reg.S.on('mouseover touchstart', function(){
-        reg.S.shadowColor('red'),
-            reg.S.shadowBlur(10);
-        reg.S.shadowOpacity(1.0);
-        reg.S.scale({x: 1.2, y:1.2});
-        stage.container().style.cursor = 'pointer';
-        reg.info.show('i', this.hoverTxt);
-        layer.batchDraw();
-    });
-    // mоuse hover out event
-    reg.S.on('mouseout touchend', function(){
-        reg.S.shadowColor(''),
-            reg.S.shadowBlur(0),
-            reg.S.shadowOpacity(0),
-            reg.S.scale({x: 1, y:1});
-        stage.container().style.cursor = 'default';
-        reg.info.hide();
-        layer.batchDraw();
-    });
-
-    // CREATING BIT GROUPS
-    props.bit.name = 'Bit';
-    props.bit.hoverTxt = props.bit.hoverTxt || 'Set Bit';
-    props.bit.fill = 'RosyBrown';
-    props.bit.stroke = 'RosyBrown';
-    props.bit.txtColor = 'DarkBlue';
-    props.bit.defVal = '';
-    props.bit.labelDistance = 5;
-    //props.bit.clickable = false;
-    reg.bits=[]; // empty array for register's bits
-    // first bit position
-    let pos = {	x: addDist/2,
-        y: reg.rect.height()/2 - props.bit.height/2};
-    let zIndex = null;
-    for (let i=0; i<props.bitsNum; i++){
-        props.bit.id = reg.id()+'-bit'+i;
-        //props.bit.pos = pos;
-        let bit = new Button(props.bit, layer);
-        bit.position(pos);
-
-        pos.x += addDist; //  change position for the next bit
-
-        bit.on('mouseover touchstart', function(){
-            reg.info.show('i', bit.hoverTxt);
-        });
-        // mоuse hover out event
-        bit.on('mouseout touchend', function(){
-            reg.info.hide();
+    createButtons = function(){
+        // register's Random button
+        reg.rand = new Konva.Text({
+            id: reg.id()+'-rand',
+            name: 'Random bits',
+            text: props.randBtnLabel,
+            fontSize: props.labelSize,
+            fontFamily: 'Calibri',
+            padding: 0,
+            align: 'center',
+            verticalAlign: 'middle',
+            fill: 'grey'
         });
 
-        // setBit bit
-        bit.setBit = function(){
-            // set current bit
-            if (reg.vals[i] === 0)  reg.vals[i] = 1;
-            else 					reg.vals[i] = 0;
-            bit.txt.text(reg.vals[i].toString());
-            layer.batchDraw();
-            return true;
-        };
+        reg.add(reg.rand);
+        reg.rand.position({
+            x: 10,
+            y: reg.height()-reg.rand.height()-5
+        });
+        reg.rand.visible(props.bit.enabled);
+        reg.rand = over(reg.rand);
+        reg.rand.hoverTxt = props.randHoverTxt;
+        reg.rand = hover1(reg.rand, reg);
 
-        bit.add(bit.rect, bit.txt);
-        reg.bits[i] = bit;
-        reg.add(reg.bits[i]);
-        // default clickable event
-        bit.enable(props.bit.enabled);
-        if (i === 0) zIndex = bit.getZIndex();
-        else bit.setZIndex(zIndex);
+        // register's Flip button
+        reg.F = new Konva.Text({
+            id: reg.id()+'-d',
+            name: 'Flip button',
+            text: props.flipBtnLabel,
+            fontSize: props.labelSize,
+            fontFamily: 'Calibri',
+            padding: 0,
+            align: 'center',
+            verticalAlign: 'middle',
+            fill: 'grey'
+        });
+        reg.add(reg.F);
+        reg.F.position({ x: reg.rand.x() + reg.rand.width()+15, y: reg.rand.y(),});
+        reg.F = over(reg.F);
+        reg.F.hoverTxt = props.flipHoverTxt;
+        reg.F = hover1(reg.F, reg);
+
+        // register's Write button
+        reg.writeBtn = new Konva.Text({
+            id: 'writeBtn',
+            name: 'writeBtn',
+            text:  '[...]',
+            fontSize: props.labelSize,
+            fontFamily: 'Calibri',
+            align: 'center',
+            verticalAlign: 'middle',
+            fill: 'grey',
+            visible:  true
+        });
+        reg.add(reg.writeBtn);
+        reg.writeBtn.position({x: reg.F.x()+reg.F.width()+15, y: reg.F.y()});
+        reg.writeBtn.hoverTxt = lang.writeBits;
+        reg.writeBtn = hover1(reg.writeBtn, reg);
+        reg.writeBtn = over(reg.writeBtn);
+        let d  = $("<div id='Paste' class='dialog'></div>").appendTo( "body");
+        d.dialog({autoOpen : false, modal : true, show : "blind", hide : "blind", minWidth: 350});
+        d.dialog({title:lang.writeBits});
+        //d.css({'font-size': 14, 'margin':0, 'padding': 5, 'color': 'black'});
+        d.div = $("<div class='form-inline'></div>").appendTo(d);
+        d.i = $("<input id='inputReg' type='text' class='form-control'/>").appendTo(d.div);
+        d.i.css({'minWidth': 250});
+        d.btn = $("<button id='dialogBtn' type='button' class='btn btn-primary btn-sm '>OK</button>").appendTo(d.div);
+        d.btn.css({'margin-left':10});
+        d.btn.on('click', function(){
+            let input = [];
+            let val = d.i.val().replace(/ /g ,'');
+            for(let i=0; i<val.length; i++){
+                if (val[i] !== '0' && val[i] !== '1') input.push(Number('0'));
+                else input.push(Number(val[i]));
+            }
+            let ln = reg.vals.length;
+            if(ln > input.length){
+                let dif = ln - input.length;
+                for(let i=0; i<dif; i++) input.push(Number('0'));
+            }
+            if(arrSum(input.slice(0,ln)) === 0) return; // check for zeros values
+            reg.load(input.slice(0,ln));
+            d.dialog('close');
+        });
+
+        reg.writeBtn.on('click touchstart',function(){
+            $('#inputReg').val(reg.vals.toString().replace(/,/g,''));
+            d.dialog('open');
+            try {model.algorithm.markCurrStep('curr');
+            } catch (e) { console.log(e);}
+        });
+
+        // register's Shift button
+        reg.S = new Konva.Text({
+            id: reg.id()+'-d',
+            name: 'Shift button',
+            text: '>>>',
+            fontSize: props.labelSize + 5,
+            fontFamily: 'Calibri',
+            padding: 0,
+            align: 'center',
+            verticalAlign: 'middle',
+            fill: 'grey'
+        });
+        reg.add(reg.S);
+        reg.S.position({x: reg.writeBtn.x()+reg.writeBtn.width() + 15, y: reg.writeBtn.y()-3});
+        reg.S = over(reg.S);
+        reg.S.hoverTxt =  props.shiftHoverTxt;
+        reg.S = hover1(reg.S, reg);
     }
+    createButtons();
 
+    // CREATING BITS
+    createBits = function(){
+        props.bit.name = 'Bit';
+        props.bit.hoverTxt = props.bit.hoverTxt || 'Set Bit';
+        props.bit.fill = 'RosyBrown';
+        props.bit.stroke = 'RosyBrown';
+        props.bit.txtColor = 'DarkBlue';
+        props.bit.defVal = '';
+        props.bit.labelDistance = 5;
+        //props.bit.clickable = false;
+        reg.bits=[]; // empty array for register's bits
+        // first bit position
+        let pos = {	x: addDist/2,
+            y: reg.rect.height()/2 - props.bit.height/2};
+        let zIndex = null;
+        for (let i=0; i<props.bitsNum; i++){
+            props.bit.id = reg.id()+'-bit'+i;
+            //props.bit.pos = pos;
+            let bit = new Button(props.bit);
+            bit.position(pos);
+            pos.x += addDist; //  change position for the next bit
+            // setBit bit
+            bit.setBit = function(){
+                // set current bit
+                if (reg.vals[i] === 0)  reg.vals[i] = 1;
+                else 					reg.vals[i] = 0;
+                bit.text(reg.vals[i]);
+                try{ bit.getLayer().batchDraw()}catch{}
+                return true;
+            };
+
+            bit.add(bit.rect, bit.txt);
+            reg.bits[i] = bit;
+            reg.add(reg.bits[i]);
+            // default clickable event
+            bit.enable(props.bit.enabled);
+            if (i === 0) zIndex = bit.getZIndex();
+            else bit.setZIndex(zIndex);
+        }
+    }
+    createBits();
 
     // creating register's conection soket
-    reg.soket = () => {
-        let p = reg.rect.position();
-        let w = reg.rect.width(), h = reg.rect.height();
-        return{
-            connR : {x: p.x + w, y: p.y + h/2},
-            connL : {x: p.x, y: p.y + h/2},
-            connU : {x: p.x + w/2, y: p.y},
-            connD : {x: p.x + w/2, y: p.y + h}
+    createSokets = function(){
+        reg.soket = () => {
+            let p = reg.rect.position();
+            let w = reg.rect.width(), h = reg.rect.height();
+            return{
+                connR : {x: p.x + w, y: p.y + h/2},
+                connL : {x: p.x, y: p.y + h/2},
+                connU : {x: p.x + w/2, y: p.y},
+                connD : {x: p.x + w/2, y: p.y + h}
+            };
         };
-    };
+    }
+    createSokets();
 
-    // shift the registe to right
-    reg.shiftR = function(animation){
-        animation = animation || false;
-        // shift the resgister's values
-        reg.vals.pop();
-        if (reg.inBit === '') reg.vals.unshift('');
-        else reg.vals.unshift(reg.inBit);
+    createShift = function(){
+        reg.moving = false; // moving flag
+        // shift the registe to right
+        reg.shiftR = function( inBit='', inBitVal=0, speedFactor=1, endFunc){
+            reg.moving = true; // enable moving flag
+            //animation = animation || false;
+            // shift the resgister's values
+            // inBit = inBit || '';
+            // inBitVal = inBitVal || '';
+            // speedFactor = speedFactor || 1;
 
-        if (!animation){
-            for(let i=0; i<=reg.bits.length-1; i++){
-                if(typeof reg.vals[i] === 'undefined') continue;
-                reg.bits[i].txt.text(reg.vals[i].toString());
+            reg.vals.pop(); // remove the last value
+            reg.vals.unshift(inBitVal);
+            let ln = (reg.bits.length-1);
+            let loopTo=0; //moveTime = 90;
+            if(typeof inBit === 'object' ) {
+                loopTo =-1;
+                // = 30;
             }
-            layer.batchDraw();
-            return;
-        }
-        console.log('Moving animation!');
-        // moving animation
-        let ln = (reg.bits.length-1);
-        for(let i=ln; i>=0; i--){
-            if(typeof reg.vals[i] === 'undefined') continue;
-            let movement;
-            if (i === ln) // for the last bit
-                movement = new SmoothMovement(reg.bits[i].rect.position(), {x: reg.bits[i].rect.x()+30, y: reg.bits[i].rect.y()});
-            else
-                movement = new SmoothMovement(reg.bits[i].rect.position(), reg.bits[i+1].rect.position());
-            movement.animate(
-                30,
-                function(pos){
-                    reg.bits[i].txt.position(pos);
-                    layer.batchDraw();
-                },
-                function(){
-                    reg.bits[i].txt.position(reg.bits[i].rect.position());
-                    reg.bits[i].txt.text(reg.vals[i].toString());
-                    layer.batchDraw();
+            for(let i=ln; i>=loopTo; i--){
+                let cloneObj;
+                if(i=== -1){ // for the in bit
+                    cloneObj = inBit.txt.clone();
+                    inBit.txt.visible(false);
+                    cloneObj.position(inBit.txt.getAbsolutePosition());
+                }else{ // for the register's bits
+                    if(typeof reg.vals[i] === 'undefined') continue;
+                    cloneObj = reg.bits[i].txt.clone();
+                    reg.bits[i].txt.visible(false);
+                    cloneObj.position(reg.bits[i].txt.getAbsolutePosition());
                 }
-            );
-        } // end of for
-    };
-    // reverse the register
-    reg.reverse = function(){
+
+                cloneObj.off();
+                reg.getLayer().add(cloneObj);
+                cloneObj.moveToTop();
+                reg.getLayer().batchDraw();
+                let targetPos = {x:0, y:0};
+                let movement;
+                if (i === ln) { // for the last register's bit
+                    targetPos = {x: cloneObj.x() + 20, y: cloneObj.y()}
+                }
+                else{
+                    if(i === -1)
+                        targetPos = reg.bits[i+1].txt.absolutePosition();
+                    else
+                        targetPos = reg.bits[i+1].txt.absolutePosition();
+                }
+
+                let moveTime = function(){
+                    //if(typeof speedFactor === 'undefined') speedFactor = 1;
+                    let time;
+                    time =  speedFactor === 0 ? 90 :
+                        speedFactor === 1 ? 80 :
+                            speedFactor === 2 ? 60 :
+                                speedFactor === 3 ? 20 : 1;
+
+                    let dist = getPointDist(cloneObj.position(), targetPos);
+                    time =  dist > 40 && dist <= 150 ? Math.round(time * 0.8) : 0.1;
+                    return time;
+                };
+                movement = new SmoothMovement(cloneObj.position(), targetPos);
+                movement.animate(
+                    moveTime(),
+                    function(pos){
+                        //reg.bits[i].txt.position(pos);
+                        cloneObj.position(pos);
+                        reg.getLayer().batchDraw();
+                    },
+                    function(){
+                        //reg.bits[i].txt.position(reg.bits[i].rect.position());
+                        cloneObj.destroy();
+                        if(i === -1){
+                            //reg.bits[i+1].text(reg.vals[i+1].toString());
+                            reg.bits[i+1].text(reg.vals[i+1] !== -1 ? reg.vals[i+1].toString() : '');
+                            reg.bits[i+1].txt.visible(true);
+                        }
+                        else{
+                            reg.bits[i].text(reg.vals[i] !== -1 ? reg.vals[i].toString() : '');
+                            if(i !== 0) reg.bits[i].txt.visible(true);
+                        }
+                        reg.getLayer().batchDraw();
+                        if(i === loopTo) { // last iteration
+                            reg.moving = false; // disable moving flag
+                            if(typeof endFunc !== 'undefined'){ // run end function
+                                endFunc();
+                            }
+                        }
+                    }
+                );
+            } // end of for
+        };
+    }
+    createShift();
+
+    // flip the register
+    reg.flip = function(){
         reg.vals.reverse();
         for (let i=0; i<reg.vals.length; i++){
             if (typeof reg.vals[i] === 'undefined') return;
             reg.bits[i].txt.text(reg.vals[i].toString());
         }
-        if (reg.R.fill() === 'red') reg.R.fill('grey');
-        else reg.R.fill('red');
-        layer.batchDraw();
+        if (reg.F.fill() === 'red') reg.flip.fill('grey');
+        else reg.F.fill('red');
+        reg.getLayer().batchDraw();
         return true;
     };
     reg.randGen = () =>{
         let vals=[];
         for(let i=0; i<reg.vals.length; i++){
             vals.push((Math.random() > 0.5) ? 1 : 0);
-        };
+        }
         console.log('Random info bits generating!');
         reg.load(vals);
     };
 
     // load the register
-    reg.load = function(vals){
-        if (typeof vals === 'undefined' || typeof vals === 'null'){
-            console.log('The values can not be empty');
+    loadRegCreate = function(){
+        reg.load = function(vals){
+            if (typeof vals === 'undefined' || typeof vals === 'null'){
+                return console.log('The values can not be empty');
+            }
+            else if (reg.vals.length !== vals.length) {
+                return console.log('The length of values must be '+reg.vals.length );
+            }
+            reg.vals=vals;
+            for (let i=0; i<props.bitsNum; i++){
+                reg.bits[i].txt.text(reg.vals[i].toString());
+                reg.getLayer().batchDraw();
+            }
             return;
         }
-        else if (reg.vals.length !== vals.length) {
-            console.log('The length of values must be '+reg.vals.length );
-            return;
+    }
+    loadRegCreate();
+
+    // empty the register's values
+    emptyRegCreate = function(){
+        reg.empty = function (){
+            reg.vals = []; // adding register's value property to reg
+            reg.vals.length = props.bitsNum;
+            reg.vals.fill(-1);
+            reg.bits.forEach(bit => bit.text(''))
+            reg.getLayer().batchDraw();
         }
-        reg.vals=vals;
-        for (let i=0; i<props.bitsNum; i++){
-            reg.bits[i].txt.text(reg.vals[i].toString());
-            layer.batchDraw();
-        }
-        return;
-    };
+    }
+    emptyRegCreate();
+
 
     // connect from this node to other one
-    let arrowProps = {id: '', points:[], endConn:'', pointerLength: 8, pointerWidth: 5, fill: 'RoyalBlue ', stroke: 'RoyalBlue ', strokeWidth: 3};
-    reg.connectTo = function(tarPos){
-        let b = reg.soket().connR;
-        let e = tarPos;
-        e.y -= reg.y();
-        e.x -= reg.x();
-        reg.lineTo = new Konva.Line({
-            id: reg.id()+'-lineTo',
-            points: [b.x, b.y, e.x, b.y, e.x, e.y],
-            fill: arrowProps.fill,
-            stroke: arrowProps.stroke,
-            strokeWidth: arrowProps.strokeWidth,
-        });
-        reg.add(reg.lineTo);
-    };
+    connectTo = function(){
+        reg.connectTo = function(tarPos){
+            let b = reg.soket().connR;
+            let e = tarPos;
+            e.y -= reg.y();
+            e.x -= reg.x();
+            reg.lineTo = new Connection({id: reg.id()+'-lineto', dir: 'd', type:'line'});
+            reg.lineTo.setP( [b.x, b.y, e.x, b.y, e.x, e.y]);
+            reg.add(reg.lineTo);
+        };
+    }
+    connectTo();
 
     // connect from other node to this one
-    reg.connectFrom = function(tarPos){
-        let b = tarPos;
-        let e = reg.soket().connL;
-        b.y -= reg.y();
-        b.x -= reg.x();
+    connectFrom = function(){
+        reg.connectFrom = function(tarPos){
+            let b = tarPos;
+            let e = reg.soket().connL;
+            b.y -= reg.y();
+            b.x -= reg.x();
 
-        reg.lineFrom = new Konva.Arrow({
-            id: reg.id()+'-lineFrom',
-            points: [b.x, b.y, e.x-3, e.y],
-            fill: arrowProps.fill,
-            stroke: arrowProps.stroke,
-            strokeWidth: arrowProps.strokeWidth,
-            pointerLength: arrowProps.pointerLength,
-            pointerWidth: arrowProps.pointerWidth
-        });
-        reg.add(reg.lineFrom);
+            reg.lineFrom = new Connection({id: reg.id()+'-lineFrom', dir: 'r'});
+            reg.lineFrom.setP( [b.x, b.y, e.x-3, e.y]);
+            reg.add(reg.lineFrom);
+        };
+    }
+    connectFrom();
+
+
+    // check for all bits are setted
+    reg.areAllBitsSetted = () =>{
+        for(let i=0; i<reg.vals.length; i++){
+            if(typeof reg.vals[i] === 'undefined') return false;
+        }
+        return true;
     };
 
     // show register
     reg.show = function (){
         reg.visible(true);
-        layer.batchDraw();
+        en.getLayer().batchDraw();
     };
     // hide register
     reg.hide = function (){
         reg.visible(false);
-        layer.batchDraw();
+        reg.getLayer().batchDraw();
+        reg.getLayer().batchDraw();
     };
 
-    // setting the register width and height
-    reg.width(reg.rect.width());
-    reg.height(reg.rect.height());
-
+    reg.autoCorrSize();
     return reg;
 } // end of Register
 
 
 // REGISTER OBJECT //////////////////////////////////////////////////////////////
-function REGISTER1(props, layer){
+function REGISTER1(props){
     // DEFAULT REGISTER properties
     props.id = props.id || 'reg';
     props.position = props.position || {x: 0, y: 0};
@@ -5296,10 +5881,10 @@ function REGISTER1(props, layer){
     props.labelDistance = props.labelDistance || 5;
     props.draggable = props.draggable || false;
     props.randBtnName = props.randBtnName || 'Random Bits';
-    // props.sHover = props.sHover || 'Shift the register';
-    // props.rHover = props.rHover || 'Reverse the register';
-    // props.randHover = props.randHover || 'Generate random information bits';
     props.bit.enabled = props.bit.enabled || true;
+    props.paste = props.paste || 'Paste';
+
+    let lang = model.lang.gn;
 
     // BIT properties
     if (typeof props.bit === 'undefined') props.bit = {};
@@ -5311,15 +5896,11 @@ function REGISTER1(props, layer){
     let addDist = w + props.pading * 0.8;
     let height = h + 2 * props.pading + 55;
     let width = addDist*(props.bitsNum)+addDist/1.4;
-    // creating the general register group
-    let reg = new Konva.Group ({
-        id: props.id,
-        name: props.name,
-        position: props.position,
-        width : width,
-        height: height,
-        draggable: props.draggable
-    });
+
+    let reg = new PANEL(props);
+    reg.label.fontSize(reg.label.fontSize() + 2);
+    reg.size({width: width, height: height});
+    reg.dragmove(true);
 
     // input bit, required for shift operation
     reg.inBit = '';
@@ -5327,62 +5908,7 @@ function REGISTER1(props, layer){
     // adding register's value property to reg
     reg.vals = [];
     reg.vals.length = props.bitsNum;
-    //emtyArray.fill(0);
-    // register's background rectangle
-    reg.rect = new Konva.Rect({
-        id: reg.id()+'-rect',
-        width : width,
-        height: height,
-        fill: props.fill,
-        //stroke: props.fill,
-        shadowColor: 'black',
-        shadowBlur: 10,
-        shadowOpacity: 0.5,
-        cornerRadius: 4,
-        draggable: false
-    });
-    // register's label
-    reg.label = new Konva.Text({
-        id: reg.id()+'-lab',
-        text: props.name,
-        fontSize: props.labelSize + 4,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'center',
-        verticalAlign: 'middle',
-        fill: props.labelColor
-    });
-    reg.label.width(reg.label.width() + 10 * props.labelPadding);
-    // correct the rectangle width if it is smaller from label width
-    if (reg.rect.width() < reg.label.width()) 	reg.rect.width(reg.label.width());
-    else 										reg.label.width(reg.rect.width());
-
-    reg.labelRect = new Konva.Rect({
-        id: reg.id()+'-labRect',
-        width : reg.rect.width(),
-        height: reg.label.height() + 2*props.labelPadding,
-        fill: props.labelBgColor,
-        cornerRadius: 4,
-        draggable: false
-    });
-    reg.label.height(reg.labelRect.height());
-
-    // enable dragable property
-    reg.label.on('mouseover touchstart', function(){
-        reg.draggable(true);
-        stage.container().style.cursor = 'move';
-    });
-    // disable dragable property
-    reg.label.on('mouseout touchend', function(){
-        reg.draggable(false);
-        stage.container().style.cursor = 'default';
-    });
-
-    reg.add(reg.rect, reg.labelRect, reg.label);
-    // put the register over others
-    reg.on('click touchstart dragmove', function(){
-        //this.moveToTop();
-    });
+    reg.vals.fill(0);
 
     // register's Random button
     //reg.rand = new Konva.Group ({ id: reg.id()+'-rand'});
@@ -5406,6 +5932,55 @@ function REGISTER1(props, layer){
     reg.rand = hover1(reg.rand, reg);
     reg.rand = over(reg.rand);
 
+    // register's Write button
+    reg.writeBtn = new Konva.Text({
+        id: 'writeBtn',
+        name: 'writeBtn',
+        text:  '[...]',
+        fontSize: props.labelSize,
+        fontFamily: 'Calibri',
+        align: 'center',
+        verticalAlign: 'middle',
+        fill: 'grey',
+        visible:  true
+    });
+    reg.add(reg.writeBtn);
+    reg.writeBtn.hoverTxt = lang.writeBits;
+    reg.writeBtn = hover1(reg.writeBtn, reg);
+    reg.writeBtn = over(reg.writeBtn);
+    let d  = $("<div id='Paste' class='dialog'></div>").appendTo( "body");
+    d.dialog({autoOpen : false, modal : true, show : "blind", hide : "blind", minWidth: 350});
+    d.dialog({title:lang.writeBits});
+    //d.css({'font-size': 14, 'margin':0, 'padding': 5, 'color': 'black'});
+    d.div = $("<div class='form-inline'></div>").appendTo(d);
+    d.i = $("<input id='inputReg' type='text' class='form-control'/>").appendTo(d.div);
+    d.i.css({'minWidth': 250});
+    d.btn = $("<button id='dialogBtn' type='button' class='btn btn-primary btn-sm '>OK</button>").appendTo(d.div);
+    d.btn.css({'margin-left':10});
+    d.btn.on('click', function(){
+        let input = [];
+        let val = d.i.val().replace(/ /g ,'');
+        for(let i=0; i<val.length; i++){
+            if (val[i] !== '0' && val[i] !== '1') input.push(Number('0'));
+            else input.push(Number(val[i]));
+        }
+        let ln = reg.vals.length;
+        if(ln > input.length){
+            let dif = ln - input.length;
+            for(let i=0; i<dif; i++) input.push(Number('0'));
+        }
+        if(arrSum(input.slice(0,ln)) === 0) return; // check for zeros values
+        reg.load(input.slice(0,ln));
+        d.dialog('close');
+    });
+
+    reg.writeBtn.on('click touchstart',function(){
+        $('#inputReg').val(reg.vals.toString().replace(/,/g,''));
+        d.dialog('open');
+        try {model.algorithm.markCurrStep('curr');
+        } catch (e) { console.log(e);}
+    });
+
     // CREATING BIT GROUPS
     props.bit.name = props.bit.name ||  'Bit';
     props.bit.hoverTxt = props.bit.hoverTxt || 'Set Bit';
@@ -5424,6 +5999,7 @@ function REGISTER1(props, layer){
         y: reg.labelRect.height() + props.pading*2.5};
     let zIndex = null;
     for (let i=0; i<props.bitsNum; i++){
+        //reg.vals.push(0);
         props.bit.id = reg.id()+'-bit'+i;
         props.bit.width = w;
         props.bit.height = h;
@@ -5460,6 +6036,12 @@ function REGISTER1(props, layer){
         else bit.setZIndex(zIndex);
     }
 
+    // write button position
+    reg.writeBtn.position({
+        x: reg.width()-38,
+        y: reg.rand.y()
+    });
+
     // creating register's conection soket
     reg.soket = () => {
         let p = reg.rect.position();
@@ -5492,12 +6074,10 @@ function REGISTER1(props, layer){
     // load the register
     reg.load = function(vals){
         if (typeof vals === 'undefined' || typeof vals === 'null'){
-            console.log('The values can not be empty');
-            return;
+            return console.log('The values can not be empty');
         }
         else if (reg.vals.length !== vals.length) {
-            console.log('The length of values must be '+reg.vals.length );
-            return;
+            return console.log('The length of values must be '+reg.vals.length );
         }
         reg.vals=vals;
         for (let i=0; i<props.bitsNum; i++){
@@ -5557,6 +6137,14 @@ function REGISTER1(props, layer){
     // setting the register width and height
     reg.width(reg.rect.width());
     reg.height(reg.rect.height());
+
+    // disable the register
+    reg.disable = function() {
+        let objs = reg.getChildren();
+        for (let i = 3; i <= objs.length - 1; i++) {
+            objs[i].off()
+        }
+    }
 
     return reg;
 } // end of Register
@@ -5683,10 +6271,28 @@ hover1 = (obj, group) =>{
         try{obj.getLayer().batchDraw();} catch{}
     };
 
+    // hide error messages
+    obj.hover.on('mouseover touchstart', function(){
+        obj.hover.visible(false);
+        try{obj.getLayer().batchDraw();} catch{}
+    });
+
     group.add(obj.hover);
     //obj.hover = hover;
     return obj;
 } // end of HOVER
+
+// get distance between two point
+getPointDist = function(p1,p2){
+    if(   typeof p1.x === 'undefined' || typeof p1.y === 'undefined'
+       || typeof p2.x === 'undefined' || typeof p2.y === 'undefined') return console.log('Undefined points');
+
+    let a,b;
+    a= Math.abs(p2.y - p1.y);
+    b= Math.abs(p2.x - p1.x);
+    return Math.round((Math.sqrt((a * a) + (b * b))));
+}
+
 
 // get pointer position
 getRelPointerPos = function(obj, group) {
@@ -5859,31 +6465,6 @@ function Button(props){
     // btn's label
     if (typeof props.label !== 'undefined'){
         let pos = {x: btn.rect.x(), y: btn.rect.y() + btn.rect.height() + 5};
-        // if (props.label.search("_") === -1){
-        //     btn.label = new Konva.Text({
-        //         id: props.id +'-lab',
-        //         name: 'label',
-        //         position: pos,
-        //         text: props.label,
-        //         fontSize: props.labelSize,
-        //         fontFamily: 'Calibri',
-        //         align: 'center',
-        //         verticalAlign: 'middle',
-        //         fill: props.fill
-        //     });
-        // }
-        // else{
-        //     btn.label = SUPB(props.label);
-        //     btn.name('label');
-        //     //btn.label.position(pos);
-        //     btn.label.x(btn.rect.width()/2 - btn.label.width()/2);
-        //     btn.label.y(btn.rect.height() + 5);
-        //     btn.label.fill(props.fill);
-        //     btn.label.fontSize(props.labelSize);
-        //     //btn.label.setColor(props.fill);
-        //     //btn.label.setSize(props.labelSize);
-        // }
-
         btn.label = SUPB(props.label);
         btn.name('label');
         //btn.label.position(pos);
@@ -5910,17 +6491,12 @@ function Button(props){
         if(typeof size.width !== 'undefined'){
             if(size.width < btn.txt.width()) return console.log('size.width < btn.txt.width()');
             btn.rect.width(size.width);
-            // if(props.type === 1){
-            //     btn.rect.width(size.width);
-            // }
         }
-        else console.log('size.width is undefined');
+        //else console.log('size.width is undefined');
         if(typeof size.height !== 'undefined'){
             //if(size.height < btn.txt.height()) return console.log('size.height < btn.txt.height()');
             btn.rect.height(size.height);
         }
-        else console.log('size.height is undefined');
-
 
         btn.textCentering(); // centering the text
         //try {btn.getLayer().batchDraw();} catch{};
@@ -5975,6 +6551,7 @@ function Button(props){
 
     // clickable method
     btn.enable = function (val){
+        if(typeof val === 'undefined') val = true;
         if (val === true){
             // mоuse hover event
             btn = hover1(btn, btn);
@@ -6003,8 +6580,9 @@ function Button(props){
 
 ///// POLY OBJECT //////////////////////////////////////////////////////
 function POLY(str){
+    console.log('str', str);
     //example str =>  P(X)=X^5+X^4+X^2+1
-    let name = str.split('=')[0];
+    //let name = str.split('=')[0];
     let polyMem = str.split('=')[1].split('+'); // [X^5, X^4, X^2, 1]
     polyMem.unshift(str.split('=')[0]); // add 'P(X)' in the begining of polyMem
     let poly = new Konva.Group();
@@ -6472,21 +7050,34 @@ function Connection(props){
     props.strokeWidth = props.strokeWidth || 3;
     props.fill = props.fill || 'RoyalBlue ';
     props.stroke = props.stroke || 'RoyalBlue ';
+    props.type = props.type || 'arrow';
 
+    let conn;
+    if(props.type === 'arrow')
+        conn = new Konva.Arrow({
+            id: props.id,
+            name: 'arrow',
+            pointerLength: props.pointerLength,
+            pointerWidth: props.pointerWidth,
+            fill: props.fill,
+            stroke: props.stroke,
+            strokeWidth: props.strokeWidth,
+            points: props.points
+        });
+    else
+        conn = new Konva.Line({
+            id: props.id,
 
-    let conn = new Konva.Arrow({
-        id: props.id,
-        name: 'arrow',
-        pointerLength: props.pointerLength,
-        pointerWidth: props.pointerWidth,
-        fill: props.fill,
-        stroke: props.stroke,
-        strokeWidth: props.strokeWidth,
-        points: props.points
-    });
+            name: 'line',
+            fill: props.fill,
+            stroke: props.stroke,
+            strokeWidth: props.strokeWidth,
+            points: props.points
+        });
+
     conn.dir = props.dir;
     conn.corr = 4;
-    conn.reversed = false;
+    conn.flipped = false;
     conn.setP = function(p){
         switch (conn.dir){
             case 'r':
@@ -6508,9 +7099,9 @@ function Connection(props){
         conn.points(p);
     };
 
-    conn.reverse = (flag) =>{
-        if (typeof flag === 'undefined') return conn.reversed;
-        else if ((flag === true && conn.reversed === false) || (flag === false && conn.reversed === true)){
+    conn.flip = (flag) =>{
+        if (typeof flag === 'undefined') return conn.flipped;
+        else if ((flag === true && conn.flipped === false) || (flag === false && conn.flipped === true)){
             let tp =  conn.points();
             let p = [];
             let ln = tp.length;
@@ -6518,7 +7109,7 @@ function Connection(props){
             p.push(tp[ln-1]);
             p.push(tp[0]);
             p.push(tp[1]);
-            conn.reversed = !conn.reversed;
+            conn.flipped = !conn.flipped;
             if (conn.dir === 'r') {
                 conn.dir = 'l';
                 p[0] += conn.corr;
@@ -6540,16 +7131,16 @@ function Connection(props){
                 p[p.length-1] += conn.corr;
             }
             conn.points(p);
-            return 'reversed'
+            return 'flipped'
         }
-        else return conn.reversed;
+        else return conn.flipped;
     };
 
     return conn;
 }//end of CONNECTION
 
 //// SWITCH OBJECT //////////////////////////////////////////////////////
-function SWITCH(props, layer){
+function SWITCH(props){
     //CONFIG DEAFULT PROPERTIES
     if (typeof props.pos === 'undefined') props.pos = {};
     props.id = props.id || 'sw';
@@ -6570,7 +7161,7 @@ function SWITCH(props, layer){
         width : props.width,
         height: props.height,
         name: props.name,
-        draggable: true
+        draggable: false
     });
     // switch's rectangle
     sw.rect = new Konva.Rect({
@@ -6659,7 +7250,7 @@ function SWITCH(props, layer){
                 points[points.length-1] = points[points.length-1]-20;
             }
             sw.line1.points(points);
-            layer.batchDraw();
+            sw.getLayer().batchDraw();
             return true;
         }
 
@@ -6764,27 +7355,10 @@ function SWITCH(props, layer){
                 points[points.length-1] = sw.circ3.y();
             }
             sw.line1.points(points);
-            layer.batchDraw();
+            sw.getLayer().batchDraw();
             return true;
         }
     }
-
-    // mouse hover actions
-    sw.hoverOn = function(){
-        sw.rect.shadowColor('red'),
-            sw.rect.shadowBlur(10),
-            sw.rect.shadowOpacity(1.0),
-            stage.container().style.cursor = 'pointer';
-        layer.batchDraw();
-    };
-    // mouse hover left actions
-    sw.hoverOff = function(){
-        sw.rect.shadowColor(''),
-            sw.rect.shadowBlur(0),
-            sw.rect.shadowOpacity(0),
-            stage.container().style.cursor = 'default';
-        layer.batchDraw();
-    };
 
     sw.changePos = function(){
         let pos = sw.pos;
@@ -6804,7 +7378,7 @@ function SWITCH(props, layer){
 
 
 //// XOR OBJECT //////////////////////////////////////////////////////
-function XOR(props,layer){
+function XOR(props){
     // DEFAULT XOR properties
     props.id = props.id || '';
     props.name = props.name || 'xor';
@@ -6926,9 +7500,6 @@ function XOR(props,layer){
 
     // Calculate this XOR
     xor.calc = function (){
-        //xor.res = xor.in1 ^ xor.in2;
-        //xor.resTxt.text(xor.res.toString());
-        //xor.showRes();
         return  xor.in1 ^ xor.in2;
     };
 
@@ -6939,11 +7510,13 @@ function XOR(props,layer){
 
     // Invert the current result of this XOR
     xor.invertRes = function(){
-        if (xor.res === 0) xor.res = 1;
+        // if (xor.res === 0) xor.res = 1;
+        // else xor.res = 0;
+        if(xor.txt.text() === '+') xor.res = 0;
+        else if (xor.res === 0) xor.res = 1;
         else xor.res = 0;
-        //xor.resTxt.text(xor.res.toString());
         xor.showRes();
-        layer.batchDraw();
+        xor.getLayer().batchDraw();
     };
 
     // Reset this XOR
@@ -6951,37 +7524,28 @@ function XOR(props,layer){
         //xor.hideRes();
         //xor.resTxt.fill('DarkGray');
         xor.txt.text('+');
-        layer.batchDraw();
+        xor.getLayer().batchDraw();
     };
 
     xor.showRes = function (){
         xor.txt.text(xor.res.toString());
         //xor.resTxt.fill(props.resColor);
         //xor.resTxt.visible(true);
-        layer.batchDraw();
+        xor.getLayer().batchDraw();
     };
 
     xor.hideRes = function (){
         xor.resTxt.visible(false);
-        layer.batchDraw();
+        xor.getLayer().batchDraw();
     };
 
-    // mouse hover actions
-    xor.hoverOn = function(){
-        xor.circ.shadowColor('red');
-        xor.circ.shadowBlur(10);
-        xor.circ.shadowOpacity(1.0);
-        stage.container().style.cursor = 'pointer';
-        layer.batchDraw();
-    };
-    // mouse hover left actions
-    xor.hoverOff = function(){
-        xor.circ.shadowColor('');
-        xor.circ.shadowBlur(0);
-        xor.circ.shadowOpacity(0);
-        stage.container().style.cursor = 'default';
-        layer.batchDraw();
-    };
+    xor.disable = function(){
+        xor.off();
+        xor.circ.fill('DarkGrey');
+        xor.txt.fill('DimGrey');
+        xor.label.fill('DimGrey');
+        xor.getLayer().batchDraw();
+    }
 
     return xor;
 }//end of XOR
@@ -7012,7 +7576,7 @@ function sentData (params){
 function hcEncoder(props){
     if(typeof props.infoBits === 'undefined') {return console.log('Info bits aren\'t defined!');}
     if(typeof props.l === 'undefined') props.l=1;
-    if(typeof props.errCount === 'undefined') props.errCount=1;
+    if(typeof props.errCount === 'undefined') props.errCount=0;
     let m, l, k, n, infoBits;
     infoBits = props.infoBits;
     l = props.l;
@@ -7061,6 +7625,21 @@ function hcEncoder(props){
         for(let i=1; i<n; i++) res ^=cw[i];
         cw[0]=res;
     }
+
+    if(props.errCount > 0 && props.errCount < cw.length){
+        let errPos = [];
+        let idx=[];
+        for(let i=0; i<cw.length; i++) idx.push(i);
+        for(let i=0; i<props.errCount; i++){
+            let pos = idx[Math.floor(Math.random() * idx.length)];
+            errPos.push(pos);
+            idx.splice(idx.indexOf(pos),1);
+        }
+        errPos.forEach(i =>{
+            cw[i] = cw[i] === 0 ? 1 : 0;
+        });
+    };
+
     return cw;
 }
 
@@ -7351,4 +7930,540 @@ SmoothMovement.prototype.createAnimationClosure = function(updateListener, stopL
             if (stopListener) stopListener(thisObject);
         }
     }
-};
+}
+
+
+
+// Class Tasks
+class Tasks{
+    constructor (model, reference){
+        this.stage ='learning';
+        this.model = model;
+        let rowTasks = new TasksList(model);
+        let tasks=[]; // all tasks
+        let div = $("<div class='tabs'></div>"); // container
+        let outerDiv = $("<div class='tab-button-outer'></div>").appendTo(div);
+        let ul = $("<ul id='tab-button'></ul>").appendTo(outerDiv);
+        rowTasks.forEach(t =>{
+            let task = {}; // single temp task
+            task.id = t.id;
+            // tab's button (title)
+            let li = $("<li id='li-"+t.id+"'></li>").appendTo(ul)
+            task.title = $("<a href='#"+t.id+"'>"+t.title+"</a>").appendTo(li);
+            // tab's content
+            let contentDiv = $("<div id='"+t.id+"' class='tab-contents'></div>").appendTo(div); // main div
+            if(t.id === 'task0')
+                task.content = $("<p class='task' id='t"+t.id.substring(4)+"'>"+t.text+"</p>").appendTo(contentDiv);
+            else
+                task.content = $("<p class='task hidden' id='t"+t.id.substring(4)+"'>"+t.text+"</p>").appendTo(contentDiv);
+
+            task.content.append("<hr>");
+            task.solutions = $("<div class='solDiv' id='solDiv"+t.id.substring(4)+"'></div>").appendTo(contentDiv);
+            task.dialogs = [];
+            task.footer = $("<div id='footerTask"+t.id.substring(4)+"' class='footer'></div>").appendTo(contentDiv);
+
+            // add button for solving task in learning stage
+            if(t.id === 'task0') {
+                task.footer.btn = $("<button id='solveTasksBtn' type=\"button\" class=\"btn btn-primary btn-sm\" style='display: none; margin:5px'>Решаване на задачите</button>").appendTo(task.footer);
+                task.footer.btn.on('click', () => {
+                    this.stage = 'solving';
+                    $(".hidden").removeClass("hidden");
+                    $('#solveTasks').hide();
+                    $('#multiBtn').click();
+                    this.tasks.find(t => t.id==='task1').title.click();
+                });
+            }
+
+            tasks.push(task); // insert task in the array
+        });
+
+        // append after reference element
+        $( "#"+reference).after(div);
+        this.applyTabsIA();
+        this.tasks = tasks;
+    }
+
+    //  find binary combination in the tasks
+    check(dialog) {
+        //let tasks = $(".task");
+        let keywords=[];
+        let cls = '';
+
+        // get the active tab
+        let aTab = tasks.tasks[parseInt($(".is-active")[0].id.substr(7))];
+        // parse all bolded strings inside active tab
+        keywords = aTab.content[0].innerHTML.match(/<b>(.*?)<\/b>/g).map(function(val){
+            return val.replace(/<\/?b>/g,'');
+        });
+
+        // create message text
+        let text = '';
+        if (this.stage === 'learning') {
+            if(this.model !== 'ccPolyModel' && this.model !== 'ccLFSRModel')
+                text = 'Решен пример в ' + (model.process === 'enc' ? model.lang.gn.modeEnc.toLowerCase() : model.lang.gn.modeDec.toLowerCase())+'.';
+            else
+                text  = 'Решен пример с код откриващ '+ (model.t === 2 ? 'двойни' : 'тройни') +' грешки.'
+        } else {
+            text = 'Решение.';
+        }
+
+        let matchs = [];
+        // searching of keywords
+         for(let i=0; i<keywords.length; i++){
+            matchs[i] = false;
+            switch (keywords[i]){
+                case 'кодира':
+                case 'encoded':
+                case 'кодиране':
+                case 'encoding':
+                    if(model.process === 'enc') matchs[i] = true;
+                break;
+
+                case 'декодира':
+                case 'decode':
+                case 'декодиране':
+                case 'decoding':
+                    if(model.process === 'dec') matchs[i] = true;
+                break;
+
+                case 'единични':
+                case 'единична':
+                case 'single':
+                    if(model.t === 1) matchs[i] = true;
+                break;
+
+                case 'двойни':
+                case 'двойна':
+                case 'double':
+                    if(model.t === 2) matchs[i] = true;
+                break;
+
+                case 'тройни':
+                case 'тройна':
+                case 'triple':
+                    if(model.t === 3) matchs[i] = true;
+                break;
+
+                default: // for binary values
+                    let bins = (model.process === 'enc' ?
+                                model.ir.vals.toString().replace(/,/g,'') :
+                                model.cr.vals.toString().replace(/,/g,''));
+                    if(keywords[i] === bins) matchs[i] = true;
+            }
+        } // end of for
+
+        // set the class of button
+        // if (model.stat.error.count === 0)   cls = 'alert-success';
+        // else                                cls = 'alert-danger';
+        cls = model.stat.error.count === 0 ? 'btn btn-success' : 'btn btn-danger';
+
+        let append = false;
+        if (this.stage === 'learning'){
+            append = matchs.find(el => {if (el === true) return true});
+        }
+        else{ // task cheking
+            append = matchs.every((flag) => flag === true);
+        }
+
+        // append message
+        if (append) {
+            let btn = $("<button type='button'  class='" + cls + "' style='padding:5px; margin:5px;'>"+(aTab.dialogs.length +1)+". " + text + "</button>").appendTo(aTab.solutions);
+            btn.on('click', function(){
+                dialog.dialog('isOpen') === true ?  dialog.dialog('close') : dialog.dialog('open');
+            });
+            dialog.dialog('option','title',(aTab.dialogs.length +1)+'. '+ dialog.dialog('option','title'))
+            aTab.dialogs.push(dialog);
+        }
+        else console.log('Keywords: ',keywords.toString(), ' => Not found!');
+
+        if(this.stage === 'learning'){
+            // check for unlocking tasks
+            let unlock = true;
+            //console.log('text = ', aTab.solutions[0].innerText);
+            //console.log('keywords: ', keywords.toString());
+            keywords.forEach(keyword => {
+                if(aTab.solutions[0].innerText.search(keyword) === -1)  unlock = false;
+            });
+            if(unlock) $('#solveTasksBtn').show(); // show unlock button
+        }
+    } // end of check
+
+    // for for tabs
+    applyTabsIA() {
+        let $tabButtonItem = $('#tab-button li'),
+            $tabSelect = $('#tab-select'),
+            $tabContents = $('.tab-contents'),
+            activeClass = 'is-active';
+
+        $tabButtonItem.first().addClass(activeClass);
+        $tabContents.not(':first').hide();
+
+        $tabButtonItem.find('a').on('click', function(e) {
+            let target = $(this).attr('href');
+                $tabButtonItem.removeClass(activeClass);
+            $(this).parent().addClass(activeClass);
+            $tabSelect.val(target);
+            $tabContents.hide();
+            $(target).show();
+            e.preventDefault();
+        });
+
+        $tabSelect.on('change', function() {
+            let target = $(this).val(), targetSelectNum = $(this).prop('selectedIndex');
+            $tabButtonItem.removeClass(activeClass);
+            $tabButtonItem.eq(targetSelectNum).addClass(activeClass);
+            $tabContents.hide();
+            $(target).show();
+        });
+    } // end of applyTabsIA
+
+
+}// end of Task tabs
+
+
+// generate random bits
+function randBits(length){
+    let vals=[];
+    for(let i=0; i<length; i++) vals.push((Math.random() > 0.45)  ?  1 : 0);
+    return {vals: vals,
+            str: vals.toString().replace(/,/g,'')}
+}
+
+// cyclic code generator polynomial
+class ccGenPolyDialog{
+    constructor(opt){
+        if(typeof opt === 'undefined') return console.error('GenPoly option not fount!')
+        this.gpDialog = $("<div id='genPolyDialog' class='menuItem dialog' ></div>").appendTo('body');
+        this.gpDialog.dialog({autoOpen : false, modal : false, show : "blind", hide : "blind",
+            width: 'auto', height:'auto'});
+        this.gpDialog.dialog({title: lang.gn.genPolys});
+        this.gpDialog.css({'font-size': 14, 'margin':0, 'padding': 5, 'color': 'DarkBlue'});
+
+        // create table
+        this.table = {};
+        let thisDialog = this.gpDialog;
+        let btn=$('#selGenPolyBtn');
+        btn.html(lang.gn.selGenPoly);
+        btn.css({'font-size': '17px', 'padding-left': '0px'});
+        btn.click(function(){thisDialog.dialog('open');});
+        this.setTable(opt); //set genPoly table
+    }
+
+    setTable(opt){
+        try{$("#genPolyList").remove();} catch(e){}
+
+        //let tableSpan = $('<span style="padding: 1px"></span>').appendTo(this.gpDialog);
+        let $table = $('<table id="genPolyList" class="table table-bordered table-sm">').appendTo(this.gpDialog);
+        let $tbody = $table.append('<tbody/>').children('tbody');
+        if(opt === 't3'){
+            // for t = 3
+            $table.append('<thead>').children('thead')
+                .append('<tr />').children('tr').append('<th>Степен на полинома <i>s</i></th> ' +
+                '                                              <th>Неприводим полином (1+x).P<sub>1</sub>(x)</th> ' +
+                '                                              <th>Показател <i>l = 2<sup>s</sup> - 1</i></th>');
+            for(let i=3; i<=5; i++){
+                switch(i){
+                    case 3:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+(i+1)+"</td>")
+                            .append("<td><button name = 'X^4 + X^3 + X^2 + 1' val='3.3' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>4</sup>+x<sup>3</sup>+x<sup>2</sup>+1</button><br>" +
+                                "        <button name = 'X^4 + X^2 + 1' val='3.4'  type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>4</sup>+x<sup>2</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 4:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+(i+1)+"</td>")
+                            .append("<td><button name = 'X^5 + X^4 + X^2 + 1' val='4.3' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>5</sup>+x<sup>4</sup>+x<sup>2</sup>+1</button><br>" +
+                                "        <button name = 'X^5 + X^3 + X + 1' val='4.4' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>5</sup>+x<sup>3</sup>+x+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 5:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+(i+1)+"</td>")
+                            .append("<td><button name = 'X^6 + X^5 + X^3 + X^2 + X + 1' val='5.3' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>6</sup>+x<sup>5</sup>+x<sup>3</sup>+x+1</button><br>" +
+                                "        <button name = 'X^6 + X^5 + X^4 + X^3 + X + 1' val='5.4' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>6</sup>+x<sup>5</sup>+x<sup>4</sup>+x<sup>3</sup>+x+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                }
+            }
+        }else{
+            // for t = 2
+            $table.append('<thead>').children('thead')
+                .append('<tr />').children('tr').append('<th>Степен на полинома <i>s</i></th> ' +
+                '                                              <th>Неприводим полином P<sub>1</sub>(x)</th> ' +
+                '                                              <th>Показател <i>l = 2<sup>s</sup> - 1</i></th>');
+            for(let i=1; i<=10; i++){
+                switch(i){
+                    case 1:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X+1' val='1.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 2:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^2+X+1' val='2.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>2</sup>+x+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 3:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^3+X+1' val='3.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>3</sup>+x+1</button><br>" +
+                                "        <button name = 'X^3+X^2+1' val='3.2' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>3</sup>+x<sup>2</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 4:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^4+X+1' val='4.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>4</sup>+x+1</button><br>" +
+                                "        <button name = 'X^4+X^3+1' val='4.2' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>4</sup>+x<sup>3</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 5:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^5+X^2+1' val='5.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>5</sup>+x<sup>2</sup>+1</button><br>" +
+                                "        <button name = 'X^5+X^3+1' val='5.2' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>5</sup>+x<sup>3</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 6:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^6+X+1' val='6.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>6</sup>+x+1</button><br>" +
+                                "        <button name = 'X^6+X^5+1' val='6.2' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>6</sup>+x<sup>5</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 7:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^7+X+1' val='7.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>7</sup>+x+1</button><br>" +
+                                "        <button name = 'X^7+X^3+1' val='7.2' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>7</sup>+x<sup>3</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 8:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^8+X^4+X^3+X^2+1' val='8.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>8</sup>+x<sup>4</sup>+x<sup>3</sup>+x<sup>2</sup>+1</button><br>" +
+                                "        <button name = 'X^8+X^6+X^5+X^4+1' val='8.2' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>8</sup>+x<sup>6</sup>+x<sup>5</sup>+x<sup>4</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 9:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^9+X^5+1' val='9.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>9</sup>+x<sup>5</sup>+1</button><br>" +
+                                "        <button name = 'X^9+X^4+1' val='9.2' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>9</sup>+x<sup>4</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                    case 10:
+                        $tbody.append('<tr />').children('tr:last')
+                            .append("<td>"+i+"</td>")
+                            .append("<td><button name = 'X^10+X^7+1' val='10.1' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>10</sup>+x<sup>7</sup>+1</button><br>" +
+                                "        <button name = 'X^10+X^3+1' val='10.2' type=\"button\" class=\"btn btn-link genPolyBtn\" style='padding: 1px'>x<sup>10</sup>+x<sup>3</sup>+1</button></td>")
+                            .append("<td>"+(Math.pow(2, i)-1)+"</td>");
+                        break;
+                }
+            }
+        }
+
+        // set table css
+        $table.css({'margin-top':'10px', 'border-color': 'black'});
+        $('#genPolyList th').css({'padding':'5px' ,'white-space': 'nowrap'});
+        $('#genPolyList td').css({'padding':'2px' ,'white-space': 'nowrap', 'text-align':'center'});
+
+
+        // poly button click event
+        let btn=$('#selGenPolyBtn');
+        let thisDialog = this.gpDialog;
+        $(".genPolyBtn").click(function(){
+            btn.html(this.innerHTML);
+            btn.attr('val',$(this).attr('val'));
+            btn.attr('name',$(this).attr('name'));
+            thisDialog.dialog('close')
+        });
+        this.table = $table;
+    }
+}
+
+// Running as page opens
+function initialOpening(){
+    $("#navHome").click(function() { loadPage('models');});
+
+    // login dialog
+    let loginDiv = $("<div id='loginDiv' title='Login'></div>").appendTo('body');
+    let loginForm = $("<form id='loginForm' method='post'></form>").appendTo(loginDiv);
+    loginForm.append("<p class='validateTips' id='wrongUserName'></p>");
+    $("#wrongUserName").css({'display':'none'});
+    let fieldset1 =  $("<fieldset></fieldset>").appendTo(loginForm);
+    fieldset1.append("<legend id='userNameTxt'>User name</legend>");
+    fieldset1.append("<input type='text' class='text ui-widget-content ui-corner-all' id='userName' name='userName'>");
+
+    let fieldset2 =  $("<fieldset></fieldset>").appendTo(loginForm);
+    fieldset2.append("<legend id='selLang'>Select a language</legend>");
+    fieldset2.append("<label for='langBG'>Български</label>");
+    fieldset2.append("<input type='radio' name='lang' id='langBG' value='bg' checked>");
+    fieldset2.append("<label for='langEN'>English</label>");
+    fieldset2.append("<input type='radio' name='lang' id='langEN' value='en'>");
+
+
+    // password dialog
+    let passDiv = $("<div id='passDiv' title='Set password'></div>").appendTo('body');
+    let passForm = $("<form></form>").appendTo(passDiv);
+    passForm.append("<p class='validateTips' id='wrongPass'></p>")
+    $("#wrongPass").css({'display':'none'});
+    let fieldset3 =  $("<fieldset></fieldset>").appendTo(passForm);
+    fieldset3.append("<legend id='passTxt'>Password</legend>");
+    fieldset3.append("<input type='password' name='password' id='password' value='???????' class='text ui-widget-content ui-corner-all'>");
+
+
+    // MESSAGE DIALOG
+    let msgDialog=$("<div id='msgDialog' title='' class='dialog'></div>").appendTo('body');
+    msgDialog.dialog({
+        autoOpen : false, modal : false, show : "blind", hide : "blind",
+        minHeight:100, minWidth:100,  height: 'auto', width: 'auto',
+        close: function() {
+            $("#msgDialog").css({'color':'black'});
+        }
+    });
+    msgDialog.dialog('close');
+
+    // CURRENT SETTINGS
+    $('#navbar').css({display:'block'}); // hide navbar
+    $('input:radio[name=lang]').filter('[value=bg]').prop('checked', true);
+    // let currLang = 'bg';
+    lang =  new LangPack($('input[name="lang"]:checked').val());
+    userName = 'yaliev';
+    //let userName = '123456';
+
+    // language change function
+    langChange = function(){
+        //lang = null;
+        lang =  new LangPack($('input[name="lang"]:checked').val());
+        $('#userNameTxt').html(lang.gn.userNameTxt);
+        $('#selLang').html(lang.gn.selLang);
+        $('#loginBtn').html(lang.gn.login);
+        $('#loginDiv' ).dialog({title: lang.gn.login});
+        $('#passDiv' ).dialog({title: lang.gn.passTxt});
+        $('#wrongUserName').text(lang.gn.wrongUserName);
+        $('#passTxt').text(lang.gn.passTxt);
+        $('#wrongPass').text(lang.gn.wrongPass);
+    }
+
+    // About language radio buttons
+    $("#langBG").checkboxradio();
+    $("#langEN").checkboxradio();
+    $('input[name ="lang"]').change(function(){
+        langChange();
+    });
+
+    // check the password function
+    checkPass = function(){
+        $('#wrongPass').css('display', 'none');
+        if($.MD5($('#password').val()) === '88a2fdd0aa43fea0d282b21c4a32895e'){
+            $('#wrongPass').text('');
+            $("#passDiv").dialog('close');
+            $("#loginDiv").dialog('close');
+            loadPage('models');
+        }
+        else {
+            $('#wrongPass').text(lang.gn.wrongPass);
+            $('#wrongPass').css('display', 'inline');
+            $("#wrongPass" ).effect( 'shake', effectCallback );
+        }
+    };
+
+
+    // create a fade in effect for 1000ms
+    effectCallback = function () {
+        setTimeout(function() {
+            $( "#effect" ).removeAttr( "style" ).hide().fadeIn();
+        }, 1000 );
+    };
+
+    // login form submit function
+    loginForm.submit(function(e) {
+        loginBtnEvent();
+        e.preventDefault();
+    });
+
+    // login button click event
+    loginBtnEvent = function() {
+        $('#wrongUserName').css('display', 'none'); // hide the wrong pass message
+        let user = $('#userName').val();
+        if(user === 'yaliev' || user === 'earsova' || user === 'givanova'){
+            $("#passDiv").dialog('open');
+            userName = user;
+        }
+        else{
+            if(user.length !== 6){
+                $("#wrongUserName").css('display', 'inline');
+                $("#wrongUserName").effect( 'shake', effectCallback );
+                return;
+            }
+            $("#loginDiv" ).dialog('close');
+            userName = user;
+            loadPage('models');
+        }
+    };
+
+    // Load page function
+    loadPage = function(pageName){
+
+       $("#content").load('pages/'+pageName+'.html');
+    }
+
+    // set the loginDiv as dialog
+    loginDiv.dialog({
+        autoOpen : false, modal : true, show : "blind", hide : "blind",
+        minWidth: 320,
+        maxWidth: 320,
+        height: 'auto',
+        width: 'auto',
+        buttons: {
+            'login': loginBtnEvent
+        },
+        open: function (event, ui) {
+            $( this ).parent().find(".ui-dialog-titlebar-close" ).remove();
+        },
+    });
+
+
+    // set the passDiv as dialog
+    passDiv.dialog({
+        autoOpen: false,
+        height: 'auto',
+        width: 'auto',
+        modal: true,
+        show : "blind",
+        buttons: {
+            "OK": checkPass,
+            Cancel: function() {
+                passDiv.dialog("close");
+            }
+        },
+        close: function() {
+            form[0].reset();
+        }
+    });
+
+    // set the passDiv dialog's form submit event
+    let form = passDiv.find( "form" ).on( "submit", function( event ) {
+        event.preventDefault();
+        checkPass();
+    });
+
+    //hide the dialogs' close icon
+    //$(".ui-dialog-titlebar-close").hide();
+
+    langChange(); // set current language
+
+    // for tests
+    //loginDiv.dialog('open');
+
+    //loadPage('models');
+    //loadPage('hamming-general');
+    //loadPage('hamming-matrix');
+    //loadPage('cyclic-polynomial');
+    loadPage('cyclic-lfsr');
+
+}// end of initialOpening

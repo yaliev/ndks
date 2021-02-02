@@ -18,108 +18,55 @@ createStatistics = function(lang){
         }
     };
 
-    let stat = new Konva.Group ({
-		id: 'stat',
-		name:'Statistic panel',
-		draggable:false
-	});
+    // create empty span tag in cpntrol panel
+    let stat = $("<span id='stat' class='border border-info'></span>" ).appendTo("#cp");
+    //stat.draggable();
+	stat.css({backgroundColor: props.fill, "border-color": props.fill});
     stat.lang = lang;
-	stat.layer = new Konva.Layer();
 	stat.totalTime = {min:0, sec: 0};
 	stat.modelName='model';
 	stat.userName='user';
+	stat.css("padding-left","0px");
+	stat.css("padding-top","4px");
+	stat.css("padding-bottom","5px");
 
-	stat.rect =  new Konva.Rect({
-		id: stat.id()+'-rect',
-		width : props.width,
-		height: props.height,
-		fill: props.fill,
-		shadowColor: 'black',
-		shadowBlur: 10,
-		shadowOpacity: 0.5,
-		cornerRadius: 4
-	});
-    stat.add(stat.rect);
+	// creating title of statistics panel
+	stat.title = $("<label class='bg-info text-white'><b>"+lang.title+"</b></label>").appendTo(stat);
+	stat.title.css("padding-left","5px");
+	stat.title.css("padding-right","5px");
+	stat.title.css("padding-top","3px");
+	stat.title.css("padding-bottom","5px");
 
-	stat.labelRect = new Konva.Rect({
-	  id: stat.id()+'-labelRect',
-	  height: stat.rect.height(),
-	  fill: props.label.fill,
-	  cornerRadius: 4
-	});
-    stat.add(stat.labelRect);
-
-	stat.labelTxt =  new Konva.Text({
-	  id: stat.id()+'-labelTxt',
-	  //width:stat.labelRect.width(),
-      height:stat.labelRect.height(),
-	  text: lang.title,
-	  fontSize: props.label.textSize,
-	  fontFamily: 'Calibri',
-	  padding: 0,
-	  align: 'center',
-	  verticalAlign: 'middle',
-	  fill: props.label.textColor,
-	});
-    stat.add(stat.labelTxt);
-
-	// label height setting
-	stat.labelRect.width(stat.labelTxt.width()+ props.label.padding*4);
-	stat.labelTxt.width(stat.labelRect.width());
-
-	stat.timer = new Konva.Group ({id:'timer'});
 	// creating timer object
+	stat.timer = $("<span id='timer' ></span>").appendTo(stat);
 	stat.timer.ID = -1;
 	stat.timer.min = 0;
 	stat.timer.sec = 0;
+	stat.timer.css({display: "inline-block", margin: "5px"});
 	stat.timer.maxSec = 1200; // default max time=20 min
 
-	stat.timer.label = new Konva.Text({
-        id: stat.timer.id()+'-label',
-        x: stat.labelRect.x()+stat.labelRect.width() + props.margin,
-        y: stat.labelRect.y(),
-        height: stat.rect.height(),
-        text: lang.time,
-        fontSize: props.label.textSize,
-        fontFamily: 'Calibri',
-        padding: props.label.padding,
-        align: 'left',
-        verticalAlign: 'middle',
-        fill: 'Navy',
-	});
-    stat.timer.add(stat.timer.label);
+	stat.timer.label = $("<span id='timerLabel' >"+lang.time+"</span>").appendTo(stat.timer);
+	//stat.timer.label.text(lang.time);
+	stat.timer.label.css("display", "inline-block");
+	stat.timer.label.css({color:'green'});
 
-	stat.timer.val = new Konva.Text({
-        id: stat.timer.id()+'-value',
-        x: stat.timer.label.x()+stat.timer.label.width(),
-        y: stat.timer.label.y(),
-        height: stat.rect.height(),
-        text: '00 '+lang.min+'  00 '+lang.sec,
-        fontSize: props.label.textSize,
-        fontFamily: 'Calibri',
-        padding: props.label.padding,
-        align: 'left',
-        verticalAlign: 'middle',
-        fill: 'SeaGreen ',
-	});
-    stat.timer.add(stat.timer.val);
-    stat.add(stat.timer);
-
-    stat.timer.val.hoverTxt = lang.maxTime +' '+ (Math.floor(stat.timer.maxSec / 60)+lang.min+ ' '+Math.floor(stat.timer.maxSec % 60)+lang.sec);
-    stat.timer.val = hover1(stat.timer.val,  stat.timer);
-    stat.timer.val = over(stat.timer.val);
+	stat.timer.val = $("<span id='timerVal' ></span>").appendTo(stat.timer);
+	stat.timer.val.text( '00 : 00 ');
+	stat.timer.val.attr('title', lang.maxTime +' '+ (Math.floor(stat.timer.maxSec / 60)+lang.min+ ' '+Math.floor(stat.timer.maxSec % 60)+lang.sec));
+	stat.timer.val.css("margin-left","3px");
+	stat.timer.val.css("display", "inline-block");
 
 	stat.timer.update = function(){
 		if (stat.timer.sec < 59) stat.timer.sec++;
 		else {
-			stat.timer.sec = 0;
-			stat.timer.min++;
-
-			// check for maxSec
-			if((stat.timer.min*60) + stat.timer.sec >= stat.timer.maxSec ){
-				stat.timer.stop();
-				stat.timer.min = 0;
 				stat.timer.sec = 0;
+				stat.timer.min++;
+
+				// check for maxSec
+				if((stat.timer.min*60) + stat.timer.sec >= stat.timer.maxSec ){
+					stat.timer.stop();
+					stat.timer.min = 0;
+					stat.timer.sec = 0;
 			}
 		}
 
@@ -127,8 +74,7 @@ createStatistics = function(lang){
 		let sec, min;
 		sec = stat.timer.sec < 10 ? "0" + stat.timer.sec : stat.timer.sec;
 		min = stat.timer.min < 10 ? "0" + stat.timer.min : stat.timer.min;
-		stat.timer.val.text(min+' '+lang.min+' '+sec+' '+lang.sec);
-		stat.layer.batchDraw();
+		stat.timer.val.text(min+' : '+sec+' ');
 	};
 
 	// set max time
@@ -136,7 +82,8 @@ createStatistics = function(lang){
 		if(typeof time.min === 'undefined') return console.log('The time.min is not defined!');
 		if(typeof time.sec === 'undefined') time.sec = 0;
 		stat.timer.maxSec = time.min*60 + time.sec;
-		stat.timer.val.hoverTxt = lang.maxTime +' '+ (Math.floor(stat.timer.maxSec / 60)+lang.min+ ' '+Math.floor(stat.timer.maxSec % 60)+lang.sec);
+		//stat.timer.val.hoverTxt = lang.maxTime +' '+ (Math.floor(stat.timer.maxSec / 60)+lang.min+ ' '+Math.floor(stat.timer.maxSec % 60)+lang.sec);
+		stat.timer.val.attr('title', lang.maxTime +' '+ (Math.floor(stat.timer.maxSec / 60)+lang.min+ ' '+Math.floor(stat.timer.maxSec % 60)+lang.sec));
 	};
 
 	stat.timer.start = function(){
@@ -154,113 +101,32 @@ createStatistics = function(lang){
 	};
 
 
-
     // creating error object
-    stat.error = new Konva.Group ();
+	stat.error = $("<span id='error' class='menuItem' ></span>").appendTo(stat);
+	stat.error.css("display", "inline-block");
     stat.error.count = 0;
 	stat.error.history =[];
-	stat.error.label = new Konva.Text({
-        id: stat.id()+'-errorLabel',
-        x: stat.timer.val.x()+stat.timer.val.width() + props.margin,
-        y: stat.timer.val.y(),
-        height: stat.rect.height(),
-        text: lang.err,
-        fontSize: props.label.textSize,
-        fontFamily: 'Calibri',
-        padding: props.label.padding,
-        align: 'left',
-        verticalAlign: 'middle',
-        fill: 'Navy',
-	});
+	stat.error.label = $("<span id='errorLabel'></span>").appendTo(stat.error);
+	stat.error.label.css("display", "inline-block");
+	stat.error.label.text(lang.err);
+	stat.error.css({color:'red'});
+	stat.error.val = $("<button id='errorVal' class='btn btn-link' type='button'></button>").appendTo(stat.error);
+	stat.error.val.css("padding-left","3px");
+	stat.error.val.css("display", "inline-block");
+	stat.error.val.text(stat.error.count || '0');
 
-    stat.error.add(stat.error.label);
+	stat.error.val.attr('title', lang.showErrors);
 
-	stat.error.val = new Konva.Text({
-        id: stat.id()+'-timeVal',
-        x: stat.error.label.x()+stat.error.label.width(),
-        y: stat.error.label.y(),
-        height: stat.rect.height(),
-        text: stat.error.count || '0',
-        fontSize: props.label.textSize,
-        fontFamily: 'Calibri',
-        padding: props.label.padding,
-        align: 'left',
-        verticalAlign: 'middle',
-        fill: 'DarkRed',
-	});
-    stat.error.add(stat.error.val);
-
-	stat.errHistory = new PANEL({name: lang.errHistory,
-										position: {x: stat.error.val.x() + 20, y: stat.error.val.y()}
-	});
-	stat.add(stat.errHistory);
-	stat.errHistory.size({width: 0, height: 30});
-	stat.errHistory.visible(false);
-	stat.errHistory.dragmove(true);
-
-	// jquery dialog
-	stat.errDialog = $("#errDialog").dialog({autoOpen : false, modal : false, show : "blind", hide : "blind", width: 'auto', height:'auto', minWidth:250, maxHeight:500});
-	stat.errDialog.dialog({title: lang.errHistory});
-	stat.errDialog.css({'font-size': 14, 'margin':0, 'padding': 5, 'color': 'red'});
-
-	stat.errHistory.insert = (error) =>{
-		let dist = 5;
-		let pos = {x: dist, y: stat.errHistory.label.height() + dist};
-		let last = stat.errHistory.findOne('#last');
-		let txt = null;
-		if(typeof last === 'undefined'){ // for empty history situation
-			txt = new Konva.Text({
-				id: 'last',
-				name: 'errItem',
-				position: pos,
-				text: error,
-				fontSize: 14,
-				fontFamily: 'Calibri',
-				padding: 0,
-				align: 'left',
-				verticalAlign: 'middle',
-				fill: 'red',
-			});
-			stat.errHistory.add(txt);
-		}
-		else { // for not empty history situation
-			// move the old errors with one position bottom
-			stat.errHistory.find('.errItem').each(err =>{
-				err.move({x:0, y: err.height() + dist});
-			});
-			// create the new error item
-			txt = stat.errHistory.findOne('#last').clone();
-			stat.errHistory.findOne('#last').id(''); // clear the 'last' id
-			txt.id('last');
-			txt.text(error);
-			txt.move({x:0, y:-(txt.height()+dist)});
-			stat.errHistory.add(txt);
-		}
-		$("#errDialog").append('<span>'+error+'</span></br>');
-
-		if (stat.errHistory.width() < txt.width() + dist*2)
-			stat.errHistory.size({width: txt.width() + dist*2});
-		stat.errHistory.size({height:stat.errHistory.rect.height() + txt.height() + dist});
-		//stat.errHistory.rect.height(stat.errHistory.rect.height() + txt.height() + dist);
-	};
-    stat.add(stat.error);
-
-	stat.error.val.hoverTxt = lang.showErrors;
-	stat.error.val = hover1(stat.error.val, stat.error);
-	stat.error.val = over(stat.error.val);
-
-	stat.error.on('click touchstart', function(){
-		if(stat.errHistory.visible()) {
-			// stat.errHistory.visible(false);
-			stat.errDialog.dialog('close');
-		}
-		else {
-			// stat.errHistory.visible(true);
-			stat.errDialog.dialog('open');
-		}
-		stat.layer.batchDraw();
+	// jquery error dialog
+	stat.error.errDialog = $("<div id='errDialog' class='menuItem dialog' ></div>").appendTo(stat);
+	stat.error.errDialog.dialog({autoOpen : false, modal : false, show : "blind", hide : "blind",
+											 width: 'auto', height:'auto', minWidth:300, maxHeight:500});
+	stat.error.errDialog.dialog({title: lang.errHistory});
+	stat.error.errDialog.css({'font-size': 14, 'margin':0, 'padding': 5, 'color': 'red'});
 
 
+	stat.error.on('click', function(){
+		stat.error.errDialog.dialog('open');
 	});
 
 	// incrementing the error counter
@@ -268,18 +134,7 @@ createStatistics = function(lang){
 		stat.error.count++;
 		stat.error.history.unshift(errStr);
 		stat.error.val.text(stat.error.count);
-		stat.errHistory.insert(errStr);
-		stat.layer.batchDraw();
-	};
-	// insert multiple errors
-	stat.error.insert = function(erros){
-		stat.error.count = erros.count;
-		stat.error.history = erros.history;
-		stat.error.val.text(stat.error.count);
-		erros.history.forEach(err =>{
-			stat.errHistory.insert(err);
-		});
-		stat.layer.batchDraw();
+		stat.error.errDialog.append('<span>'+stat.error.count+'. '+errStr+'</span></br>');
 	};
 
 	stat.reset = function(){
@@ -288,13 +143,10 @@ createStatistics = function(lang){
 		this.error.count = 0;
 		this.error.history = '';
 		this.timer.stop();
-		this.layer.destroy();
+		try{stat.errDialog.empty();}catch(err){};
+		stat.errDialog = '';
+		console.log('Stats was reseted!');
 	};
-    stat.layer.add(stat);
-
-    // set size;
-	stat.width(stat.rect.width());
-	stat.height(stat.rect.height());
 
 	stat.logData = function(){
 		let data = {fileName: stat.userName,

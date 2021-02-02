@@ -1,44 +1,64 @@
-function ALGORITHM(steps, m, k, lang){
-    let _layer = new Konva.Layer();
-	//let _steps = createSteps(lang);
-    let _schema = createSchema(steps, lang, _layer);
-    //let _stat = createStatistics(_layer,solveTime);
-	 
+function ALGORITHM(steps, m, k, user){
+    let lang = new LangPack($('input[name="lang"]:checked').val()).alg;
+    let teacherUsers =['yaliev','earsova','givanova'];
     let algorithm ={
-                    layer: _layer,
+                    layer: new Konva.Layer(),
                     currStep : 0,
                     currSubStep:0,
                     cycle: 0,
                     m: m,
                     k: k,
                     steps: steps,
-                    schema: _schema,
-                    width: _schema.width(),
-                    height: _schema.height(),
+                    panel: createPanel(steps, lang),
                     lang: lang
     };
-    //mark item
+    algorithm.width = algorithm.panel.width();
+    algorithm.height = algorithm.panel.height();
+
+    if (tasks.stage !== 'learning') algorithm.panel.visible(false);
+    if(teacherUsers.find(u => u === user)) {
+        algorithm.panel.visible(true);
+        algorithm.panel.mc.show();
+    };
+
 
     // marks the current step asd past
     algorithm.markCurrStep = function(status){
         let currStep = this.steps[this.currStep];
         let id = currStep.name;
-        if (currStep.sub.length > 0){
+
+        if (currStep.sub.length > 0){ // check for substep
             id += '-'+ currStep.sub[this.currSubStep].name;
-            if (this.currSubStep === (currStep.sub.length-1)) // mark check item as current if it is last sub current step
-                algorithm.schema.items.find(i => i.id() === currStep.name+'-check' && status === 'past').markAs('curr');
+            try{
+                 algorithm.panel.diagram.items.find(i => i.id() === id).markAs(status);
+            }
+            catch{}
+
+            if (this.currSubStep === (currStep.sub.length-1) && status === 'past'){ // check for last sub step
+                // mark check item as current if it is last sub current step
+                try{
+                     algorithm.panel.diagram.items.find(i => i.id() === currStep.name+'-check').markAs('curr');
+                }
+                catch(e){ console.log(e)}
+            }
         }
-        try{
-            algorithm.schema.items.find(i => i.id() === id).markAs(status);
+        else{
+            try{
+                 algorithm.panel.diagram.items.find(i => i.id() === id).markAs(status);
+            }
+            catch(e){ console.log(e)}
         }
-        catch{}
         this.layer.batchDraw();
+    };
+
+    // set step ponts
+    algorithm.setPoints = function (){
     };
 
     // reset the current cycle
     algorithm.resetCycle = function(){
         let currStep = this.steps[this.currStep];
-        algorithm.schema.items.forEach(item => {
+         algorithm.panel.diagram.items.forEach(item => {
             if(item.id().search(currStep.name) !== -1){
                 item.markAs('reset');
             }
@@ -52,7 +72,7 @@ function ALGORITHM(steps, m, k, lang){
         if (this.steps[this.currStep].sub.length > 0){
             if (this.steps[this.currStep].sub[this.currSubStep].name === thisStep)	check = true;
         }
-        else if (this.steps[this.currStep].name === thisStep)	check = true;
+        else if (this.getCurrStep().name === thisStep)	check = true;
         return check;
     };
 
@@ -83,12 +103,12 @@ function ALGORITHM(steps, m, k, lang){
                 // check for last cycle
                 if (this.cycle === (thisStep.cycleCount-1)){
                     this.cycle = 0; // reset the cycle counter
-                    algorithm.schema.items.find(i => i.id() === thisStep.name+'-check').markAs('past');
+                     algorithm.panel.diagram.items.find(i => i.id() === thisStep.name+'-check').markAs('past');
                     this.currStep++; // increment the step counter
                 }
                 else{ // it is not last cycle
                     this.cycle++; // increment the cycle counter
-                    algorithm.schema.items.find(i => i.id() === thisStep.name+'-check').markAs('curr');
+                     algorithm.panel.diagram.items.find(i => i.id() === thisStep.name+'-check').markAs('curr');
                 }
             }
             else{ // it is not last sub step
@@ -104,8 +124,16 @@ function ALGORITHM(steps, m, k, lang){
         if(this.steps[this.currStep].name === 'finish')
         {
             model.simFinish();
-            console.log('show finish message');
             model.stat.logData();
+            model.algorithm.panel.mc.hide();
+            let end =  algorithm.panel.diagram.items.find(e => e.id() === 'end');
+            end.markAs('past');
+            end.hoverTxt = lang.showEndMsg;
+            end = hover1(end, end.getParent());
+            end = over(end);
+            end.on('click touchstart', function(){
+                $("#finishDialog" ).dialog('open');
+            });
         }
     };
 
@@ -116,6 +144,23 @@ function ALGORITHM(steps, m, k, lang){
         else  return currStep;
     };
 
+    // increment step cycleCount
+    algorithm.incrmtCycle = function(arg){
+        if(typeof arg === 'undefined') arg = 1;
+
+        for(let i = 0; i< this.steps.length; i++){
+            if(this.steps[i].sub.length > 0 && arg === 1){
+                this.steps[i].cycleCount++;
+                break;
+            }
+            else if(this.steps[i].sub.length > 0 && arg === 2){
+                this.steps[i].cycleCount++;
+                break;
+            }
+        }
+
+    } // end of algorithm.incrmtCycle
+
     // reset the algorithm
     algorithm.reset = function(){
         this.currStep = 0;
@@ -124,16 +169,19 @@ function ALGORITHM(steps, m, k, lang){
         this.layer.destroy();
     };
 
-    algorithm.layer.add(algorithm.schema);
+    //
+
+    algorithm.layer.add(algorithm.panel);
     algorithm.layer.draw();
     return algorithm;
-}
+}// end of ALGORITHM
 
 // Creating the Algorithm's Panel
-createSchema = function(steps, lang, layer){
+createPanel = function(steps, lang){
     let prop={
         width: 280,
         height: 10,
+        name: lang.title,
         fill: 'FloralWhite',
         stroke: 'SlateGray',
         markFill: 'LightGreen',
@@ -155,118 +203,78 @@ createSchema = function(steps, lang, layer){
     };
 	 	 	 
 	 // cteating the Algorithm panel
-    let sch = new Konva.Group ({
-        id: 'sch',
-        name:'Algorithm panel',
-        draggable:false
-    });
-
-    sch.rect = new Konva.Rect({
-        id: sch.id()+'-rect',
-        width : prop.width,
-        height: prop.height,
-        fill: prop.fill,
-        shadowColor: 'black',
-        shadowBlur: 10,
-        shadowOpacity: 0.5,
-        cornerRadius: 4
-    });
-    sch.labelRect = new Konva.Rect({
-        id: sch.id()+'-labelRect',
-        width: sch.rect.width(),
-        fill: prop.label.fill,
-        cornerRadius: 4
-    });
-    sch.labelTxt =  new Konva.Text({
-        id: sch.id()+'-labelTxt',
-        width:sch.labelRect.width(),
-        text: lang.title,
-        fontSize: prop.label.textSize,
-        fontFamily: 'Calibri',
-        padding: 0,
-        align: 'center',
-        verticalAlign: 'middle',
-        fill: prop.label.textColor,
-    });
-    // label height setting
-    sch.labelRect.height(sch.labelTxt.height()+(prop.label.padding*2));
-    sch.labelTxt.height(sch.labelRect.height());
-
-    // add components to mein group
-    sch.add(sch.rect, sch.labelRect,  sch.labelTxt);
-
-    // enable dragable property
-    sch.labelTxt.on('mouseover touchstart', function(){
-        sch.draggable(true);
-        stage.container().style.cursor = 'move';
-    });
-    // disable dragable property
-    sch.labelTxt.on('mouseout touchend', function(){
-        sch.draggable(false);
-        stage.container().style.cursor = 'default';
-    });
+    let panel = new PANEL(prop);
+    panel.id('AlgorithmPanel');
+    panel.label.fontSize(prop.label.textSize-2);
+    panel.size({width:  prop.width, height:  prop.height});
+    panel.dragmove(true);
 
 
-    sch.items=[];
-	 //////////////Creating the schema//////////////////////////////////////////////////////////////
-	 let firstItemCenterPos = {x: sch.labelRect.width()/2, y: sch.labelRect.height() + prop.itemDist*2};
-    
+    //////////////Creating the diagram//////////////////////////////////////////////////////////////
+    let diagram = new Konva.Group();
+    panel.add(diagram);
+    diagram.items=[];
+    let firstItemCenterPos = {x: panel.labelRect.width()/2, y: panel.labelRect.height() + prop.itemDist*2};
+
     //begin item
-    let item = new createItem('begin','', layer);
+    let item = new createItem('begin','');
     item.id('begin');
     item.position(firstItemCenterPos);
-    sch.add(item);
+    diagram.add(item);
     item.soket = {out:{x: item.x(), y: item.y() + item.circ.radius()}};
-    sch.items.push(item);
-    let lastItem = sch.items[sch.items.length-1];
+    diagram.items.push(item);
+    let lastItem = diagram.items[diagram.items.length-1];
+
     // other items
     steps.forEach(step =>{
         let item={};
-
         if (step.sub.length>0){   // for sub steps /////////////////////////////////////////////////////////////////////
-            let mainStepName = step.name;
+            //let mainStepName = step.name;
             let stepCount=-1;
             let stepLn = step.sub.length;
-            step.sub.forEach(step =>{
-                lastItem = sch.items[sch.items.length-1];
+            step.sub.forEach(subStep =>{
+                lastItem = diagram.items[diagram.items.length-1];
                 stepCount++;
                 // first cycle element is join element
                 if (stepCount === 0){
-                    item =  new createItem('join','', layer);
-                    item.id(mainStepName+'-join');
+                    // join item
+                    item =  new createItem('join','');
+                    item.id(step.name+'-join');
                     item.x(lastItem.x());
                     item.y(lastItem.y() + lastItem.height() + prop.itemDist);
                     item.soket = {  in: {x: item.x() + item.width()/2, y: item.y()},
                         inL:{x: item.x() + item.width()/2 - item.shape.width()/2, y: item.y() + item.shape.height()/2},
                         out:{x: item.x() + item.width()/2, y: item.y() + item.height()}
                     };
-                    sch.add(item);
-                    sch.items.push(item);
-                    lastItem = sch.items[sch.items.length-1];
+                    diagram.add(item);
+                    diagram.items.push(item);
+                    lastItem = diagram.items[diagram.items.length-1];
                 }
-
-                lastItem = sch.items[sch.items.length-1];
-                item =  new createItem('oper', step.description, layer);
-                item.id(mainStepName+'-'+step.name);
+                lastItem = diagram.items[diagram.items.length-1];
+                // operation item
+                item =  new createItem('oper', subStep.description);
+                item.id(step.name+'-'+subStep.name);
                 item.x(lastItem.x());
                 item.y(lastItem.y() + lastItem.height() + prop.itemDist);
                 item.soket = {  in: {x: item.x() + item.width()/2, y: item.y()},
                                 out:{x: item.x() + item.width()/2, y: item.y() + item.height()}
                 };
 
-                item.hoverTxt = step.help;
-                item = hover1(item,  sch);
+                item.hoverTxt = subStep.help;
+                item = hover1(item,  panel);
                 item = over(item);
 
-                sch.add(item);
-                sch.items.push(item);
-                lastItem = sch.items[sch.items.length-1];
+                diagram.add(item);
+                diagram.items.push(item);
+                lastItem = diagram.items[diagram.items.length-1];
+
                 // check for last element of cycle
                 if (stepCount === stepLn-1){
-                    item =  new createItem('check',lang.lastCbit, layer);
+                    let str = typeof step.exitCond !== 'undefined'? step.exitCond : lang.lastCbit;
+                    item =  new createItem('check', str);
                     item.yesTxt.text(lang.yes);
                     item.noTxt.text(lang.no);
-                    item.id(mainStepName+'-check');
+                    item.id(step.name+'-check');
                     item.x(lastItem.x());
                     item.y(lastItem.y() + lastItem.height()  + prop.itemDist);
 
@@ -275,29 +283,29 @@ createSchema = function(steps, lang, layer){
                                     outL:{x: item.x() ,                 y: item.y() + item.height()/2 - 1}
                     };
 
-                    sch.add(item);
-                    sch.items.push(item);
-                    lastItem = sch.items[sch.items.length-1];
+                    diagram.add(item);
+                    diagram.items.push(item);
+                    lastItem = diagram.items[diagram.items.length-1];
                 }
             });
         }
         else{ // for main steps /////////////////////////////////////////////////////////////////////
 
             if (step.name === 'finish') { // for the last step
-                item = new createItem('end','', layer);
+                item = new createItem('end','');
                 item.id('end');
                 item.x(lastItem.x() + lastItem.width() / 2);
                 item.y(lastItem.y() + lastItem.height() + prop.itemDist*2);
                 item.soket = { in: {x: item.x() , y: item.y() - item.height()/2} };
 
-                sch.add(item);
-                sch.items.push(item);
-                lastItem = sch.items[sch.items.length-1];
+                diagram.add(item);
+                diagram.items.push(item);
+                lastItem = diagram.items[diagram.items.length-1];
             }
             else{
-                item =  new createItem('oper',step.description, layer);
+                item =  new createItem('oper',step.description);
                 item.id(step.name);
-                if (sch.items.length === 1) { // for the first step
+                if (diagram.items.length === 1) { // for the first step
                     item.x(lastItem.x() - item.width()/2);
                     item.y(lastItem.y() + lastItem.height() + prop.itemDist*0.5);
                 }
@@ -306,27 +314,29 @@ createSchema = function(steps, lang, layer){
                     item.y(lastItem.y() + lastItem.height() + prop.itemDist);
                 }
 
-                item.soket = {  in: {x: item.x() + item.width()/2, y: item.y()},
-                                out:{x: item.x() + item.width()/2, y: item.y() + item.height()}
+                item.soket = { in: {x: item.x() + item.width()/2, y: item.y()},
+                               out:{x: item.x() + item.width()/2, y: item.y() + item.height()}
                 };
                 item.hoverTxt = step.help;
-                item = hover1(item,  sch);
+                item = hover1(item,  panel);
                 item = over(item);
 
-                sch.add(item);
-                sch.items.push(item);
-                lastItem = sch.items[sch.items.length-1];
+                diagram.add(item);
+                diagram.items.push(item);
+                lastItem = diagram.items[diagram.items.length-1];
             }
         }
     });
-    // schema's height correction
-    lastItem = sch.items[sch.items.length-1];
-    sch.rect.height(lastItem.y() + lastItem.height() +  prop.itemDist);
+    //diagram.items.forEach(item => console.log('item id = '+item.id()));
 
-    // drawing arrows
-    sch.arrows=[];
+    // schema's height correction
+    lastItem = diagram.items[diagram.items.length-1];
+    panel.rect.height(lastItem.y() + lastItem.height() +  prop.itemDist);
+
+    // DRAWING ARROWS
+    let arrows=[];
     let corr = 3;
-    for (let i=1; i<sch.items.length; i++){
+    for (let i=1; i<diagram.items.length; i++){
         let arrow = new Konva.Arrow({
             pointerLength: prop.arrow.pointerLength,
             pointerWidth: prop.arrow.pointerWidth,
@@ -334,14 +344,14 @@ createSchema = function(steps, lang, layer){
             stroke: prop.arrow.stroke,
             strokeWidth: prop.arrow.strokeWidth,
         });
-        arrow.id(sch.items[i-1]+'-arrow');
-        arrow.points([sch.items[i-1].soket.out.x, sch.items[i-1].soket.out.y,
-                      sch.items[i].soket.in.x,    sch.items[i].soket.in.y - corr]);
-        sch.add(arrow);
-        sch.arrows.push(arrow);
+        arrow.id(diagram.items[i-1].id()+'-arrow');
+        arrow.points([diagram.items[i-1].soket.out.x, diagram.items[i-1].soket.out.y,
+                      diagram.items[i].soket.in.x,    diagram.items[i].soket.in.y - corr]);
+        diagram.add(arrow);
+        arrows.push(arrow);
 
         // only for check elements
-        if(sch.items[i-1].type === 'check'){
+        if(diagram.items[i-1].type === 'check'){
             arrow = new Konva.Arrow({
                 pointerLength: prop.arrow.pointerLength,
                 pointerWidth: prop.arrow.pointerWidth,
@@ -352,56 +362,194 @@ createSchema = function(steps, lang, layer){
 
             let leftDist = 20;
             let targetItem = {};
+
             // check for check item
-            if (sch.items[i-1].id().search('-check') !== -1){
-                let mainStepName = sch.items[i-1].id().split("-")[0];
-                targetItem = sch.items.find(item => item.id() === mainStepName+'-join');
+            if (diagram.items[i-1].id().search('-check') !== -1){
+                let stepName = diagram.items[i-1].id().split("-")[0];
+                // console.log('mainStepName = '+mainStepName);
+                //targetItem = diagram.items.find(item => item.id() === mainStepName+'-join');
+                targetItem = diagram.items.find(item => item.id() === stepName+'-join');
             }
 
-            arrow.id(sch.items[i-1]+'-arrowL');
-            arrow.points([  sch.items[i-1].soket.outL.x,            sch.items[i-1].soket.outL.y,
-                            sch.items[i-1].soket.outL.x - leftDist, sch.items[i-1].soket.outL.y,
-                            sch.items[i-1].soket.outL.x - leftDist, targetItem.soket.inL.y,
+            arrow.id(diagram.items[i-1].id()+'-arrowL');
+            arrow.points([  diagram.items[i-1].soket.outL.x,            diagram.items[i-1].soket.outL.y,
+                            diagram.items[i-1].soket.outL.x - leftDist, diagram.items[i-1].soket.outL.y,
+                            diagram.items[i-1].soket.outL.x - leftDist, targetItem.soket.inL.y,
                             targetItem.soket.inL.x - corr,          targetItem.soket.inL.y
             ]);
-            sch.add(arrow);
-            sch.arrows.push(arrow);
+            diagram.add(arrow);
+            arrows.push(arrow);
         }
 
     } // end of for
+    diagram.arrows = arrows;
 
     // Setting the schema's size
-    sch.width(sch.rect.width());
-    sch.height(sch.rect.height());
+    panel.width(panel.rect.width());
+    panel.height(panel.rect.height());
 
     // set the position of schema
-    sch.setPos = function(pos){
-        sch.position(pos);
+    panel.setPos = function(pos){
+        panel.position(pos);
     };
 
     // resize the schema
-    sch.sizeTo = function(points){
+    panel.sizeTo = function(points){
         let size={width:'', height:''};
         if(typeof points.y !== undefined){
             points.y = Math.round(points.y);
-            size.height = points.y - sch.y();
-            sch.height(sch.rect.height(size.height));
+            size.height = points.y - panel.y();
+            panel.height(panel.rect.height(size.height));
         }
         if(typeof points.x !== undefined){
             points.x = Math.round(points.x);
-            size.width = points.x - sch.x();
-            sch.width(sch.rect.width());
+            size.width = points.x - panel.x();
+            panel.width(panel.rect.width());
         }
 
-        layer.batchDraw();
+        //layer.batchDraw();
+        panel.getLayer().batchDraw();
+    };
+
+    ////////////// Creating Control buttons /////////////////////////////////////////////////////
+    panel.mc = new PANEL({
+        id: 'MCPanel',
+        name: lang.modelControl,
+        position: { x: 20, y: 0},
+        type: 2,
+        labelSize: 16
+    });
+    panel.add(panel.mc);
+    panel.mc.size({width: panel.rect.width()-40, height:50});
+    panel.mc.visible(false);
+    panel.mc.dragmove(false);
+
+    // run step button
+    panel.mc.runStepBtn = new Button({
+        id: 'runStepBtn',
+        height: 25,
+        defVal: ' \u25B6\u2503',
+        txtSize: 14,
+        clickable: true,
+        fill: 'LightGrey'
+    });
+    panel.mc.runStepBtn.hoverTxt = lang.runStep;
+    panel.mc.runStepBtn = hover1(panel.mc.runStepBtn,panel.mc);
+    panel.mc.add(panel.mc.runStepBtn);
+    panel.mc.runStepBtn.position({x: 10, y:15});
+
+    panel.mc.runStepBtn.on('click touchstart', function(){
+        try { model.runCurrStep()} catch(e){console.log(e)};
+    });
+
+
+    // autorun speed button
+    panel.mc.speedBtn = new Button({
+        id: 'speedBtn',
+        height: 25,
+        defVal: 'Speed',
+        txtSize: 14,
+        clickable: true,
+        fill: 'LightGrey'
+    });
+    panel.mc.speedBtn.hoverTxt = lang.speedRun;
+    panel.mc.speedBtn = hover1(panel.mc.speedBtn,panel.mc);
+    panel.mc.add(panel.mc.speedBtn);
+    panel.mc.speedBtn.size({width:75});
+    panel.mc.speedBtn.position({x: panel.mc.runStepBtn.x() + panel.mc.runStepBtn.width() + 30,
+        y: panel.mc.runStepBtn.y()});
+    panel.mc.speedBtn.on('click touchstart', function(){
+        panel.mc.speedIncrement();
+    });
+
+    panel.mc.speedIdx = 2; // default speed
+    panel.mc.speedBtn.text(lang.speed[panel.mc.speedIdx]);
+    panel.mc.speedVals = [2000, 1500, 800, 300, 50]; // interval between steps: 2s, 1.5s, 1s, 0.5s and 0.25s
+
+    //increment speed
+    panel.mc.speedIncrement = function(){
+      if(panel.mc.speedIdx === 4)   panel.mc.speedIdx = 0;
+      else panel.mc.speedIdx++;
+      panel.mc.speedBtn.text(lang.speed[panel.mc.speedIdx]);
+      try {panel.getLayer().batchDraw();} catch(e) {};
     };
 
 
-    return sch;
+    // autorun button
+    let playChar = ' \u25B6 ';
+    let pauseChar = ' \u2503\u2503 ';
+    panel.mc.autoRunBtn = new Button({
+        id: 'autoRunBtn',
+        height: 25,
+        defVal: playChar,
+        txtSize: 14,
+        clickable: true,
+        fill: 'LightGrey'
+    });
+    panel.mc.autoRunBtn.hoverTxt = lang.autoRun;
+    panel.mc.autoRunBtn = hover1(panel.mc.autoRunBtn,panel.mc);
+    panel.mc.add(panel.mc.autoRunBtn);
+    panel.mc.autoRunBtn.position({x: panel.mc.speedBtn.x() + panel.mc.speedBtn.width() + 15,
+        y: panel.mc.speedBtn.y()});
+
+    panel.mc.autoRunBtn.on('click touchstart', function(){
+        if (model.autoRunTimerId === -1)  panel.mc.autoRunStart();
+        else panel.mc.autoRunStop();
+    });
+    // model autorunStart function
+    panel.mc.autoRunStart = function(){
+        if (model.autoRunTimerId !== -1) return; // return if autorun has already started
+        model.autoRun( panel.mc.speedVals[panel.mc.speedIdx]);
+        panel.mc.autoRunBtn.text(pauseChar);
+        panel.mc.autoRunBtn.hoverTxt = lang.stopAutoRun;
+        panel.mc.cover.visible(true);
+    }
+
+    // model autorunStop function
+    panel.mc.autoRunStop = function(){
+        if (model.autoRunTimerId === -1) return; // return if autorun has already stoped
+        model.autoRun( panel.mc.speedVals[panel.mc.speedIdx]);
+        panel.mc.autoRunBtn.text(playChar);
+        panel.mc.autoRunBtn.hoverTxt = lang.autoRun;
+        panel.mc.cover.visible(false);
+    };
+
+    // model control cover rectangle for disable runStepBtn and speedBtn
+    panel.mc.cover = new Konva.Rect({
+        id: 'mcCoverRect',
+        x: panel.mc.runStepBtn.x(),
+        y: panel.mc.runStepBtn.y(),
+        width : panel.mc.speedBtn.x()+panel.mc.speedBtn.width(),
+        height: panel.mc.runStepBtn.height(),
+        fill: 'white',
+        opacity: 0.4,
+        visible: false
+    });
+    panel.mc.add(panel.mc.cover);
+
+    // function for showing the model control panel
+    panel.mc.show = function(){
+        panel.rect.height(panel.rect.height()+panel.mc.height() +10);
+        panel.mc.y(panel.rect.height() - (panel.mc.height() +10));
+        panel.mc.visible(true);
+        try {panel.getLayer().batchDraw();} catch(e) {};
+    }
+    // function for hiding the model control panel
+    panel.mc.hide = function(){
+        if(panel.mc.visible() === false) return;
+        panel.rect.height(panel.rect.height() - (panel.mc.height() +10));
+        //panel.mc.y(panel.rect.height() - (panel.mc.height() +10));
+        panel.mc.visible(false);
+        try {panel.getLayer().batchDraw();} catch(e) {};
+    }
+
+    //panel.mc.show();  // for test
+    panel.diagram = diagram;
+    return panel;
 }; // END OF CREATEALGORITH
 
 // creating schema's item
-createItem = function(type, text, layer){
+createItem = function(type, text){
     let item = new Konva.Group({draggable: false});
     let prop = {circRadius: 10,
                 rectWidth : 200,
@@ -574,8 +722,10 @@ createItem = function(type, text, layer){
         else if (status === 'reset') color = colors.reset;
         else if (status === 'curr') color = colors.curr;
         else color = colors.past;
-        this.shape.fill(color);
-        layer.batchDraw();
+        if(item.type === 'end') this.circ2.fill(color); // for 'end' shape only
+        else this.shape.fill(color);
+        //layer.batchDraw();
+        item.getLayer().batchDraw();
     };
     return item;
 }; // end of createItem

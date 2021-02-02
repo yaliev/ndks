@@ -1,4 +1,4 @@
-
+<div id="modelTitle"></div>
 
 <div id="home" class="row justify-content-md-center" style="margin-top:10%">
     <div class="card">
@@ -9,21 +9,25 @@
             <a id="hcGenModelBtn" href="#" class="btn btn-primary btn-lg btn-block">Hamming Code - General Algorithm</a>
             <a id="hcMatModelBtn" href="#" class="btn btn-primary btn-lg btn-block">Hamming Code - Matrix Algorithm</a>
             <a id="cyclicPolyModelBtn" href="#" class="btn btn-primary btn-lg btn-block">Cyclic Code - Polynomial Algorithm</a>
+            <a id="cyclicLFSRModelBtn" href="#" class="btn btn-primary btn-lg btn-block">Cyclic Code - LFSR</a>
         </div>
     </div>
 </div>
 
 
 <script>
-$(function() {
-    $('#modelListTitle').text(lang.gn.models);
-    $('#hcGenModelBtn').html(lang.gn.hcGenModelTitle);
-    $('#hcMatModelBtn').html(lang.gn.hcMatModelTitle);
-    $('#cyclicPolyModelBtn').html(lang.gn.cyclicPolyModelTitle);
-});
+
+try{$(".ui-dialog-content").dialog("close");} catch (e){} // close all opened dialogs
+
+$('#modelListTitle').text(lang.gn.models);
+$('#hcGenModelBtn').html(lang.gn.hcGenModelTitle);
+$('#hcMatModelBtn').html(lang.gn.hcMatModelTitle);
+$('#cyclicPolyModelBtn').html(lang.gn.cyclicPolyModelTitle);
+$('#cyclicLFSRModelBtn').html(lang.gn.cyclicLFSRModelTitle);
 
 $("#hcMatModelBtn" ).click(function() {loadPage('hamming-matrix');});
 $("#hcGenModelBtn" ).click(function() {loadPage('hamming-general');});
 $("#cyclicPolyModelBtn" ).click(function() {loadPage('cyclic-polynomial');});
+$("#cyclicLFSRModelBtn" ).click(function() {loadPage('cyclic-lfsr');});
 
 </script>

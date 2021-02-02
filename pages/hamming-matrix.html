@@ -1,16 +1,14 @@
-
-
-<div id="hammingCode-matrix" >
+<div id="hammingCode-matrix" class="modelDiv">
     <h5 class="modelTitle" id="modelTitle">Interactive Simulation Model of Hamming Code - Matrix Algorithm</h5>
     <div id="scroll-container" >
         <div class="cp" id="cp" >
             <span class="menuItem">
                 <label for="infoBitNum">m =</label>
                 <select id="infoBitNum" name="InfoBits" title="Info Bits Number">
-                  <option value=4 selected>4</option>
+                  <option value=4 >4</option>
                   <option value=5 >5</option>
                   <option value=6 >6</option>
-                  <option value=7  >7</option>
+                  <option value=7  selected>7</option>
                   <option value=8 >8</option>
                   <option value=9 >9</option>
                   <option value=10 >10</option>
@@ -47,9 +45,9 @@
             <span class="menuItem">
                 <label for="parityBitNum">k =</label>
                 <select id="parityBitNum" name="parityBitNum">
-                  <option value=0 selected></option>
+                  <option value=0 ></option>
                   <option value=3 >3</option>
-                  <option value=4 >4</option>
+                  <option value=4 selected>4</option>
                   <option value=5 >5</option>
                   <option value=6 >6</option>
                 </select>
@@ -58,12 +56,12 @@
             <span  class="menuItem">
                 <label for="cwBitNum">n =</label>
                 <select id="cwBitNum" name="codewordBitNum" onchange="calcSize()">
-                  <option value=0 selected></option>
+                  <option value=0 ></option>
                   <option value=7 >7</option>
                   <option value=8 >8</option>
                   <option value=9 >9</option>
                   <option value=10 >10</option>
-                  <option value=11 >11</option>
+                  <option value=11 selected>11</option>
                   <option value=12 >12</option>
                   <option value=13 >13</option>
                   <option value=14 >14</option>
@@ -87,52 +85,40 @@
                   <option value=32 >32</option>
                 </select>
             </span>
-            <span  class="menuItem">
-                <button type="button" id="checkBtn" onclick="ckeckParam()">Open the Model</button>
-            </span>
-            <span  class="menuItem"  id="nextBtnSpan"></span>
-            <span  class="menuItem" id="autoRunBtnSpan"></span>
-            <span  class="menuItem">
-                <button type="button" id="resetBtn" onclick="model.reset()" disabled>Reset the Model</button>
-            </span>
+
             <span  class="menuItem bordered">
-                <label id="mode">Mode:</label>
+                <label id="mode"><b>Mode:</b></label>
                 <input type="radio" name="process" value="enc" checked id="encRadio"/> <label for="encRadio">Encoder</label>
                 <input type="radio" name="process" value="dec"  id="decRadio"/> <label for="decRadio">Decoder</label>
             </span>
-        </div>
-        <div id="konvaContainer"> </div>
-    </div>
 
-</div>
+            <span  class="menuItem">
+                <button type="button" id="multiBtn" class="btn btn-primary btn-sm" data-toggle="button" aria-pressed="false" onclick="run()">Open the Model</button>
+            </span>
+        </div> <!--End of control panel-->
+        <div class="row" id="konvaContainer"></div>
+    </div><!--End of scroll-container-->
+</div> <!--End of modelDiv-->
 <!--------------------------SCRIPT-------------------------------------->
 <script type="text/javascript">
     // language set function
     $(function() {
         $('#modelTitle').html(lang.gn.hcMatModelTitle);
-        $('#checkBtn').html(lang.gn.openMdlBtn);
-        $('#resetBtn').html(lang.gn.resetMdlBtn);
+        $('#multiBtn').html(lang.gn.openMdlBtn);
         $('label[for=encRadio]').html(lang.gn.encRadio);
         $('label[for=decRadio]').html(lang.gn.decRadio);
-        $('#mode').html(lang.gn.mode);
+        $('#mode').html("<b>"+lang.gn.mode+"</b>");
 
         $('#infoBitNum').prop('title', lang.gn.mTitle);
         $('#errDetectNum').prop('title', lang.gn.lTitle);
         $('#parityBitNum').prop('title', lang.gn.kTitle);
         $('#cwBitNum').prop('title', lang.gn.nTitle);
-
-        if(userName === 'yaliev' || userName === 'earsova' || userName === 'givanova'){
-            let $nextBtn = $('<input type="button" id="nextBtn" onclick="model.runCurrStep()" value ="Run Step"  disabled />');
-            let $autoRunBtnBtn = $('<input type="button" id="autoRunBtn" onclick="model.autoRun()" value ="Autorun" disabled />');
-            $nextBtn.appendTo($("#nextBtnSpan"));
-            $autoRunBtnBtn.appendTo($("#autoRunBtnSpan"));
-        }
     });
 
     let size = calcSize();
     let divSize ={  width: document.getElementById("scroll-container").clientWidth,
                     height: document.getElementById("scroll-container").clientHeight};
-    let winSize = {width: window.innerWidth, height: window.innerHeight};
+    let winSize = { width: window.innerWidth, height: window.innerHeight};
     let titleHeight = document.getElementById("modelTitle").clientHeight+2*15;
     let cpHeight = document.getElementById("cp").clientHeight+2*15;
     if(winSize.width > size.width) size.width = divSize.width;
@@ -150,10 +136,21 @@
     });
 
     // creating the model object
-    var model = new hcMatModel();
+    var model = null;
 
-    // error for code parameters
-    let errors = {count:0, history:[]};
+    // Run multi Button click event
+    function run(){
+        if (stage.getLayers().length === 0) {
+            console.log('userName = '+userName);
+            if (model === null) model = new hcMatModel(userName);
+            if(ckeckParam()) $('#multiBtn').html(lang.gn.resetMdlBtn);
+        }
+        else{
+            $('#multiBtn').html(lang.gn.openMdlBtn);
+            model.reset();
+            model = null;
+        }
+    }
 
     //check for correct code parameters
     function ckeckParam(){
@@ -166,34 +163,31 @@
             lang: document.querySelector('input[name="lang"]:checked').value
         };
         let check = model.checkParam(codeParam);
-        if (check === true){ // if parameters is right run the below
-
-            let layers = model.init(errors);
+        if (check === true){ // if parameters are right run the below
+            let layers = model.init();
             layers.forEach(layer => {
                 stage.add(layer);
             });
+
             model.stat.userName = userName;
-            document.getElementById('checkBtn').disabled=true;
             document.getElementById('infoBitNum').disabled=true;
             document.getElementById('parityBitNum').disabled=true;
             document.getElementById('cwBitNum').disabled=true;
             document.getElementById('errDetectNum').disabled=true;
-            document.getElementById('nextBtn').disabled=false;
-            document.getElementById('resetBtn').disabled=false;
-            document.getElementById('autoRunBtn').disabled=false;
             document.getElementsByName("lang")[0].disabled = true;
             document.getElementsByName("lang")[1].disabled = true;
             document.getElementsByName("process")[0].disabled = true;
             document.getElementsByName("process")[1].disabled = true;
+            return true;
         }
         else{
-            errors.count++;
-            errors.history.unshift(check);
+            model.stat.error.add(check);
             $("#msgDialog").dialog('option','title', lang.gn.error);
             $("#msgDialog").css({'color':'red'});
             $("#msgDialog").html(check+' !');
             $("#msgDialog").dialog({show : 'shake'});
             $("#msgDialog").dialog('open');
+            return false;
         }
     }
 
@@ -225,23 +219,13 @@
     document.addEventListener('DOMContentLoaded', function(){
         changeDivSize();
         langChange();
-        // document.getElementById('checkBtn').disabled=false;
-        // document.getElementById('infoBitNum').disabled=false;
-        // document.getElementById('parityBitNum').disabled=false;
-        // document.getElementById('cwBitNum').disabled=false;
-        // document.getElementById('errDetectNum').disabled=false;
-        // document.getElementById('nextBtn').disabled=true;
-        // document.getElementById('resetBtn').disabled=true;
-        // document.getElementById('autoRunBtn').disabled=true;
-
         $( "#checkBtn" ).prop( "disabled", true );
         $( "#infoBitNum" ).prop( "disabled", true );
         $( "#parityBitNum" ).prop( "disabled", true );
         $( "#cwBitNum" ).prop( "disabled", true );
         $( "#errDetectNum" ).prop( "disabled", true );
-        $( "#nextBtn" ).prop( "disabled", true );
         $( "#resetBtn" ).prop( "disabled", true );
-        $( "#autoRunBtn" ).prop( "disabled", true );
-
     }, false);
+
+    var tasks = new Tasks('hcMatModel', 'modelTitle');
 </script>

@@ -1,34 +1,33 @@
 class ccPolyModel {
-    constructor(props) {
-        this.lang;
-        this.process = 'enc';
+    constructor(user) {
+        this.lang = new LangPack($('input[name="lang"]:checked').val()); // default language is english;
         this.layer = null;
         this.en = {};
         this.ir = {};
-        // this.cr = {};
         this.m;
         this.k;
         this.n;
         this.t;
         this.genPoly;
         this.algorithm = {};
-        this.stat = {};
+        this.stat = new STATISTICS(this.lang.stat);
         this.debug = true;
         this.width = 0;
         this.height = 0;
         this.autoRunTimerId = -1;
+        this.process = 'enc'; // default process is encoding
+        this.user = user;
     }
 
-    //cheking the code parameters
+    //checking the code parameters
     checkParam(param) {
         this.m = param.m;
         this.k = param.k;
         this.n = param.n;
         this.t = param.t;
         this.genPoly = {val: param.genPoly.val, txt: param.genPoly.txt};
-        // this.process = param.process; // default process is encoding
 
-        this.lang =  new LangPack(param.lang); // default language is english
+        //this.lang =  new LangPack(param.lang); // default language is english
         let lang = this.lang.gn;
         if (this.debug) console.log('Checking parameters...');
 
@@ -73,32 +72,22 @@ class ccPolyModel {
     }
 
     // initializing the model///////////////////////////////////////////////////////////////
-    init(errors) {
+    init() {
         // create arr for all layers
         let layers =[];
         let lang = this.lang.gn;
 
-        // creating the Statistics panel
-        this.stat = new STATISTICS(this.lang.stat);
-        this.stat.position({ x: 20, y: 5});
-        this.stat.rect.width(stage.width() - this.stat.x()*3);
-        this.stat.userName ='';
-
-        // if there is error to now add to the stat obj
-        if(errors.count !== 0){
-            model.stat.error.insert(errors);
-        }
         // encoder
         // creating the ALGORITHM PANEL
-        this.algorithm = new ALGORITHM(this.encoderSteps(this.lang.alg, this.k),this.m, this.k, this.lang.alg);
+        this.algorithm = new ALGORITHM(this.encoderSteps(this.lang.alg, 1),this.m, this.k, this.user);
         // setting the algorithm's schema to some position
-        this.algorithm.schema.setPos({ x:1000 , y: 50});
+        this.algorithm.panel.setPos({ x:1000 , y: 50});
         layers.push(this.algorithm.layer);
         this.layer = this.applyEncoder();
-        this.layer.draw();
+        //this.layer.draw();
 
         // dragmove event for algorithm panel
-        this.algorithm.schema.on('dragmove', function(e){
+        this.algorithm.panel.on('dragmove', function(e){
             if(typeof componentsPos.alg !== 'undefined'){
                 componentsPos.alg = this.position();
             }
@@ -113,38 +102,47 @@ class ccPolyModel {
         // mark the step setParam as pass
         this.algorithm.increment();
 
-        if(componentsPos.alg !== '') this.algorithm.schema.position(componentsPos.alg);
+      if(componentsPos.alg !== '') this.algorithm.panel.position(componentsPos.alg);
         if(componentsPos.ir !== '') this.ir.position(componentsPos.ir);
         if(componentsPos.en !== '') this.en.position(componentsPos.en);
 
-
         this.simFinish=function(){
-            let end = this.algorithm.schema.items.find(e => e.id() === 'end');
-            end.hoverTxt = lang.showEndMsg;
-            end = hover1(end, end.getParent());
-            end = over(end);
-            end.on('click touchstart', function(){
-                $("#msgDialog" ).dialog('open');
-            });
-
-            let str='';
-            str='<p><b>'+lang.modeEnc+'</b><\p>';
-            str +='<p><b>'+lang.codeParam+':</b> m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
+            let html='';
+            html='<p><b>'+lang.modeEnc+'</b><\p>';
+            html +='<p><b>'+lang.codeParam+':</b> m = '+this.m+', l<sub>0</sub> = '+this.t+', k = '+this.k+', n = '+this.n+'<\p>';
+            html +='<p><b>'+lang.genPoly+': </b>P(x) = '+ $('#selGenPolyBtn').html() +'<\p>';
             let valStr='';
-            for(let i=0; i<model.ir.vals.length; i++) valStr += model.ir.vals[i].toString();
-            str+='<p><b>'+lang.infoBits+':</b> X = '+valStr+'<\p>';
-            valStr='';
-            for(let i=0; i<model.en.vals.length; i++) valStr += model.en.vals[i].toString();
-            str+='<p><b>'+lang.cwBits+':</b> [X] = '+valStr+'<\p>';
+            valStr = model.ir.vals.toString().replace(/,/g,'');
+            html+='<p><b>'+lang.infoBits+':</b> X = '+valStr+'<\p>';
+            html+='<p><b>'+lang.cwBits+': </b>[X] = '+model.en.cwBin.val+'<\p>';
+            this.stat.timer.stop(); // stop the timer
+            html+='<p><b>'+lang.solveTime+': </b>'+this.stat.timer.val.text()+'<\p>'
+            html+='<p><b>'+this.stat.error.label.text()+'</b>'+this.stat.error.val.text()+'<\p>'
 
-            $("#msgDialog").dialog('option','title', lang.finishMsg);
-            $("#msgDialog").html(str);
-            $("#msgDialog" ).dialog('open');
+            // create simulation finish message
+            let finishDialog=$("<div id='finishDialog' title='' class='dialog'></div>").appendTo($(".modelDiv"));
+            finishDialog.dialog({
+                autoOpen : false, modal : false, show : "blind", hide : "blind",
+                minHeight:100, minWidth:400,  height: 'auto', width: 'auto',
+                open: function (event, ui) {
+                    $( this ).parent().find(".ui-dialog-titlebar-close" ).remove();
+                },
+                // close: function() {
+                //     $("#finishDialog").css({'color':'black'});
+                // }
+            });
+            finishDialog.dialog('option','title', lang.finishMsg);
+            finishDialog.html(html);
+            $('#finishDialog p').css({'margin':'1px'});
+            //$(".ui-dialog-titlebar-close").hide();
+            finishDialog.dialog('open');
+
+            // check for task
+            tasks.check(finishDialog);
         };
 
         // change container width according to total component width
-
-        this.width = this.en.width() + this.algorithm.schema.width() + 80;
+        this.width = this.en.width() + this.algorithm.panel.width() + 80;
         this.height = this.en.y() + this.en.height();
 
         if(this.width > stage.width()) {
@@ -158,7 +156,6 @@ class ccPolyModel {
         }
 
         layers.push(this.layer);
-        layers.push(this.stat.layer);
         return layers;
     } // end of init()
 
@@ -173,11 +170,11 @@ class ccPolyModel {
         this.ir = new REGISTER1({
                 process: this.process,
                 id: 'ir',
-                position: {x:this.stat.x(), y:this.stat.y()+this.stat.height()+10},
+                position: {x:20, y:20},
                 name: lang.irLabel,
                 bitsNum: this.m,
                 randHover: lang.randHover,
-                randBtnLabel: lang.randInfoLabel,
+                randBtnLabel: lang.randBitsLabel,
                 draggable: false,
                 bit: {name: 'IR Bit', labelTxt: '', numReverse: 'true', firstNum: 0, hoverTxt: lang.regBitHover, enabled: true},
             }, layer
@@ -187,7 +184,6 @@ class ccPolyModel {
         this.ir.bits.forEach(bit =>{
             bit.on('click touchstart', function(){
                 let check = model.algorithm.validStep('setBits');
-                //let check = true;
                 if (check === true) {
                     bit.setBit();
                     if(model.ir.areAllBitsSetted()) model.algorithm.markCurrStep('past');
@@ -195,8 +191,8 @@ class ccPolyModel {
                 }
                 else {
                     bit.hover.show('e', check);
-                    model.stat.error.add(check+' ('+model.algorithm.getCurrStep().description+')');
-                    return;
+                    //model.stat.error.add(check+' ('+model.algorithm.getCurrStep().description+')');
+                    //return;
                 }
             });
         });
@@ -214,12 +210,11 @@ class ccPolyModel {
             else {
                 this.hover.show('e', check);
                 model.stat.error.add(check+' ('+model.algorithm.getCurrStep().description+')');
-                return;
+                //return;
             }
         });
-        model.ir.load([1,0,1,0,1,0,1,1,0,1]); // for test
+        //model.ir.load([1,0,1,0,1,0,1,1,0,1]); // for test
 
-        // console.log('this.genPoly = '+this.genPoly.txt);
         // creating the encoder
         this.en = new CYCLIC_POLY({
                 process: this.process,
@@ -249,11 +244,11 @@ class ccPolyModel {
         this.ir.x(this.en.x()+this.en.width()/2 - this.ir.x()-this.ir.width()/2);
 
         // setting the algorithm's schema position
-        this.algorithm.schema.setPos({ x: this.en.x() + this.en.width() + 40, y: this.ir.y()});
+        this.algorithm.panel.setPos({ x: this.en.x() + this.en.width() + 40, y: this.ir.y()});
 
         // setting the model size
-        this.width = this.algorithm.schema.x() + this.algorithm.schema.width();
-        this.height = this.algorithm.schema.y() + this.algorithm.schema.height();
+        this.width = this.algorithm.panel.x() + this.algorithm.panel.width();
+        this.height = this.algorithm.panel.y() + this.algorithm.panel.height();
 
         // adding the all component in the KONVA layer
         layer.add(this.ir, this.en);
@@ -275,70 +270,67 @@ class ccPolyModel {
             switch (this.algorithm.getCurrStep().name){
                 // Set the Information Register
                 case 'setBits':
-                    let check;
-                    this.ir.bits.forEach(bit => {
-                        if (bit.txt.text() === '') return check = 'empty';
-                    });
-                    if (check === 'empty'){
-                        this.ir.randGen();
-                        console.log(model.algorithm.getCurrStep().description);
-                        this.algorithm.increment(); // enable next step
+                    if(arrSum(this.ir.vals) === 0) {
+                        this.ir.randGen(); // if all info bit are zeros run random bits generator
                     }
-                    else {
-                        console.log(model.algorithm.getCurrStep().description);
-                        this.algorithm.increment(); // enable next step
-                    }
+                    console.log(model.algorithm.getCurrStep().description);
+                    this.algorithm.increment(); // enable next step
                     break;
 
-                // Set the H matrix
-                case 'setHmat':
+                // show the information polynomial
+                case 'infoPoly':
                     console.log(model.algorithm.getCurrStep().description);
-                    this.en.Hmat.show();
-                    //step incremented in Hmat.show()
+                    this.en.infoPoly.show();
                     break;
 
-                // Set the H' matrix
-                case 'setH_mat':
+                // show the codeword formula
+                case 'cwFormula':
                     console.log(model.algorithm.getCurrStep().description);
-                    model.en.showH_columns();
-                    this.en.H_mat.show();
-                    this.en.H_mat.enable(false);
-                    //step incremented in H_mat.show()
+                    this.en.cwFormula.show();
                     break;
 
-                // load Encoder
-                case 'load':
+                // show the multipliplication result of x^k.G(x)
+                case 'xk_InfoPoly':
                     console.log(model.algorithm.getCurrStep().description);
-                    this.en.loadInfo(model.ir);
-                    //step incremented in load()
+                    this.en.xk_InfoPoly.show();
                     break;
 
-                // select next control bit
-                case 'selectCbit':
+                // show the current mul
+                case 'writeMul':
                     console.log(model.algorithm.getCurrStep().description);
-                    this.en.selectCbit();
-                    //step incremented in selectCbit()
+                    this.en.div.show('mul');
                     break;
 
-                // create equation
-                case 'createEqu':
+                // show the current res
+                case 'writeRes':
                     console.log(model.algorithm.getCurrStep().description);
-                    this.en.equ.showFormula();
-                    //step incremented in showFormula()
-                    break;
-                // Calculate control bit
-                case 'calcCbit':
-                    console.log(model.algorithm.getCurrStep().description);
-                    this.en.equ.showBins();
-                    //step incremented in showBins()
+                    this.en.div.show('res');
                     break;
 
-                // Write control bit
-                case 'writeCbit':
+                // show the current rem
+                case 'writeRem':
                     console.log(model.algorithm.getCurrStep().description);
-                    this.en.writeCbit();
-                    //step incremented in writeCbit()
+                    this.en.div.show('rem');
                     break;
+
+                // show the codeword polynomial
+                case 'cwPoly':
+                    console.log(model.algorithm.getCurrStep().description);
+                    this.en.cwPoly.show();
+                    break;
+
+                // show the binary remainder
+                case 'remBin':
+                    console.log(model.algorithm.getCurrStep().description);
+                    this.en.remBin.show();
+                    break;
+
+                // show the binay codeword
+                case 'cwBin':
+                    console.log(model.algorithm.getCurrStep().description);
+                    this.en.cwBin.show();
+                    break;
+
                 // finish simulation
                 default:
                     model.finish();
@@ -359,51 +351,45 @@ class ccPolyModel {
         if (model.autoRunTimerId !== -1){ // stop timer if it is running at the moment
             clearInterval(model.autoRunTimerId);
             model.autoRunTimerId = -1;
-            document.getElementById('autoRunBtn').innerHTML='Continue Autorun';
-            return;
+            return false;
         }
-        document.getElementById('autoRunBtn').innerHTML='Pause Autorun';
-        speed = speed || 250;
+        speed = speed || 1000;
         model.autoRunTimerId =  setInterval(function(){
             model.runCurrStep();
             if (model.algorithm.getCurrStep().name === 'finish'){
                 clearInterval(model.autoRunTimerId);
                 model.autoRunTimerId = -1;
-                //model.finish();
-                document.getElementById('autoRunBtn').innerHTML='Autorun';
             }
         }, speed);
+        return true;
     }
 
     // finishing simulation
     finish(){
-        console.log(model.algorithm.getCurrStep().description+' '+model.algorithm.getCurrStep().help);
-        document.getElementById('nextBtn').disabled=true;
-        document.getElementById('autoRunBtn').disabled=true;
+        console.log(model.algorithm.getCurrStep().description);
     }
 
     // Reset the Model method
     reset(){
         if(model.autoRunTimerId !== -1){
             clearInterval(model.autoRunTimerId) // stop autorun timer if it is started
-            document.getElementById('autoRunBtn').innerHTML='Autorun';
+            //document.getElementById('autoRunBtn').innerHTML='Autorun';
         }
-        document.getElementById('checkBtn').disabled=false;
-        document.getElementById('infoBitNum').disabled=false;
-        document.getElementById('parityBitNum').disabled=false;
-        document.getElementById('cwBitNum').disabled=false;
-        document.getElementById('errDetectNum').disabled=false;
-        document.getElementById('nextBtn').disabled=true;
-        document.getElementById('resetBtn').disabled=true;
-        document.getElementById('autoRunBtn').disabled=true;
-        document.getElementsByName("process")[0].disabled = false;
-        document.getElementsByName("process")[1].disabled = false;
 
-        //this.en.vals.fill(0);
+        $("#infoBitNum").prop('disabled', false);
+        $("#parityBitNum").prop('disabled', false);
+        $("#cwBitNum").prop('disabled', false);
+        $("#errDetectNum").prop('disabled', false);
+        $("#selGenPolyBtn").prop('disabled', false);
+
         this.algorithm.reset();
         this.stat.reset();
+        this.stat.remove();
+        this.layer.getStage().clear();
         this.layer.destroy();
-        stage.clear();
+        try{
+            $(".ui-dialog-content").dialog("close");
+        } catch(e) {console.log(e)}
     } // end the reset
 
 
@@ -425,12 +411,27 @@ class ccPolyModel {
         };
         steps.push(step);
 
-        step = {name:'prepDiv',
-            description: lang.prepDiv,
-            help:lang.prepDivHelp,
+        step = {name:'infoPoly',
+            description: lang.infoPoly,
+            help:lang.infoPolyHelp,
             sub:[]
         };
         steps.push(step);
+
+        step = {name:'cwFormula',
+            description: lang.cwFormula,
+            help:lang.cwFormulaHelp,
+            sub:[]
+        };
+        steps.push(step);
+
+        step = {name:'xk_InfoPoly',
+            description: lang.xk_InfoPoly,
+            help:lang.xk_InfoPolyHelp,
+            sub:[]
+        };
+        steps.push(step);
+
 
         step = {name: 'polyDivision',
             description: lang.polyDivision,
@@ -440,20 +441,28 @@ class ccPolyModel {
                 {name: 'writeMul', description: lang.writeMul,  help: lang.writeMulHelp},
                 {name: 'writeRes',  description: lang.writeRes,  help: lang.writeResHelp},
                 {name: 'writeRem',   description: lang.writeRem, help: lang.writeRemHelp}
-            ]
+            ],
+            exitCond: lang.divExitCond
         };
         steps.push(step);
 
-        step = {name:'remPolyBin',
-            description: lang.remPolyBin,
-            help:lang.remPolyBinHelp,
+        step = {name:'cwPoly',
+            description: lang.cwPoly,
+            help:lang.cwPolyHelp,
             sub:[]
         };
         steps.push(step);
 
-        step = {name:'cwPolyBin',
-            description: lang.cwPolyBin,
-            help:lang.cwPolyBinHelp,
+        step = {name:'remBin',
+            description: lang.remBin,
+            help:lang.remBinHelp,
+            sub:[]
+        };
+        steps.push(step);
+
+        step = {name:'cwBin',
+            description: lang.cwBin,
+            help:lang.cwBinHelp,
             sub:[]
         };
         steps.push(step);
@@ -466,7 +475,4 @@ class ccPolyModel {
         steps.push(step);
         return steps;
     };
-
-
-    // for decoder
 }

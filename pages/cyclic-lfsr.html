@@ -1,7 +1,7 @@
-<div id="hammingCode-general" class="modelDiv">
-    <h5 class="modelTitle" id="modelTitle">Interactive Simulation Model of Hamming Code - General Algorithm</h5>
+<div id="cyclic-lfsr" class="modelDiv">
+    <h5 class="modelTitle" id="modelTitle">Interactive Simulation Model of Cyclic Code - LFSR</h5>
     <div id="scroll-container">
-        <div class="cp" id="cp">
+        <div class="cp" id="cp" >
             <span class="menuItem">
                 <label for="infoBitNum">m =</label>
                 <select id="infoBitNum" name="InfoBits" title="Info Bits Number">
@@ -9,9 +9,9 @@
                   <option value=5 >5</option>
                   <option value=6 >6</option>
                   <option value=7 >7</option>
-                  <option value=8 selected>8</option>
+                  <option value=8 >8</option>
                   <option value=9 >9</option>
-                  <option value=10 >10</option>
+                  <option value=10 selected>10</option>
                   <option value=11 >11</option>
                   <option value=12 >12</option>
                   <option value=13 >13</option>
@@ -32,9 +32,9 @@
             </span>
             <span class="menuItem">
                 <label for="errDetectNum">l<sub>0</sub> =</label>
-                <select id="errDetectNum" name="errDetectNum">
-                    <option value=1 selected>1</option>
+                <select id="errDetectNum" name="errDetectNum" >
                     <option value=2 >2</option>
+                    <option value=3 selected>3</option>
                 </select>
             </span>
 
@@ -45,10 +45,10 @@
             <span class="menuItem">
                 <label for="parityBitNum">k =</label>
                 <select id="parityBitNum" name="parityBitNum">
-                  <option value=0 selected></option>
+                  <option value=0 ></option>
                   <option value=3 >3</option>
-                  <option value=4 selected>4</option>
-                  <option value=5 >5</option>
+                  <option value=4 >4</option>
+                  <option value=5 selected>5</option>
                   <option value=6 >6</option>
                 </select>
             </span>
@@ -56,16 +56,16 @@
             <span  class="menuItem">
                 <label for="cwBitNum">n =</label>
                 <select id="cwBitNum" name="codewordBitNum" onchange="calcSize()">
-                  <option value=0 selected></option>
+                  <option value=0 ></option>
                   <option value=7 >7</option>
                   <option value=8 >8</option>
                   <option value=9 >9</option>
                   <option value=10 >10</option>
                   <option value=11 >11</option>
-                  <option value=12 selected>12</option>
+                  <option value=12 >12</option>
                   <option value=13 >13</option>
                   <option value=14 >14</option>
-                  <option value=15 >15</option>
+                  <option value=15 selected>15</option>
                   <option value=16 >16</option>
                   <option value=17 >17</option>
                   <option value=18 >18</option>
@@ -85,10 +85,10 @@
                   <option value=32 >32</option>
                 </select>
             </span>
-            <span  class="menuItem bordered">
-                <label id="mode"><b>Mode:</b></label>
-                <input type="radio" name="process" value="enc" checked id="encRadio"/> <label for="encRadio">Encoder</label>
-                <input type="radio" name="process" value="dec"  id="decRadio"/> <label for="decRadio">Decoder</label>
+
+            <span class="menuItem" >
+                <label for="selGenPolyBtn"  id="genPolyLabel">P(X) =</label>
+                <button name="genPoly" id='selGenPolyBtn' val='' type="button" class="btn btn-sm btn-link" >Select polynomial</button>
             </span>
             <span  class="menuItem">
                 <button type="button" id="multiBtn" class="btn btn-primary btn-sm" data-toggle="button" aria-pressed="false" onclick="run()">Open the Model</button>
@@ -99,9 +99,9 @@
 </div> <!--End of modelDiv-->
 <!--------------------------SCRIPT-------------------------------------->
 <script type="text/javascript">
-        // language set function
-        $(function(){
-            $('#modelTitle').html(lang.gn.hcGenModelTitle);
+        $(function() {
+            // setGenPolyList(); // load genpoly list
+            $('#modelTitle').html(lang.gn.cyclicLFSRModelTitle);
             $('#multiBtn').html(lang.gn.openMdlBtn);
             $('label[for=encRadio]').html(lang.gn.encRadio);
             $('label[for=decRadio]').html(lang.gn.decRadio);
@@ -111,10 +111,11 @@
             $('#errDetectNum').prop('title', lang.gn.lTitle);
             $('#parityBitNum').prop('title', lang.gn.kTitle);
             $('#cwBitNum').prop('title', lang.gn.nTitle);
+            $('#selGenPolyBtn').prop('title', lang.gn.genPoly);
         });
 
         let size = calcSize();
-        let divSize ={width: document.getElementById("scroll-container").clientWidth,
+        let divSize ={  width: document.getElementById("scroll-container").clientWidth,
             height: document.getElementById("scroll-container").clientHeight};
         let winSize = {width: window.innerWidth, height: window.innerHeight};
         let titleHeight = document.getElementById("modelTitle").clientHeight+2*15;
@@ -122,71 +123,80 @@
         if(winSize.width > size.width) size.width = divSize.width;
         if(winSize.height-titleHeight-cpHeight > size.height) size.height = winSize.height-titleHeight-cpHeight;
 
+        // generator polynomial dialog
+        var genDialog = new ccGenPolyDialog('t2');
+        // add eventlistening for errDetectNum change
+        $('#errDetectNum').on('change', function() {
+            try {genDialog.setTable('t'+this.value);} catch (e) {}
+        });
+
         var componentsPos={ir:'', cr:'', en:'', dec:'', alg:''};
 
         // creating the Stage
-		var stage = new Konva.Stage({
-			container: 'konvaContainer',
-			width: size.width,
-			height: size.height,
-			cursor: 'default',
-			draggable: false
-		});		
+        var stage = new Konva.Stage({
+            container: 'konvaContainer',
+            width: size.width,
+            height: size.height,
+            cursor: 'default',
+            draggable: false
+        });
 
-		// creating the model object
-		var model = null;
+        // creating the model object
+        var model = null;
 
-        // Multifunction Button click event
+        // Run multi Button click event
         function run(){
             if (stage.getLayers().length === 0) {
-                if (model === null) model = new hcModel(userName);
+                if (model === null) model = new ccLFSRModel(userName)
                 if(ckeckParam()) $('#multiBtn').html(lang.gn.resetMdlBtn);
             }
             else{
                 $('#multiBtn').html(lang.gn.openMdlBtn);
                 model.reset();
-                model=null;
+                model = null;
             }
         }
-		
-		//check for correct code parameters
-		function ckeckParam(){
-			let codeParam ={
-				m: Number(document.getElementById('infoBitNum').value),
-				k: Number(document.getElementById('parityBitNum').value),
-				n: Number(document.getElementById('cwBitNum').value),
-				t: Number(document.getElementById('errDetectNum').value),
-                process: document.querySelector('input[name="process"]:checked').value,
+
+        // for test
+        $('#selGenPolyBtn').attr('val','4.3');
+        $('#selGenPolyBtn').attr('name','X^5 + X^4 + X^2 + 1');
+        $('#selGenPolyBtn').html('x<sup>5</sup>+x<sup>4</sup>+x<sup>2</sup>+1');
+
+
+        //check for correct code parameters
+        function ckeckParam(){
+            let codeParam ={
+                m: Number(document.getElementById('infoBitNum').value),
+                k: Number(document.getElementById('parityBitNum').value),
+                n: Number(document.getElementById('cwBitNum').value),
+                t: Number(document.getElementById('errDetectNum').value),
+                genPoly: {val: $('#selGenPolyBtn').attr('val'), txt:  $('#selGenPolyBtn').attr('name')},
                 lang: document.querySelector('input[name="lang"]:checked').value
-			};
-			let check = model.checkParam(codeParam);
-			if (check === true){ // if parameters is right run the below
+            };
 
-				let layers = model.init();
+            let check = model.checkParam(codeParam);
+            if (check === true){ // if parameters is right run the below
+                let layers = model.init();
                 layers.forEach(layer => { stage.add(layer);});
+                model.stat.userName = userName;
 
-				model.stat.userName = userName;
-				document.getElementById('infoBitNum').disabled=true;
-				document.getElementById('parityBitNum').disabled=true;
-				document.getElementById('cwBitNum').disabled=true;
-				document.getElementById('errDetectNum').disabled=true;
-                document.getElementsByName("lang")[0].disabled = true;
-                document.getElementsByName("lang")[1].disabled = true;
-                document.getElementsByName("process")[0].disabled = true;
-                document.getElementsByName("process")[1].disabled = true;
+                $( "#infoBitNum" ).prop( "disabled", true );
+                $( "#parityBitNum" ).prop( "disabled", true );
+                $( "#cwBitNum" ).prop( "disabled", true );
+                $( "#errDetectNum" ).prop( "disabled", true );
+                $( "#selGenPolyBtn" ).prop( "disabled", true );
                 return true;
             }
-			else{
+            else{
                 model.stat.error.add(check);
-                $(".ui-dialog-titlebar-close").show();
                 $("#msgDialog").dialog('option','title', lang.gn.error);
                 $("#msgDialog").css({'color':'red'});
                 $("#msgDialog").html(check+' !');
                 $("#msgDialog").dialog({show : 'shake'});
                 $("#msgDialog").dialog('open');
-                return false;
             }
-		}
+            return false;
+        }
 
         // execute when info bit numbers change
         function calcSize(){
@@ -199,6 +209,20 @@
             return size;
         }
 
+        function changeDivSize(){
+            let size = calcSize();
+            let currDivSize={   width: document.getElementById("scroll-container").clientWidth,
+                height: document.getElementById("scroll-container").clientHeight};
+            if(currDivSize.width < size.width) {
+                document.getElementById('scroll-container').setAttribute('class','width');
+                document.getElementById('scroll-container').style.width = size.width+'px';
+            }
+
+            if(currDivSize.height < size.height) {
+                document.getElementById('scroll-container').setAttribute("style","height:"+size.height+"px");
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function(){
             changeDivSize();
             langChange();
@@ -208,6 +232,5 @@
             $( "#errDetectNum" ).prop( "disabled", true );
         }, false);
 
-        // inserting task tabs after the model tittle div
-        var tasks = new Tasks('hcModel', 'modelTitle');
-</script>
+        var tasks = new Tasks('ccLFSRModel', 'modelTitle');
+	</script>
