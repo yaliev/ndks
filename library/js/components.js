@@ -7552,11 +7552,13 @@ function XOR(props){
 
 //sent data to data base
 function sentData (params){
-    let url='';
-    let local // true = localhost; false = public (ciot.uni-ruse.bg)
+    let url=''; // url to php script
+    let local  // true = localhost; false = public (ciot.uni-ruse.bg)
     // check for localhost by href
-    if((window.location.href).split('//')[1].split('/')[0] !== 'localhost') local = false;
-    else local = true;
+    let currHref = (window.location.href).split('//')[1].split('/')[0];
+    console.log(currHref);
+    if(currHref === 'localhost') local = true;
+    else local = false;
     if(local){
         params.dbServerName = 'localhost';
         url = 'php/logToDB.php';
