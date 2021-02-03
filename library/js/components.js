@@ -7566,9 +7566,8 @@ function sentData (params){
         url:'https://ciot.uni-ruse.bg/ndks/logToDB.php',
         type:'post',
         data:$(form).serialize(),
-        success:function(){
-            console.log("Data are sent");
-            return true;
+        success:function(response){
+            console.log(response.message);
         }
     });
 }

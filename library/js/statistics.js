@@ -150,14 +150,14 @@ createStatistics = function(lang){
 
 	stat.logData = function(test=false){
 		let data = {};
-		data = {fileName: stat.userName,
+		data = {userName: stat.userName,
 				modelName: stat.modelName,
 				time: (stat.timer.min*60 + stat.timer.sec),
 				errCount: stat.error.count,
 				errDetails:stat.error.history};
 
 		if(test){
-			data = {fileName: 'testUser',
+			data = {userName: 'testUser',
 					modelName: 'testModelName',
 					time: '00:00',
 					errCount: '0',
