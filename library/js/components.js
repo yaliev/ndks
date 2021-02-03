@@ -7552,6 +7552,16 @@ function XOR(props){
 
 //sent data to data base
 function sentData (params){
+    let url='';
+    let local = true; // true = localhost; false = public (ciot.uni-ruse.bg)
+    if(local){
+        params.dbServerName = 'localhost';
+        url = 'php/logToDB.php';
+    }else{
+        params.dbServerName = '172.20.138.121';
+        url = 'https://ciot.uni-ruse.bg/ndks/logToDB.php';
+    }
+
     const form = document.createElement('form');
     for (const key in params) {
         if (params.hasOwnProperty(key)) {
@@ -7563,13 +7573,16 @@ function sentData (params){
         }
     }
     $.ajax({
-        url:'https://ciot.uni-ruse.bg/ndks/logToDB.php',
+        url: url,
         type:'post',
         data:$(form).serialize(),
         success:function(response){
-            console.log(response.message);
+            console.log('Data are sent!');
+            console.log('Ajax response: ',response);
         }
     });
+    console.log('url: '+ url);
+    console.log('params.dbServerName: '+ params.dbServerName);
 }
 
 // Hamming Encoder, return codeword;
