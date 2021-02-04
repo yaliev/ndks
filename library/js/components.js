@@ -8449,7 +8449,8 @@ function initialOpening(){
             }
         }
         $.ajax({
-            headers: { 'Access-Control-Allow-Origin': '*' },
+            header: { 'Access-Control-Allow-Origin': '*' },
+            //header: {'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept' },
             url: host.url+'login.php',
             type:'post',
             data:$(form).serialize(),
