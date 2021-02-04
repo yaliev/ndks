@@ -8449,7 +8449,7 @@ function initialOpening(){
             }
         }
         $.ajax({
-            headers: { 'Access-Control-Allow-Origin': 'https://yaliev.github.io/ndks/' },
+            headers: { 'Access-Control-Allow-Origin': 'http://ciot.uni-ruse.bg/' },
             url: host.url+'login.php',
             type:'post',
             data:$(form).serialize(),
