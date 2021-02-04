@@ -8449,7 +8449,7 @@ function initialOpening(){
             }
         }
         $.ajax({
-            headers: { 'Access-Control-Allow-Origin': 'http://ciot.uni-ruse.bg/' },
+            headers: { 'Access-Control-Allow-Origin': '*' },
             url: host.url+'login.php',
             type:'post',
             data:$(form).serialize(),
