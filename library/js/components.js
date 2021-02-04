@@ -8449,6 +8449,7 @@ function initialOpening(){
             }
         }
         $.ajax({
+            headers: { 'Access-Control-Allow-Origin': 'https://ciot.uni-ruse.bg/' },
             url: host.url+'login.php',
             type:'post',
             data:$(form).serialize(),
@@ -8501,7 +8502,7 @@ function initialOpening(){
 
     // set the loginDiv as dialog
     loginDiv.dialog({
-        autoOpen : true, modal : true, show : "blind", hide : "blind",
+        autoOpen : false, modal : true, show : "blind", hide : "blind",
         minWidth: 320,
         height: 'auto',
         width: 400,
@@ -8540,7 +8541,7 @@ function initialOpening(){
 
 
     // for tests
-    //loginDiv.dialog('open');
+    loginDiv.dialog('open');
     let page = 'hamming-matrix';
 
     langChange(); // set current language
