@@ -17,8 +17,10 @@ function LangPack(thisLang){
     l.bg.gn.passTxt='Парола';
     l.en.gn.wrongUserName='Wrong user name / Fak.№';
     l.bg.gn.wrongUserName='Грешно потребителско име / Фак.№';
-    l.en.gn.wrongPass='Wrong password!';
-    l.bg.gn.wrongPass='Грешна парола!';
+    l.en.gn.userNotFaund='Username is not found';
+    l.bg.gn.userNotFaund='Потребителското име не е намерено';
+    l.en.gn.wrongPass='Wrong password';
+    l.bg.gn.wrongPass='Грешна парола';
 
     l.en.gn.ccLFSRLabel='LFSR Encoder';
     l.bg.gn.ccLFSRLabel='LFSR Кодер';

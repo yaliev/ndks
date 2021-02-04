@@ -150,21 +150,13 @@ createStatistics = function(lang){
 
 	stat.logData = function(test=false){
 		let data = {};
-		data = {userName: stat.userName,
+		//data = {userName: stat.userName,
+		data = {userId: session.user.id,
 				modelName: stat.modelName,
 				time: (stat.timer.min*60 + stat.timer.sec),
 				errCount: stat.error.count,
 				errDetails:stat.error.history};
-
-		if(test){
-			data = {userName: 'testUser',
-					modelName: 'testModelName',
-					time: '00:00',
-					errCount: '0',
-					errDetails:['Error 1','Error 2']};
-			console.log('Log test data : ', data);
-		}
-		console.log(sentData(data));
+		sentData(data)
 	};
 	return stat;
 };

@@ -7550,22 +7550,43 @@ function XOR(props){
     return xor;
 }//end of XOR
 
-//sent data to data base
-function sentData (params){
+function getHost(){
     let url=''; // url to php script
+    let dbServerName=''
     let local  // true = localhost; false = public (ciot.uni-ruse.bg)
     // check for localhost by href
     let currHref = (window.location.href).split('//')[1].split('/')[0];
-    console.log(currHref);
     if(currHref === 'localhost') local = true;
     else local = false;
     if(local){
-        params.dbServerName = 'localhost';
-        url = 'php/logToDB.php';
+        dbServerName = 'localhost';
+        url = 'php/';
     }else{
-        params.dbServerName = '172.20.138.121';
-        url = 'https://ciot.uni-ruse.bg/ndks/logToDB.php';
+        dbServerName = '172.20.138.121';
+        url = 'https://ciot.uni-ruse.bg/ndks/';
     }
+    return {dbServerName: dbServerName, url:url};
+}
+
+//sent data to data base
+function sentData (params){
+    // let url=''; // url to php script
+    // let local  // true = localhost; false = public (ciot.uni-ruse.bg)
+    // // check for localhost by href
+    // let currHref = (window.location.href).split('//')[1].split('/')[0];
+    // if(currHref === 'localhost') local = true;
+    // else local = false;
+    // if(local){
+    //     params.dbServerName = 'localhost';
+    //     url = 'php/logToDB.php';
+    // }else{
+    //     params.dbServerName = '172.20.138.121';
+    //     url = 'https://ciot.uni-ruse.bg/ndks/logToDB.php';
+    // }
+
+    let host = getHost();
+    let url = host.url;
+    params.dbServerName = host.dbServerName;
 
     const form = document.createElement('form');
     for (const key in params) {
@@ -7578,7 +7599,7 @@ function sentData (params){
         }
     }
     $.ajax({
-        url: url,
+        url: url+'logToDB.php',
         type:'post',
         data:$(form).serialize(),
         success:function(response){
@@ -7586,8 +7607,6 @@ function sentData (params){
             console.log('Ajax response: ',response);
         }
     });
-    console.log('url: '+ url);
-    console.log('params.dbServerName: '+ params.dbServerName);
 }
 
 // Hamming Encoder, return codeword;
@@ -8310,27 +8329,35 @@ function initialOpening(){
     // login dialog
     let loginDiv = $("<div id='loginDiv' title='Login'></div>").appendTo('body');
     let loginForm = $("<form id='loginForm' method='post'></form>").appendTo(loginDiv);
-    loginForm.append("<p class='validateTips' id='wrongUserName'></p>");
-    $("#wrongUserName").css({'display':'none'});
-    let fieldset1 =  $("<fieldset></fieldset>").appendTo(loginForm);
-    fieldset1.append("<legend id='userNameTxt'>User name</legend>");
-    fieldset1.append("<input type='text' class='text ui-widget-content ui-corner-all' id='userName' name='userName'>");
 
-    let fieldset2 =  $("<fieldset></fieldset>").appendTo(loginForm);
-    fieldset2.append("<legend id='selLang'>Select a language</legend>");
-    fieldset2.append("<label for='langBG'>Български</label>");
-    fieldset2.append("<input type='radio' name='lang' id='langBG' value='bg' checked>");
-    fieldset2.append("<label for='langEN'>English</label>");
-    fieldset2.append("<input type='radio' name='lang' id='langEN' value='en'>");
+    let fieldset1 =  $("<div class='form-group'></div>").appendTo(loginForm);
+    fieldset1.append("<legend for='userName' id='userNameTxt'>User name</legend>");
+    fieldset1.append("<input type='text' class='form-control' id='userName' name='userName'>");
+
+    let fieldset2 =  $("<div class='form-group'></div>").appendTo(loginForm);
+    fieldset2.append("<legend id='passTxt'>Password</legend>");
+    fieldset2.append("<input type='password' name='password' id='password' value='' class='form-control' placeholder='За студенти без парола'>");
+
+    //$("<hr>").appendTo(loginForm);
+    let fieldset3 =  $("<div class='form-group'></div>").appendTo(loginForm);
+    fieldset3.append("<legend id='selLang'>Select a language</legend>");
+    fieldset3.append("<label for='langBG'>Български</label>");
+    fieldset3.append("<input class='form-control' type='radio' name='lang' id='langBG' value='bg' checked>");
+    fieldset3.append("<label for='langEN'>English</label>");
+    fieldset3.append("<input class='form-control' type='radio' name='lang' id='langEN' value='en'>");
+
+    loginForm.append("<p class='validateTips' id='loginErrMsg'></p>");
+    $("#loginErrMsg").css({'display':'none'});
+
 
     // password dialog
     let passDiv = $("<div id='passDiv' title='Set password'></div>").appendTo('body');
     let passForm = $("<form></form>").appendTo(passDiv);
     passForm.append("<p class='validateTips' id='wrongPass'></p>")
     $("#wrongPass").css({'display':'none'});
-    let fieldset3 =  $("<fieldset></fieldset>").appendTo(passForm);
-    fieldset3.append("<legend id='passTxt'>Password</legend>");
-    fieldset3.append("<input type='password' name='password' id='password' value='???????' class='text ui-widget-content ui-corner-all'>");
+    let fieldset4 =  $("<fieldset></fieldset>").appendTo(passForm);
+    fieldset4.append("<legend id='passTxt'>Password</legend>");
+    fieldset4.append("<input type='password' name='password' id='password' value='???????' class='text ui-widget-content ui-corner-all'>");
 
 
     // MESSAGE DIALOG
@@ -8404,46 +8431,85 @@ function initialOpening(){
     });
 
     // login button click event
-    loginBtnEvent = function() {
-        $('#wrongUserName').css('display', 'none'); // hide the wrong pass message
+    loginBtnEvent = function(){
+        $("<div class='loader' id='loader'></div>").appendTo(loginForm);
+        $('#loginErrMsg').css('display', 'none'); // hide the wrong pass message
         let user = $('#userName').val();
-        if(user === 'yaliev' || user === 'earsova' || user === 'givanova'){
-            $("#passDiv").dialog('open');
-            userName = user;
-        }
-        else{
-            if(user.length !== 6){
-                $("#wrongUserName").css('display', 'inline');
-                $("#wrongUserName").effect( 'shake', effectCallback );
-                return;
+        let password = $.MD5($('#password').val());
+        let host = getHost();
+        const form = document.createElement('form');
+        let params = {userName:user, dbServerName: host.dbServerName, password: password};
+        for (const key in params) {
+            if (params.hasOwnProperty(key)) {
+                const hiddenField = document.createElement('input');
+                hiddenField.type = 'hidden';
+                hiddenField.name = key;
+                hiddenField.value = params[key];
+                form.appendChild(hiddenField);
             }
-            $("#loginDiv" ).dialog('close');
-            userName = user;
-            loadPage('models');
         }
+        $.ajax({
+            url: host.url+'login.php',
+            type:'post',
+            data:$(form).serialize(),
+            success:function(response){
+                //console.log('response = ', response);
+                let res = jQuery.parseJSON(response);
+                $('#loader').remove();
+                loginResCheck(res);
+            }
+        });
+
+        return;
+        // if(user === 'yaliev' || user === 'earsova' || user === 'givanova'){
+        //     $("#passDiv").dialog('open');
+        //     userName = user;
+        // }
+        // else{
+        //     if(user.length !== 6){
+        //         $("#wrongUserName").css('display', 'inline');
+        //         $("#wrongUserName").effect( 'shake', effectCallback );
+        //         return;
+        //     }
+        //     $("#loginDiv" ).dialog('close');
+        //     userName = user;
+        //     loadPage('models');
+        // }
     };
+
+    loginResCheck = function(res){
+        if(typeof res !== 'object'){
+            let tag = $("#loginErrMsg");
+            if(res === 'userNotFound') tag.text(lang.gn.userNotFaund);
+            else if(res === 'wrongPass') tag.text(lang.gn.wrongPass);
+            else console.log(res);
+            tag.css('display', 'inline');
+            tag.effect( 'shake', effectCallback );
+            return;
+        }
+        session.user = res;
+        $("#loginDiv" ).dialog('close');
+        $("#loginErrMsg").css('display', 'none');
+        loadPage('models');
+    }
 
     // Load page function
     loadPage = function(pageName){
-
        $("#content").load('pages/'+pageName+'.html');
+       try{session.lastPage = pageName;} catch (e){}
     }
 
     // set the loginDiv as dialog
     loginDiv.dialog({
-        autoOpen : false, modal : true, show : "blind", hide : "blind",
+        autoOpen : true, modal : true, show : "blind", hide : "blind",
         minWidth: 320,
-        maxWidth: 320,
         height: 'auto',
-        width: 'auto',
-        buttons: {
-            'login': loginBtnEvent
-        },
+        width: 400,
+        buttons: { 'login': loginBtnEvent },
         open: function (event, ui) {
             $( this ).parent().find(".ui-dialog-titlebar-close" ).remove();
         },
     });
-
 
     // set the passDiv as dialog
     passDiv.dialog({
@@ -8472,15 +8538,20 @@ function initialOpening(){
     //hide the dialogs' close icon
     //$(".ui-dialog-titlebar-close").hide();
 
-    langChange(); // set current language
 
     // for tests
     //loginDiv.dialog('open');
+    let page = 'hamming-matrix';
+
+    langChange(); // set current language
+    let session = {user:{id:'1', name:'yaliev'}, lastPage:page };
 
     //loadPage('models');
     //loadPage('hamming-general');
-    loadPage('hamming-matrix');
+    //loadPage(page);
     //loadPage('cyclic-polynomial');
     //loadPage('cyclic-lfsr');
+
+    return session;
 
 }// end of initialOpening
